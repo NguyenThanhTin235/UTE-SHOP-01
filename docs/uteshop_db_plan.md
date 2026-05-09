@@ -1,6 +1,6 @@
 # Kế hoạch Thiết kế Cơ sở Dữ liệu UTEShop
 
-Tài liệu này trình bày bản thảo thiết kế các thực thể (Entities) và thuộc tính (Attributes) cho hệ thống thương mại điện tử nội bộ UTEShop. Thiết kế tuân thủ các tiêu chuẩn chuẩn hóa (3NF) và các best practices từ bộ kỹ năng `database-schema-designer`.
+Tài liệu này trình bày bản thảo thiết kế các thực thể (Entities) và thuộc tính (Attributes) cho hệ thống thương mại điện tử UTEShop. Thiết kế tuân thủ các tiêu chuẩn chuẩn hóa (3NF) và các best practices từ bộ kỹ năng `database-schema-designer`.
 
 ---
 
@@ -17,8 +17,8 @@ Quản lý tài khoản cho tất cả các vai trò (Admin, Vendor, Customer, S
 | `password` | VARCHAR(255) | NOT NULL | Lưu hash bcrypt |
 | `phone` | VARCHAR(15) | | |
 | `role` | ENUM | NOT NULL | admin, vendor, customer, shipper |
-| `student_id` | VARCHAR(20) | | Dùng cho sinh viên |
-| `faculty` | VARCHAR(100) | | Khoa/Phòng ban |
+| `student_id` | VARCHAR(20) | | Mã số sinh viên (nếu có) |
+| `faculty` | VARCHAR(100) | | Khoa/Phòng ban (nếu có) |
 | `avatar_url` | VARCHAR(255) | | |
 | `status` | ENUM | DEFAULT 'pending'| pending, active, locked, inactive |
 | `failed_login_attempts`| INT | DEFAULT 0 | Số lần nhập sai mật khẩu |
@@ -162,7 +162,7 @@ Quản lý các chương trình khuyến mãi theo thời điểm.
 | `id` | BIGINT | PK | |
 | `campaign_id` | BIGINT | FK (Campaigns.id) | |
 | `product_id` | BIGINT | FK (Products.id) | Nhắm mục tiêu sản phẩm |
-| `target_type` | VARCHAR(50) | | 'faculty', 'student_year'... |
+| `target_type` | VARCHAR(50) | | 'group', 'interest'... |
 | `created_at` | TIMESTAMP | | |
 
 ### 3.3 Mã giảm giá (Coupons)

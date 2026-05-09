@@ -1,20 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const auth = require('../middleware/auth');
+const { verifyToken } = require('../middleware/authMiddleware');
+const { isAdmin, isVendor, isShipper } = require('../middleware/roleMiddleware');
 
 /**
- * @route   GET /api/users/profile
- * @desc    Lấy thông tin cá nhân hiện tại
- * @access  Private
+ * ── PROFILE MANAGEMENT ──
  */
-router.get('/profile', auth, userController.getProfile);
+
+// Lấy thông tin cá nhân hiện tại
+router.get('/profile', verifyToken, userController.getProfile);
+
+// Cập nhật thông tin cá nhân (UC04 + Avatar, Student Info)
+router.put('/profile', verifyToken, userController.updateProfile);
+
+// Đổi mật khẩu (Chủ động)
+router.put('/profile/change-password', verifyToken, userController.changePassword);
 
 /**
- * @route   PUT /api/users/profile
- * @desc    Cập nhật thông tin cá nhân (UC04)
- * @access  Private
+ * ── ADDRESS MANAGEMENT ──
  */
-router.put('/profile', auth, userController.updateProfile);
+
+// Thêm địa chỉ mới
+router.post('/addresses', verifyToken, userController.addAddress);
+
+// Cập nhật địa chỉ
+router.put('/addresses/:addressId', verifyToken, userController.updateAddress);
+
+// Xóa địa chỉ
+router.delete('/addresses/:addressId', auth, userController.removeAddress);
 
 module.exports = router;

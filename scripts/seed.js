@@ -42,7 +42,7 @@ const seedData = async () => {
       address: '01 Võ Văn Ngân, Linh Chiểu, Thủ Đức, TP.HCM',
       phone: '02837221223',
       logo_url: 'https://ute.edu.vn/logo.png',
-      description: 'Cửa hàng chính thức của trường ĐH Sư phạm Kỹ thuật TP.HCM'
+      description: 'Cửa hàng thương mại điện tử uy tín, cung cấp sản phẩm chất lượng cao cho mọi khách hàng.'
     });
 
     // 3. Seed Users (5 người dùng với các vai trò khác nhau)
@@ -58,11 +58,11 @@ const seedData = async () => {
 
     // 4. Seed Categories (5 danh mục)
     const categories = await Category.insertMany([
-      { name: 'Đồng phục', slug: 'dong-phuc', description: 'Đồ đồng phục các khoa' },
-      { name: 'Sách & Giáo trình', slug: 'sach-giao-trinh', description: 'Tài liệu học tập chính quy' },
-      { name: 'Văn phòng phẩm', slug: 'van-phong-pham', description: 'Bút, vở, dụng cụ học tập' },
-      { name: 'Quà lưu niệm', slug: 'qua-luu-niem', description: 'Gấu bông, móc khóa logo UTE' },
-      { name: 'Đồ điện tử', slug: 'do-dien-tu', description: 'Chuột, bàn phím, phụ kiện máy tính' }
+      { name: 'Đồng phục & Thời trang', slug: 'dong-phuc-thoi-trang', description: 'Trang phục học đường và thời trang hiện đại' },
+      { name: 'Sách & Giáo trình', slug: 'sach-giao-trinh', description: 'Tài liệu học tập và sách tham khảo' },
+      { name: 'Văn phòng phẩm', slug: 'van-phong-pham', description: 'Bút, vở, dụng cụ văn phòng' },
+      { name: 'Quà lưu niệm', slug: 'qua-luu-niem', description: 'Gấu bông, quà tặng độc đáo' },
+      { name: 'Đồ điện tử', slug: 'do-dien-tu', description: 'Phụ kiện máy tính và đồ công nghệ' }
     ]);
 
     // 5. Seed Products (5 sản phẩm)

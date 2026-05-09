@@ -29,9 +29,6 @@
 | **Business Rules** | - BR01-1: Mã OTP chỉ bao gồm 6 chữ số ngẫu nhiên và có thời gian hiệu lực giới hạn.<br>- BR01-2: Mật khẩu phải đáp ứng độ dài tối thiểu và độ phức tạp an toàn. |
 | **Non-Functional** | - NFR01-1: Hệ thống gửi Email chứa mã OTP trong thời gian không quá 5 giây kể từ lúc nhấn nút. |
 
-#### 1.2. Sequence diagram
-*(Sơ đồ tuần tự được đính kèm trong tài liệu gốc)*
-
 ---
 
 ### 2. Chức năng Đăng nhập (Login)
@@ -53,55 +50,61 @@
 | **Business Rules** | - BR02-1: Quyền hạn điều hướng trang (URL trả về) phụ thuộc tuyệt đối vào cấp độ định danh của người dùng lưu trong hệ thống, người dùng không thể tự can thiệp. |
 | **Non-Functional** | - NFR02-1: Về mặt kỹ thuật, "Phiên làm việc" phải được quản lý bằng chuẩn mã hóa JSON Web Token (JWT).<br>- NFR02-2: Mật khẩu của người dùng bắt buộc phải được mã hóa bằng BCrypt khi đối chiếu. |
 
-#### 2.2. Sequence diagram
-*(Sơ đồ tuần tự được đính kèm trong tài liệu gốc)*
-
 ---
 
-### 3. Chức năng Quên mật khẩu (Forgot Password)
+### 3. Chức năng Quên mật khẩu & Đổi mật khẩu
 #### 3.1. Đặc tả UC03: Quên mật khẩu (Forgot Password)
 
 | Trường | Nội dung |
 | :--- | :--- |
 | **Use Case ID** | UC03 |
-| **Use Case Name** | Đổi / Quên mật khẩu |
-| **Description** | Là một Người dùng, tôi muốn thiết lập lại mật khẩu khi bị quên hoặc chủ động đổi mật khẩu để bảo vệ an toàn cho tài khoản cá nhân. |
+| **Use Case Name** | Quên mật khẩu |
+| **Description** | Là một Người dùng, tôi muốn thiết lập lại mật khẩu khi bị quên thông qua mã xác thực gửi về Email. |
 | **Actor(s)** | Người dùng (User), Quản trị viên (Admin) |
 | **Priority** | Should Have |
-| **Trigger** | Người dùng nhấn vào liên kết "Quên mật khẩu" ở màn hình Đăng nhập, hoặc chọn "Đổi mật khẩu" trong Quản lý tài khoản. |
+| **Trigger** | Người dùng nhấn vào liên kết "Quên mật khẩu" ở màn hình Đăng nhập. |
 | **Pre-Condition(s)** | Người dùng phải truy cập được vào hòm thư Email đã đăng ký. |
 | **Post-Condition(s)** | Mật khẩu mới được cập nhật thành công vào cơ sở dữ liệu. |
 | **Basic Flow** | 1. Người dùng chọn lệnh "Quên mật khẩu" tại màn hình Đăng nhập.<br>2. Hệ thống yêu cầu cung cấp Email định danh.<br>3. Người dùng nhập Email và chọn lệnh "Gửi mã xác thực".<br>4. Hệ thống kiểm tra tần suất yêu cầu để chống spam, sau đó tra cứu thông tin và gửi mã OTP xác nhận về hòm thư Email.<br>5. Người dùng nhập mã OTP và nhập Mật khẩu mới mong muốn.<br>6. Hệ thống xác thực OTP. Nếu hợp lệ, hệ thống tiến hành mã hóa bảo mật mật khẩu mới và ghi đè lên dữ liệu cũ.<br>7. Hệ thống thông báo cập nhật thành công và đưa người dùng về lại trang Đăng nhập. |
-| **Alternative Flow** | Không có |
 | **Exception Flow** | 4a. Gửi quá nhiều yêu cầu (Rate Limiting): Hệ thống chặn lệnh gửi mã OTP và báo lỗi "Bạn đã thao tác quá nhiều lần. Vui lòng thử lại sau".<br>4b. Email không tồn tại: Hệ thống báo lỗi "Tài khoản Email không tồn tại" và chặn lệnh gửi mã. |
-| **Business Rules** | - BR03-1: Mật khẩu bắt buộc phải có độ dài tối thiểu 8 ký tự, có chữ số và ký tự đặc biệt để đảm bảo tiêu chuẩn an toàn. |
-| **Non-Functional** | - NFR03-1: Mật khẩu mới tuyệt đối không được lưu dưới dạng văn bản thô. Backend bắt buộc phải băm (hash) bằng thuật toán BCrypt trước khi lưu vào Database. |
 
-#### 3.2. Sequence diagram
-*(Sơ đồ tuần tự được đính kèm trong tài liệu gốc)*
+#### 3.2. Đặc tả UC03-B: Đổi mật khẩu (Change Password)
+
+| Trường | Nội dung |
+| :--- | :--- |
+| **Use Case ID** | UC03-B |
+| **Use Case Name** | Đổi mật khẩu |
+| **Description** | Là một Người dùng đang đăng nhập, tôi muốn chủ động đổi mật khẩu để tăng tính bảo mật. |
+| **Actor(s)** | Người dùng (User), Admin, Vendor, Shipper |
+| **Priority** | Should Have |
+| **Trigger** | Người dùng chọn "Đổi mật khẩu" trong phần Quản lý tài khoản. |
+| **Pre-Condition(s)** | Người dùng đã đăng nhập. |
+| **Post-Condition(s)** | Mật khẩu được cập nhật thành công. |
+| **Basic Flow** | 1. Người dùng vào trang "Đổi mật khẩu".<br>2. Nhập Mật khẩu cũ và Mật khẩu mới (2 lần).<br>3. Hệ thống kiểm tra Mật khẩu cũ có khớp không.<br>4. Nếu khớp, hệ thống hash mật khẩu mới và lưu vào DB. |
+| **Exception Flow** | 3a. Mật khẩu cũ sai: Hệ thống báo lỗi.<br>4a. Mật khẩu mới không đúng định dạng an toàn: Hệ thống yêu cầu nhập lại. |
 
 ---
 
-### 4. Chức năng Cập nhật thông tin cá nhân (Edit Profile)
+### 4. Chức năng Cập nhật hồ sơ & Địa chỉ
 #### 4.1. Đặc tả UC04: Cập nhật thông tin cá nhân (Edit Profile)
 
 | Trường | Nội dung |
 | :--- | :--- |
 | **Use Case ID** | UC04 |
 | **Use Case Name** | Cập nhật thông tin cá nhân |
-| **Description** | Là một Người dùng, tôi muốn cập nhật thông tin cá nhân của mình để hệ thống lưu trữ đúng dữ liệu liên lạc phục vụ cho quá trình xác thực và chăm sóc. |
+| **Description** | Cập nhật thông tin cơ bản: Họ tên, Số điện thoại, Ảnh đại diện, Thông tin sinh viên (nếu có). |
 | **Actor(s)** | Người dùng (User) |
 | **Priority** | Must Have |
-| **Trigger** | Người dùng truy cập vào Menu "Tài khoản của tôi" và chọn tab "Hồ sơ cá nhân". |
-| **Pre-Condition(s)** | Người dùng đã đăng nhập vào hệ thống và đang sở hữu phiên làm việc (Token) còn hiệu lực. |
-| **Post-Condition(s)** | Thông tin cá nhân mới được cập nhật thành công vào cơ sở dữ liệu. |
-| **Basic Flow** | 1. Người dùng truy cập tab "Hồ sơ cá nhân".<br>2. Hệ thống xác thực danh tính người dùng thông qua phiên làm việc hiện tại.<br>3. Nếu hợp lệ, hệ thống truy xuất dữ liệu cá nhân tương ứng và hiển thị trên biểu mẫu (Form).<br>4. Người dùng thực hiện chỉnh sửa các trường thông tin mong muốn (Họ tên, Số điện thoại).<br>5. Người dùng nhấn nút "Lưu thay đổi".<br>6. Hệ thống kiểm tra tính hợp lệ của dữ liệu đầu vào.<br>7. Hệ thống ghi nhận thông tin mới vào cơ sở dữ liệu.<br>8. Hệ thống hiển thị thông báo "Cập nhật thành công" và làm mới lại dữ liệu hiển thị. |
-| **Alternative Flow** | Không có. |
-| **Exception Flow** | 2a. Lỗi xác thực (Authentication): Nếu phiên làm việc (Token) không hợp lệ, bị giả mạo hoặc đã hết hạn, hệ thống sẽ từ chối truy cập, trả về lỗi "Unauthorized" và yêu cầu đăng nhập lại.<br>6a. Thiếu thông tin (Validation): Người dùng bỏ trống trường thông tin bắt buộc (Họ tên) hoặc sai định dạng. Hệ thống hiển thị thông báo lỗi bôi đỏ tại trường tương ứng và chặn lệnh lưu. |
-| **Business Rules** | - BR04-1: Người dùng không được phép thay đổi Email đăng nhập. Trường Email được đặt ở chế độ Read-only (Chỉ đọc) trên giao diện. |
-| **Non-Functional** | *(Để trống)* |
+| **Basic Flow** | 1. Người dùng vào tab "Hồ sơ cá nhân".<br>2. Chỉnh sửa thông tin.<br>3. Hệ thống lưu và thông báo thành công. |
 
-#### 4.2. Sequence diagram
-*(Sơ đồ tuần tự được đính kèm trong tài liệu gốc)*
+#### 4.2. Đặc tả UC04-B: Quản lý địa chỉ (Address Management)
 
----
+| Trường | Nội dung |
+| :--- | :--- |
+| **Use Case ID** | UC04-B |
+| **Use Case Name** | Quản lý địa chỉ nhận hàng |
+| **Description** | Quản lý danh sách nhiều địa chỉ để thuận tiện khi đặt hàng. |
+| **Actor(s)** | Người dùng (User) |
+| **Priority** | Must Have |
+| **Basic Flow** | 1. Người dùng vào phần "Địa chỉ của tôi".<br>2. Có thể Thêm mới, Sửa hoặc Xóa địa chỉ.<br>3. Có thể thiết lập 1 địa chỉ làm mặc định. |
+| **Business Rules** | - BR04-B1: Nếu xóa địa chỉ mặc định, hệ thống tự động chọn địa chỉ khác làm mặc định. |
