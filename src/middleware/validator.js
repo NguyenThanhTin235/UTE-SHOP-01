@@ -17,7 +17,7 @@ const validate = (req, res, next) => {
   return res.status(422).json({
     success: false,
     code: 422,
-    message: 'Dữ liệu không hợp lệ',
+    message: 'Invalid data',
     data: null,
     errors: extractedErrors,
     timestamp: Math.floor(Date.now() / 1000)
