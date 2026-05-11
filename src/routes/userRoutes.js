@@ -28,6 +28,6 @@ router.post('/addresses', verifyToken, userController.addAddress);
 router.put('/addresses/:addressId', verifyToken, userController.updateAddress);
 
 // Xóa địa chỉ
-router.delete('/addresses/:addressId', auth, userController.removeAddress);
+router.delete('/addresses/:addressId', verifyToken, userController.removeAddress);
 
 module.exports = router;

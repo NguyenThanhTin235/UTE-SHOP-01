@@ -14,7 +14,7 @@ exports.login = async (req, res) => {
     const result = await authService.authenticate(email, password);
 
     return response.success(res, {
-      message: 'Đăng nhập thành công',
+      message: 'Login successful',
       data: {
         token: result.token,
         user: result.user,
@@ -41,7 +41,7 @@ exports.sendOTP = async (req, res, next) => {
     res.status(200).json({
       success: true,
       code: 200,
-      message: 'Mã OTP đã được gửi đến email của bạn',
+      message: 'OTP has been sent to your email',
       data: null,
       timestamp: Math.floor(Date.now() / 1000)
     });
@@ -67,7 +67,7 @@ exports.register = async (req, res, next) => {
     res.status(201).json({
       success: true,
       code: 201,
-      message: 'Đăng ký tài khoản thành công',
+      message: 'Registration successful',
       data: {
         token: result.token,
         user: {
@@ -98,7 +98,7 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return responseHelper.errorResponse(res, 'Tài khoản Email không tồn tại', 422, { email: 'Email does not exist' });
+      return responseHelper.errorResponse(res, 'Email account does not exist', 422, { email: 'Email does not exist' });
     }
 
     const otpCode = authService.generateOTP ? authService.generateOTP() : Math.floor(100000 + Math.random() * 900000).toString();
@@ -115,7 +115,7 @@ exports.forgotPassword = async (req, res) => {
       await authService.sendOTPEmail(email, otpCode);
     }
 
-    return responseHelper.successResponse(res, 'Mã OTP đã được gửi về email của bạn');
+    return responseHelper.successResponse(res, 'OTP has been sent to your email');
   } catch (error) {
     console.error('Forgot Password Error:', error);
     return responseHelper.errorResponse(res, 'Internal Server Error', 500);
@@ -141,14 +141,14 @@ exports.resetPassword = async (req, res) => {
 
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-      return responseHelper.errorResponse(res, 'Mật khẩu phải từ 8 ký tự, bao gồm chữ số và ký tự đặc biệt', 422, {
+      return responseHelper.errorResponse(res, 'Password must be at least 8 characters, including numbers and special characters', 422, {
         newPassword: 'Password does not meet security requirements'
       });
     }
 
     const isValid = await authService.verifyOTP(email, otp, 'reset_password');
     if (!isValid) {
-      return responseHelper.errorResponse(res, 'Mã OTP không chính xác hoặc đã hết hạn', 422, {
+      return responseHelper.errorResponse(res, 'Invalid or expired OTP code', 422, {
         otp: 'Invalid or expired OTP'
       });
     }
@@ -161,7 +161,7 @@ exports.resetPassword = async (req, res) => {
     user.password = await authService.hashPassword(newPassword);
     await user.save();
 
-    return responseHelper.successResponse(res, 'Mật khẩu đã được cập nhật thành công');
+    return responseHelper.successResponse(res, 'Password has been updated successfully');
   } catch (error) {
     console.error('Reset Password Error:', error);
     return responseHelper.errorResponse(res, 'Internal Server Error', 500);

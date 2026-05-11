@@ -47,25 +47,25 @@ const verifyOTP = async (email, otpCode, type) => {
  */
 const sendOTPEmail = async (email, otpCode) => {
   try {
-    const message = `Mã OTP xác nhận quên mật khẩu của bạn là: ${otpCode}. Mã có hiệu lực trong 10 phút.`;
+    const message = `Your password reset OTP code is: ${otpCode}. It is valid for 10 minutes.`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #2c3e50; text-align: center;">Xác thực tài khoản UTEShop</h2>
-        <p>Chào bạn,</p>
-        <p>Bạn đã yêu cầu thiết lập lại mật khẩu cho tài khoản UTEShop. Dưới đây là mã OTP của bạn:</p>
+        <h2 style="color: #2c3e50; text-align: center;">Verify Your UTEShop Account</h2>
+        <p>Hi there,</p>
+        <p>You have requested to reset your UTEShop password. Here is your OTP code:</p>
         <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #e74c3c; border-radius: 5px; margin: 20px 0;">
           ${otpCode}
         </div>
-        <p>Mã này có hiệu lực trong <b>10 phút</b>. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
-        <p>Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.</p>
+        <p>This code is valid for <b>10 minutes</b>. Please do not share this code with anyone.</p>
+        <p>If you did not make this request, please ignore this email.</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="font-size: 12px; color: #7f8c8d; text-align: center;">Đây là email tự động, vui lòng không trả lời.</p>
+        <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email, please do not reply.</p>
       </div>
     `;
 
     await sendEmail({
       email,
-      subject: '[UTEShop] Mã OTP xác nhận quên mật khẩu',
+      subject: '[UTEShop] Password Reset OTP',
       message,
       html
     });
@@ -83,20 +83,20 @@ const authenticate = async (email, password) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new Error('Email hoặc mật khẩu không chính xác');
+    throw new Error('Invalid email or password');
   }
 
   if (user.lockout_until && new Date() < user.lockout_until) {
     const remainMinutes = Math.ceil((user.lockout_until - new Date()) / (60 * 1000));
-    throw new Error(`Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau ${remainMinutes} phút`);
+    throw new Error(`Account temporarily locked due to too many failed attempts. Try again in ${remainMinutes} minutes`);
   }
 
   if (user.status === 'locked') {
-    throw new Error('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên');
+    throw new Error('Account is locked. Please contact administrator');
   }
   
   if (user.status === 'inactive') {
-    throw new Error('Tài khoản đã bị vô hiệu hóa');
+    throw new Error('Account is disabled');
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -106,10 +106,10 @@ const authenticate = async (email, password) => {
     if (user.failed_login_attempts >= MAX_FAILED_ATTEMPTS) {
       user.lockout_until = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
       await user.save();
-      throw new Error(`Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau ${LOCKOUT_MINUTES} phút`);
+      throw new Error(`Account temporarily locked. Try again in ${LOCKOUT_MINUTES} minutes`);
     }
     await user.save();
-    throw new Error('Email hoặc mật khẩu không chính xác');
+    throw new Error('Invalid email or password');
   }
 
   user.failed_login_attempts = 0;
@@ -146,10 +146,11 @@ const authenticate = async (email, password) => {
 /**
  * Send OTP for Registration
  */
-const sendRegistrationOTP = async (email) => {
+const sendRegistrationOTP = async (emailInput) => {
+  const email = emailInput.trim().toLowerCase();
   const userExists = await User.findOne({ email });
   if (userExists && userExists.status === 'active') {
-    const error = new Error('Email này đã được đăng ký và đang hoạt động. Vui lòng đăng nhập.');
+    const error = new Error('This email is already registered and active. Please login.');
     error.statusCode = 422;
     throw error;
   }
@@ -164,24 +165,24 @@ const sendRegistrationOTP = async (email) => {
     expired_at: expiredAt
   });
 
-  const message = `Mã xác thực OTP của bạn là: ${otpCode}. Mã có hiệu lực trong 5 phút.`;
+  const message = `Your OTP code is: ${otpCode}. Valid for 5 minutes.`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-      <h2 style="color: #007bff; text-align: center;">Xác thực Đăng ký UTEShop</h2>
-      <p>Chào bạn,</p>
-      <p>Cảm ơn bạn đã đăng ký tài khoản tại UTEShop. Đây là mã OTP của bạn:</p>
+      <h2 style="color: #007bff; text-align: center;">Verify Your UTEShop Registration</h2>
+      <p>Hi there,</p>
+      <p>Thank you for registering with UTEShop. Here is your OTP code:</p>
       <div style="font-size: 24px; font-weight: bold; color: #333; text-align: center; padding: 15px; background: #f4f4f4; border-radius: 5px; letter-spacing: 5px;">
         ${otpCode}
       </div>
-      <p style="color: #666; font-size: 14px; text-align: center;">Mã này sẽ hết hạn sau 5 phút.</p>
+      <p style="color: #666; font-size: 14px; text-align: center;">This code will expire in 5 minutes.</p>
       <hr>
-      <p style="font-size: 12px; color: #999; text-align: center;">Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
+      <p style="font-size: 12px; color: #999; text-align: center;">If you did not request this code, please ignore this email.</p>
     </div>
   `;
 
   await sendEmail({
     email,
-    subject: '[UTEShop] Mã xác thực đăng ký tài khoản',
+    subject: '[UTEShop] Registration Verification OTP',
     message,
     html
   });
@@ -193,25 +194,35 @@ const sendRegistrationOTP = async (email) => {
  * Verify OTP and Create User
  */
 const registerUser = async (userData) => {
-  const { full_name, email, password, otp_code } = userData;
+  let { full_name, email, password, otp_code } = userData;
+  email = email.trim().toLowerCase();
+
+  console.log(`[Register] Attempting for ${email} with OTP ${otp_code}`);
 
   const otpRecord = await OTP.findOne({
     email,
     otp_code,
     otp_type: 'register',
-    expired_at: { $gt: new Date() },
     is_verified: false
-  });
+  }).sort({ createdAt: -1 });
 
   if (!otpRecord) {
-    const error = new Error('Mã OTP không chính xác hoặc đã hết hạn');
+    console.log(`[Register] OTP not found or already verified for ${email}`);
+    const error = new Error('Invalid OTP code or already verified');
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (new Date() > otpRecord.expired_at) {
+    console.log(`[Register] OTP expired for ${email}. Expired at: ${otpRecord.expired_at}`);
+    const error = new Error('OTP code has expired');
     error.statusCode = 422;
     throw error;
   }
 
   const userExists = await User.findOne({ email });
   if (userExists && userExists.status === 'active') {
-    const error = new Error('Email đã được đăng ký tài khoản');
+    const error = new Error('Email is already registered');
     error.statusCode = 422;
     throw error;
   }
