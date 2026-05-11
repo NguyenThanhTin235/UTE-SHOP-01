@@ -1,8 +1,8 @@
 {
   "name": "uteshop",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Hệ thống Thương mại Điện tử UTEShop",
+  "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",

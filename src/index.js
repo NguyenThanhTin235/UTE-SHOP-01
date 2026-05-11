@@ -2,12 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
-
-const requestId = require('./middleware/requestId');
 const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/db');
+const requestIdMiddleware = require('./middleware/requestId');
 
+// Initialize app
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -21,15 +22,26 @@ const limiter = rateLimit({
   }
 });
 
-// Middleware
-app.use(express.json());
+// Global Middlewares
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(requestId);
+app.use(requestIdMiddleware);
 app.use('/api', limiter);
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+
+// Health check
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'UTEShop API is running',
+    timestamp: Math.floor(Date.now() / 1000)
+  });
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -45,10 +57,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
-
+// Start Server
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 UTEShop API Server running on http://localhost:${PORT}`);
+    console.log('✅ Database connected and all models initialized.');
   });
+}).catch(err => {
+  console.error('❌ Failed to connect to MongoDB', err);
+  process.exit(1);
 });
