@@ -74,7 +74,8 @@ exports.register = async (req, res, next) => {
           id: result.user._id,
           full_name: result.user.full_name,
           email: result.user.email,
-          role: result.user.role
+          role: result.user.role,
+          avatar_url: result.user.avatar_url || null
         }
       },
       timestamp: Math.floor(Date.now() / 1000)
@@ -165,5 +166,102 @@ exports.resetPassword = async (req, res) => {
   } catch (error) {
     console.error('Reset Password Error:', error);
     return responseHelper.errorResponse(res, 'Internal Server Error', 500);
+  }
+};
+
+/**
+ * @desc    Update user profile
+ * @route   PUT /api/auth/profile
+ */
+exports.updateProfile = async (req, res) => {
+  try {
+    const { fullName, phone, dob, gender } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return response.error(res, {
+        statusCode: 404,
+        message: 'User not found',
+      });
+    }
+
+    user.full_name = fullName || user.full_name;
+    user.phone = phone || user.phone;
+    user.dob = dob || user.dob;
+    user.gender = gender || user.gender;
+
+    const updatedUser = await user.save();
+
+    return response.success(res, {
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: updatedUser._id,
+          full_name: updatedUser.full_name,
+          email: updatedUser.email,
+          avatar_url: updatedUser.avatar_url,
+          phone: updatedUser.phone,
+          dob: updatedUser.dob,
+          gender: updatedUser.gender,
+          role: updatedUser.role,
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Update Profile Error:', err);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Server error while updating profile',
+    });
+  }
+};
+
+/**
+ * @desc    Upload user avatar
+ * @route   POST /api/auth/profile/avatar
+ */
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return response.error(res, {
+        statusCode: 400,
+        message: 'Please upload an image file',
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return response.error(res, {
+        statusCode: 404,
+        message: 'User not found',
+      });
+    }
+
+    // Update avatar URL
+    user.avatar_url = req.file.path;
+    await user.save();
+
+    return response.success(res, {
+      message: 'Avatar uploaded successfully',
+      data: {
+        avatarUrl: req.file.path,
+        user: {
+          id: user._id,
+          full_name: user.full_name,
+          email: user.email,
+          avatar_url: user.avatar_url,
+          phone: user.phone,
+          dob: user.dob,
+          gender: user.gender,
+          role: user.role
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Upload Avatar Error:', err);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Server error while uploading avatar',
+    });
   }
 };

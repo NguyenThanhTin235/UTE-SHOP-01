@@ -42,7 +42,7 @@ const ForgotPassword = () => {
 
   return (
     <Layout>
-      <div className="container-xl d-flex flex-column align-items-center justify-content-center py-5" style={{ minHeight: '70vh' }}>
+      <div className="container-fluid d-flex flex-column align-items-center justify-content-center py-5" style={{ minHeight: '70vh' }}>
         <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border text-center" style={{ maxWidth: '480px', width: '100%' }}>
           {!submitted ? (
             <>

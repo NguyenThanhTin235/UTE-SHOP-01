@@ -180,9 +180,12 @@ const VerifyOTP = () => {
         </p>
       </div>
 
-      <div className="d-flex gap-4 text-muted small fw-bold mb-4" style={{ letterSpacing: '0.5px' }}>
-        <span><i className="fa-regular fa-circle-check me-1"></i> SECURE SSL</span>
-        <span><i className="fa-regular fa-circle-check me-1"></i> ACADEMIC GRADE</span>
+      <div className="mt-4 d-flex gap-4 text-muted small fw-bold" style={{ letterSpacing: '1px', fontSize: '10px' }}>
+        <a href="#" className="text-decoration-none text-muted hover-dark">PRIVACY POLICY</a>
+        <span>&bull;</span>
+        <a href="#" className="text-decoration-none text-muted hover-dark">TERMS OF SERVICE</a>
+        <span>&bull;</span>
+        <a href="#" className="text-decoration-none text-muted hover-dark">HELP CENTER</a>
       </div>
     </Layout>
   );

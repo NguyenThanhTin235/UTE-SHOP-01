@@ -4,6 +4,8 @@ import VerifyOTP from './pages/VerifyOTP';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Profile from './pages/Profile';
+
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -15,7 +17,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        {/* Placeholder for other routes */}
+        <Route path="/user/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
