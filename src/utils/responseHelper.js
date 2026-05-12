@@ -1,40 +1,27 @@
 /**
- * Response Helper to ensure standard API Envelope
- * Following .antigravity/API_CONVENTION.md
+ * Success Response
  */
-
-const sendResponse = (res, { success, code, message, data = null, errors = null, requestId = null }) => {
-  const response = {
-    success,
-    code,
+const successResponse = (res, message, data = null, statusCode = 200) => {
+  return res.status(statusCode).json({
+    success: true,
+    code: statusCode,
     message,
     data,
     timestamp: Math.floor(Date.now() / 1000)
-  };
-
-  if (errors) response.errors = errors;
-  if (requestId) response.requestId = requestId;
-
-  return res.status(code).json(response);
-};
-
-const successResponse = (res, message, data = null, code = 200) => {
-  return sendResponse(res, {
-    success: true,
-    code,
-    message,
-    data,
-    requestId: res.locals.requestId
   });
 };
 
-const errorResponse = (res, message, code = 400, errors = null) => {
-  return sendResponse(res, {
+/**
+ * Error Response
+ */
+const errorResponse = (res, message, statusCode = 400, errors = null) => {
+  return res.status(statusCode).json({
     success: false,
-    code,
+    code: statusCode,
     message,
+    data: null,
     errors,
-    requestId: res.locals.requestId
+    timestamp: Math.floor(Date.now() / 1000)
   });
 };
 

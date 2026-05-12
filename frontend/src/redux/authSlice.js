@@ -37,6 +37,23 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const login = createAsyncThunk(
+  'auth/login',
+  async (userData, thunkAPI) => {
+    try {
+      const response = await axios.post(`${API_URL}/login`, userData);
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      if (error.response?.data?.errors) {
+        const firstError = Object.values(error.response.data.errors)[0];
+        message = firstError;
+      }
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -79,6 +96,23 @@ const authSlice = createSlice({
         state.user = action.payload.data.user;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+      })
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+        state.user = action.payload.data.user;
+        localStorage.setItem('user', JSON.stringify(action.payload.data.user));
+        localStorage.setItem('token', action.payload.data.token);
+      })
+      .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

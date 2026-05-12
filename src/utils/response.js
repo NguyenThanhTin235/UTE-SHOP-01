@@ -1,9 +1,8 @@
 /**
- * Chuẩn hóa response format theo API Convention.
- * Mọi response đều có: success, code, message, data, timestamp.
+ * Legacy Response Utility
  */
-
-const success = (res, { statusCode = 200, message = 'Thành công', data = null }) => {
+const success = (res, options) => {
+  const { message, data, statusCode = 200 } = options;
   return res.status(statusCode).json({
     success: true,
     code: statusCode,
@@ -13,16 +12,19 @@ const success = (res, { statusCode = 200, message = 'Thành công', data = null 
   });
 };
 
-const error = (res, { statusCode = 400, message = 'Có lỗi xảy ra', errors = null }) => {
-  const body = {
+const error = (res, options) => {
+  const { message, statusCode = 400, errors = null } = options;
+  return res.status(statusCode).json({
     success: false,
     code: statusCode,
     message,
     data: null,
+    errors,
     timestamp: Math.floor(Date.now() / 1000)
-  };
-  if (errors !== null) body.errors = errors;
-  return res.status(statusCode).json(body);
+  });
 };
 
-module.exports = { success, error };
+module.exports = {
+  success,
+  error
+};

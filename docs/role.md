@@ -11,9 +11,9 @@ Hệ thống UTEShop bao gồm 4 vai trò chính với các chức năng cụ th
     - Xem danh sách, thay đổi trạng thái (`pending`, `active`, `locked`, `inactive`).
     - Quản lý cơ chế bảo mật: Phê duyệt mở khóa tài khoản thủ công (`lockout_until`) hoặc đặt lại số lần nhập sai (`failed_login_attempts`).
     - Thay đổi vai trò của người dùng (nâng cấp lên Shipper hoặc thay đổi Admin khác).
-- **Quản lý thông tin định danh:** `student_id` (nếu có), `faculty` (nếu có).
+    - Quản lý thông tin định danh: `student_id`, `faculty` (Khoa/Phòng ban).
 - **Quản lý Cửa hàng (`Shop`):**
-    - Cấu hình thông tin của Shop: Tên, địa chỉ, hotline, logo và mô tả.
+    - Cấu hình thông tin duy nhất của Shop: Tên, địa chỉ, hotline, logo và mô tả.
 - **Quản lý Sản phẩm & Danh mục:**
     - Duyệt sản phẩm mới từ Vendor.
     - Quản lý cây danh mục (`Categories`): Thêm/sửa/xóa, quản lý cấp cha-con (`parent_id`).
@@ -24,7 +24,7 @@ Hệ thống UTEShop bao gồm 4 vai trò chính với các chức năng cụ th
     - Xử lý khiếu nại, can thiệp hủy đơn (`Order_Cancellations`) và ghi chú lý do.
 - **Quản lý khuyến mãi & Marketing:**
     - Thiết lập **Chiến dịch (`Campaigns`)**: Banner, thời gian hiệu lực (`start_at`, `end_at`), loại chiến dịch.
-    - Phân loại đối tượng mục tiêu (`Campaign_Targets`): Nhắm mục tiêu theo sản phẩm hoặc nhóm khách hàng cụ thể.
+    - Phân loại đối tượng mục tiêu (`Campaign_Targets`): Nhắm mục tiêu theo sản phẩm, khoa (`faculty`), hoặc năm sinh viên.
     - Quản lý mã giảm giá (`Coupons`): Thiết lập mức giảm (`percent`, `fixed_amount`), giới hạn sử dụng (`usage_limit`), và giá trị đơn hàng tối thiểu.
 - **Quản lý Tài chính & Xu:**
     - Theo dõi lịch sử thanh toán (`Payments`): Phương thức (`vnpay`, `momo`, `cod`), mã giao dịch và trạng thái.
@@ -56,7 +56,7 @@ Hệ thống UTEShop bao gồm 4 vai trò chính với các chức năng cụ th
 ---
 
 ## 3. Customer (Người mua hàng)
-*Khách hàng cá nhân sử dụng hệ thống để mua sắm sản phẩm và dịch vụ.*
+*Sinh viên, giảng viên hoặc cán bộ trường UTE sử dụng hệ thống để mua sắm.*
 
 - **Tài khoản & Hồ sơ (`Users`, `Addresses`):**
     - Đăng ký, đăng nhập và xác thực OTP qua Email (`register`, `reset_password`).
