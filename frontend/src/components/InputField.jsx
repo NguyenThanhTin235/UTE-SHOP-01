@@ -11,7 +11,7 @@ const InputField = ({ label, type, name, value, onChange, placeholder, icon, req
 
   return (
     <div className="mb-3 text-start">
-      {label && <label className="form-label fw-semibold text-secondary small mb-1 text-start d-block">{label}</label>}
+      {label && <label className="form-label fw-bold text-muted mb-2 d-block text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>{label}</label>}
       <div className="input-group">
         {icon && (
           <span className="input-group-text bg-white border-end-0 text-muted">

@@ -22,4 +22,8 @@ router.post(
 // Login
 router.post('/login', authController.login);
 
+// Quên mật khẩu
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
+
 module.exports = router;
