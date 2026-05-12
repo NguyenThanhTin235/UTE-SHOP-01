@@ -14,7 +14,6 @@ const Cart = require('../src/models/Cart');
 const Notification = require('../src/models/Notification');
 const CoinTransaction = require('../src/models/CoinTransaction');
 const OTP = require('../src/models/OTP');
-const bcrypt = require('bcryptjs');
 
 const seedData = async () => {
   try {
@@ -42,27 +41,25 @@ const seedData = async () => {
       address: '01 Võ Văn Ngân, Linh Chiểu, Thủ Đức, TP.HCM',
       phone: '02837221223',
       logo_url: 'https://ute.edu.vn/logo.png',
-      description: 'Cửa hàng thương mại điện tử uy tín, cung cấp sản phẩm chất lượng cao cho mọi khách hàng.'
+      description: 'Cửa hàng chính thức của trường ĐH Sư phạm Kỹ thuật TP.HCM'
     });
 
     // 3. Seed Users (5 người dùng với các vai trò khác nhau)
-    // Hash mật khẩu trước khi lưu (BCrypt - theo yêu cầu NFR02-2)
-    const hashedPassword = await bcrypt.hash('password123', 10);
     const users = await User.insertMany([
-      { full_name: 'Admin System', email: 'admin@uteshop.vn', password: hashedPassword, role: 'admin', status: 'active' },
-      { full_name: 'Vendor Nguyễn Văn A', email: 'vendor@gmail.com', password: hashedPassword, role: 'vendor', status: 'active' },
-      { full_name: 'Customer Trần Thị B', email: 'customer1@gmail.com', password: hashedPassword, role: 'customer', status: 'active', coin_balance: 500, addresses: [{ label: 'KTX Khu A', recipient_name: 'Trần Thị B', recipient_phone: '0901234567', street_address: 'Phòng 402, KTX Khu A' }] },
-      { full_name: 'Customer Lê Văn C', email: 'customer2@gmail.com', password: hashedPassword, role: 'customer', status: 'active', coin_balance: 200 },
-      { full_name: 'Shipper Hoàng Văn D', email: 'shipper@gmail.com', password: hashedPassword, role: 'shipper', status: 'active', shipper_details: { vehicle_type: 'Xe máy', license_plate: '59-X1 123.45', is_available: true } }
+      { full_name: 'Admin System', email: 'admin@uteshop.vn', password: 'password123', role: 'admin', status: 'active' },
+      { full_name: 'Vendor Nguyễn Văn A', email: 'vendor@gmail.com', password: 'password123', role: 'vendor', status: 'active' },
+      { full_name: 'Customer Trần Thị B', email: 'customer1@gmail.com', password: 'password123', role: 'customer', status: 'active', coin_balance: 500, addresses: [{ label: 'KTX Khu A', recipient_name: 'Trần Thị B', recipient_phone: '0901234567', street_address: 'Phòng 402, KTX Khu A' }] },
+      { full_name: 'Customer Lê Văn C', email: 'customer2@gmail.com', password: 'password123', role: 'customer', status: 'active', coin_balance: 200 },
+      { full_name: 'Shipper Hoàng Văn D', email: 'shipper@gmail.com', password: 'password123', role: 'shipper', status: 'active', shipper_details: { vehicle_type: 'Xe máy', license_plate: '59-X1 123.45', is_available: true } }
     ]);
 
     // 4. Seed Categories (5 danh mục)
     const categories = await Category.insertMany([
-      { name: 'Đồng phục & Thời trang', slug: 'dong-phuc-thoi-trang', description: 'Trang phục học đường và thời trang hiện đại' },
-      { name: 'Sách & Giáo trình', slug: 'sach-giao-trinh', description: 'Tài liệu học tập và sách tham khảo' },
-      { name: 'Văn phòng phẩm', slug: 'van-phong-pham', description: 'Bút, vở, dụng cụ văn phòng' },
-      { name: 'Quà lưu niệm', slug: 'qua-luu-niem', description: 'Gấu bông, quà tặng độc đáo' },
-      { name: 'Đồ điện tử', slug: 'do-dien-tu', description: 'Phụ kiện máy tính và đồ công nghệ' }
+      { name: 'Đồng phục', slug: 'dong-phuc', description: 'Đồ đồng phục các khoa' },
+      { name: 'Sách & Giáo trình', slug: 'sach-giao-trinh', description: 'Tài liệu học tập chính quy' },
+      { name: 'Văn phòng phẩm', slug: 'van-phong-pham', description: 'Bút, vở, dụng cụ học tập' },
+      { name: 'Quà lưu niệm', slug: 'qua-luu-niem', description: 'Gấu bông, móc khóa logo UTE' },
+      { name: 'Đồ điện tử', slug: 'do-dien-tu', description: 'Chuột, bàn phím, phụ kiện máy tính' }
     ]);
 
     // 5. Seed Products (5 sản phẩm)
