@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './pages/Register';
 import VerifyOTP from './pages/VerifyOTP';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -11,6 +13,8 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         {/* Placeholder for other routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/login" />} />

@@ -54,6 +54,36 @@ export const login = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, thunkAPI) => {
+    try {
+      const response = await axios.post(`${API_URL}/forgot-password`, { email });
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async (userData, thunkAPI) => {
+    try {
+      const response = await axios.post(`${API_URL}/reset-password`, userData);
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      if (error.response?.data?.errors) {
+        const firstError = Object.values(error.response.data.errors)[0];
+        message = firstError;
+      }
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -117,6 +147,32 @@ const authSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
         state.user = null;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       });
   },
 });
