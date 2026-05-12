@@ -55,7 +55,7 @@ const Login = () => {
     <Layout>
       <div className="container-fluid p-0" style={{ backgroundColor: '#f9fafb' }}>
         <div className="container-xl py-5">
-          <main className="row g-0 bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '1100px', border: '1px solid #eee' }}>
+          <main className="row g-0 bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '1200px', border: '1px solid #eee', minHeight: '700px' }}>
             {/* Left Side: Visual Section */}
             <div className="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 text-white position-relative"
                  style={{ 
@@ -137,7 +137,7 @@ const Login = () => {
                       />
                       <label className="form-check-label text-muted" htmlFor="rememberMe">Remember me</label>
                     </div>
-                    <Link to="/forgot-password" size="small" className="text-dark fw-bold text-decoration-none">Forgot password?</Link>
+                    <Link to="/forgot-password" className="text-dark fw-bold text-decoration-none">Forgot password?</Link>
                   </div>
 
                   <PrimaryButton type="submit" isLoading={isLoading} className="py-3 rounded-3 mb-4 shadow-sm w-100 fw-bold">
