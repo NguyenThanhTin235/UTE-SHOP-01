@@ -1,32 +1,47 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const response = require('../utils/response');
 
-/**
- * Middleware xác thực JWT token.
- * Gắn user info vào req.user nếu token hợp lệ.
- */
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+const protect = async (req, res, next) => {
+  let token;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return response.error(res, {
-      statusCode: 401,
-      message: 'Unauthorized - Vui lòng đăng nhập'
-    });
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from the token
+      req.user = await User.findById(decoded.id).select('-password');
+
+      if (!req.user) {
+        return response.error(res, {
+          statusCode: 401,
+          message: 'User not found',
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Auth Middleware Error:', error);
+      return response.error(res, {
+        statusCode: 401,
+        message: 'Not authorized, token failed',
+      });
+    }
   }
 
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, role }
-    next();
-  } catch (err) {
+  if (!token) {
     return response.error(res, {
       statusCode: 401,
-      message: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại'
+      message: 'Not authorized, no token',
     });
   }
 };
 
-module.exports = { verifyToken };
+module.exports = { protect };

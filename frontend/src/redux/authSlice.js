@@ -84,10 +84,51 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (userData, thunkAPI) => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.put(`${API_URL}/profile`, userData, config);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, thunkAPI) => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+      const response = await axios.post(`${API_URL}/profile/avatar`, formData, config);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     isError: false,
     isSuccess: false,
     isLoading: false,
@@ -98,6 +139,15 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.isSuccess = false;
       state.isError = false;
+      state.message = '';
+    },
+    logout: (state) => {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      state.user = null;
+      state.isError = false;
+      state.isSuccess = false;
+      state.isLoading = false;
       state.message = '';
     },
   },
@@ -124,6 +174,8 @@ const authSlice = createSlice({
         state.isSuccess = true;
         state.message = action.payload.message;
         state.user = action.payload.data.user;
+        localStorage.setItem('user', JSON.stringify(action.payload.data.user));
+        localStorage.setItem('token', action.payload.data.token);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -173,9 +225,37 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+        state.user = action.payload.data.user;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(uploadAvatar.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+        state.user = action.payload.data.user;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       });
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, logout } = authSlice.actions;
 export default authSlice.reducer;

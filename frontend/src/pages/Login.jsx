@@ -55,7 +55,7 @@ const Login = () => {
     <Layout>
       <div className="container-fluid p-0" style={{ backgroundColor: '#f9fafb' }}>
         <div className="container-xl py-5">
-          <main className="row g-0 bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '1100px', border: '1px solid #eee' }}>
+          <main className="row g-0 bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '1200px', border: '1px solid #eee', minHeight: '700px' }}>
             {/* Left Side: Visual Section */}
             <div className="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 text-white position-relative"
                  style={{ 

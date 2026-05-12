@@ -133,7 +133,7 @@ const authenticate = async (email, password) => {
     role: userObj.role,
     studentId: userObj.student_id || null,
     faculty: userObj.faculty || null,
-    avatarUrl: userObj.avatar_url || null,
+    avatar_url: userObj.avatar_url || null,
     status: userObj.status,
     coinBalance: userObj.coin_balance,
     createdAt: userObj.createdAt,
