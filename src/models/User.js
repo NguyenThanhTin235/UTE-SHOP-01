@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema({
   student_id: { type: String },
   faculty: { type: String },
   avatar_url: { type: String },
+  dob: { type: Date },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
   status: { 
     type: String, 
     enum: ['pending', 'active', 'locked', 'inactive'], 

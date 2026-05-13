@@ -34,20 +34,20 @@ const sendOTPRules = () => {
 const profileUpdateRules = () => {
   return [
     body('fullName')
-      .optional()
+      .optional({ checkFalsy: true })
       .isLength({ min: 2 }).withMessage('Full name must be at least 2 characters'),
     
     body('phone')
-      .optional()
+      .optional({ checkFalsy: true })
       .matches(/(84|0[3|5|7|8|9])+([0-9]{8})\b/)
       .withMessage('Invalid Vietnamese phone number format'),
     
     body('dob')
-      .optional()
+      .optional({ checkFalsy: true })
       .isISO8601().withMessage('Invalid date format'),
     
     body('gender')
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(['male', 'female', 'other']).withMessage('Invalid gender')
   ];
 };

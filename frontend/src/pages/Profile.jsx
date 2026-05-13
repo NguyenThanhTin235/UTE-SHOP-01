@@ -10,17 +10,41 @@ const Profile = () => {
     (state) => state.auth
   );
 
+  // Helper to format date for input type="date"
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    try {
+      return date.toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   const [formData, setFormData] = useState({
     fullName: user?.full_name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    dob: user?.dob || '',
+    dob: formatDate(user?.dob),
     gender: user?.gender || '',
   });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fileInputRef = React.useRef(null);
+
+  // Sync form data when user data changes (e.g. after login or update)
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user.full_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        dob: formatDate(user.dob),
+        gender: user.gender || '',
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
