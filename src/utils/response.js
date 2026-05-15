@@ -1,13 +1,12 @@
-/**
- * Legacy Response Utility
- */
+const { toCamelCase } = require('./formatter');
+
 const success = (res, options) => {
   const { message, data, statusCode = 200 } = options;
   return res.status(statusCode).json({
     success: true,
     code: statusCode,
     message,
-    data,
+    data: toCamelCase(data),
     timestamp: Math.floor(Date.now() / 1000)
   });
 };

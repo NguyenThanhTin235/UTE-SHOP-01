@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const { toCamelCase } = require('../utils/formatter');
 
 class UserController {
   /**
@@ -13,7 +14,7 @@ class UserController {
         success: true,
         code: 200,
         message: 'Lấy thông tin hồ sơ thành công',
-        data: user,
+        data: toCamelCase(user),
         timestamp: Math.floor(Date.now() / 1000)
       });
     } catch (error) {
@@ -50,7 +51,7 @@ class UserController {
         success: true,
         code: 200,
         message: 'Cập nhật thông tin thành công',
-        data: updatedUser,
+        data: toCamelCase(updatedUser),
         timestamp: Math.floor(Date.now() / 1000)
       });
 
@@ -134,7 +135,7 @@ class UserController {
         success: true,
         code: 201,
         message: 'Thêm địa chỉ thành công',
-        data: newAddress,
+        data: toCamelCase(newAddress),
         timestamp: Math.floor(Date.now() / 1000)
       });
     } catch (error) {
@@ -160,7 +161,7 @@ class UserController {
         success: true,
         code: 200,
         message: 'Xóa địa chỉ thành công',
-        data: updatedAddresses,
+        data: toCamelCase(updatedAddresses),
         timestamp: Math.floor(Date.now() / 1000)
       });
     } catch (error) {
@@ -188,7 +189,7 @@ class UserController {
         success: true,
         code: 200,
         message: 'Cập nhật địa chỉ thành công',
-        data: updatedAddress,
+        data: toCamelCase(updatedAddress),
         timestamp: Math.floor(Date.now() / 1000)
       });
     } catch (error) {

@@ -1,3 +1,5 @@
+const { toCamelCase } = require('./formatter');
+
 /**
  * Success Response
  */
@@ -6,7 +8,7 @@ const successResponse = (res, message, data = null, statusCode = 200) => {
     success: true,
     code: statusCode,
     message,
-    data,
+    data: toCamelCase(data),
     timestamp: Math.floor(Date.now() / 1000)
   });
 };

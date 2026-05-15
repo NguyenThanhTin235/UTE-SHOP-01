@@ -34,12 +34,12 @@ const Header = () => {
           {user ? (
             <Link to="/user/profile" className="d-flex align-items-center gap-2 text-decoration-none">
               <img 
-                src={user.avatar || `https://ui-avatars.com/api/?name=${user.full_name}&background=random`} 
-                alt={user.full_name} 
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.fullName}&background=random`} 
+                alt={user.fullName} 
                 className="rounded-circle border" 
                 style={{ width: '32px', height: '32px', objectFit: 'cover' }} 
               />
-              <span className="d-none d-lg-block small fw-bold text-dark">{user.full_name}</span>
+              <span className="d-none d-lg-block small fw-bold text-dark">{user.fullName}</span>
             </Link>
           ) : (
             <div className="d-flex align-items-center gap-3">
