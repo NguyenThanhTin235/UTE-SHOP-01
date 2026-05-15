@@ -125,6 +125,23 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (tokenId, thunkAPI) => {
+    try {
+      const response = await axios.post(`${API_URL}/google`, { tokenId });
+      if (response.data.data) {
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        localStorage.setItem('token', response.data.data.token);
+      }
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -250,6 +267,19 @@ const authSlice = createSlice({
         state.user = action.payload.data.user;
       })
       .addCase(uploadAvatar.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(googleLogin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = action.payload.data.user;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

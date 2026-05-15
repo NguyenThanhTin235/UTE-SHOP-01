@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { login, reset } from '../redux/authSlice';
+import { login, googleLogin, reset } from '../redux/authSlice';
 import InputField from '../components/InputField';
 import PrimaryButton from '../components/PrimaryButton';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -50,6 +51,21 @@ const Login = () => {
     e.preventDefault();
     dispatch(login({ email, password }));
   };
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      // In a real scenario with useGoogleLogin, we usually get an access_token.
+      // But for simple verification, we might need to handle it differently 
+      // or use GoogleLogin component for id_token.
+      // However, @react-oauth/google useGoogleLogin provides access_token.
+      // For this implementation, I'll assume we can use the credential from the standard GoogleLogin 
+      // OR I will adapt the backend to handle access_token.
+      // Let's use the Implicit flow for now if possible, but standard GoogleLogin is easier for id_token.
+      console.log(tokenResponse);
+      dispatch(googleLogin(tokenResponse.access_token));
+    },
+    onError: () => toast.error('Google Login Failed'),
+  });
 
   return (
     <Layout>
@@ -151,14 +167,14 @@ const Login = () => {
                   </div>
 
                   <div className="row g-3 mb-5">
-                    <div className="col-6">
-                      <button type="button" className="btn btn-outline-light border text-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-bg-light rounded-3 shadow-sm" style={{ fontSize: '13px', fontWeight: '500' }}>
-                        <i className="fa-brands fa-google text-danger"></i> Google
-                      </button>
-                    </div>
-                    <div className="col-6">
-                      <button type="button" className="btn btn-outline-light border text-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-bg-light rounded-3 shadow-sm" style={{ fontSize: '13px', fontWeight: '500' }}>
-                        <i className="fa-brands fa-facebook-f text-primary"></i> Facebook
+                    <div className="col-12">
+                      <button 
+                        type="button" 
+                        onClick={() => handleGoogleLogin()}
+                        className="btn btn-outline-light border text-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-bg-light rounded-3 shadow-sm" 
+                        style={{ fontSize: '13px', fontWeight: '500' }}
+                      >
+                        <i className="fa-brands fa-google text-danger"></i> Continue with Google
                       </button>
                     </div>
                   </div>
