@@ -22,7 +22,7 @@ const Profile = () => {
   };
 
   const [formData, setFormData] = useState({
-    fullName: user?.full_name || '',
+    fullName: user?.fullName || '',
     email: user?.email || '',
     phone: user?.phone || '',
     dob: formatDate(user?.dob),
@@ -37,7 +37,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        fullName: user.full_name || '',
+        fullName: user.fullName || '',
         email: user.email || '',
         phone: user.phone || '',
         dob: formatDate(user.dob),
@@ -109,7 +109,7 @@ const Profile = () => {
             <div className="bg-white rounded-4 shadow-sm border p-4 text-center h-100">
               <div className="position-relative d-inline-block mb-3">
                 <img 
-                  src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.full_name}&background=random`} 
+                  src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.fullName}&background=random`} 
                   alt="Profile" 
                   className="rounded-circle border border-4 border-white shadow-sm" 
                   style={{ width: '100px', height: '100px', objectFit: 'cover' }} 
@@ -129,7 +129,7 @@ const Profile = () => {
                   <i className="fa-solid fa-camera" style={{ fontSize: '10px' }}></i>
                 </button>
               </div>
-              <h5 className="fw-bold mb-1" style={{ color: '#1e3a8a' }}>{user?.full_name}</h5>
+              <h5 className="fw-bold mb-1" style={{ color: '#1e3a8a' }}>{user?.fullName}</h5>
               <p className="text-muted small fw-medium mb-4">Verified Customer</p>
 
               <div className="list-group list-group-flush text-start border-top pt-3">

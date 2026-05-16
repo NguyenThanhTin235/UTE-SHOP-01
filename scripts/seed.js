@@ -119,7 +119,8 @@ const seedFashionData = async () => {
 
     const sellers = await User.insertMany([
       { full_name: 'Fashion Guru', email: 'fashion@gmail.com', password: hashedPassword, status: 'active' },
-      { full_name: 'Sneaker Head', email: 'sneaker@gmail.com', password: hashedPassword, status: 'active' }
+      { full_name: 'Sneaker Head', email: 'sneaker@gmail.com', password: hashedPassword, status: 'active' },
+      { full_name: 'Tech Master', email: 'tech@gmail.com', password: hashedPassword, status: 'active' }
     ]);
 
     const customers = await User.insertMany([
@@ -132,6 +133,7 @@ const seedFashionData = async () => {
       { user_id: manager._id, role_id: managerRole._id },
       { user_id: sellers[0]._id, role_id: sellerRole._id },
       { user_id: sellers[1]._id, role_id: sellerRole._id },
+      { user_id: sellers[2]._id, role_id: sellerRole._id },
       { user_id: customers[0]._id, role_id: customerRole._id },
       { user_id: customers[1]._id, role_id: customerRole._id }
     ]);
@@ -181,6 +183,17 @@ const seedFashionData = async () => {
         status: 'active',
         approved_by: admin._id,
         approved_at: new Date()
+      },
+      {
+        user_id: sellers[2]._id,
+        gst_number: 'GST-003',
+        bank_name: 'Techcombank',
+        bank_account_name: 'Tech Master',
+        bank_account_number: '1122334455',
+        pickup_address: '50 Vo Van Ngan, Thu Duc',
+        status: 'active',
+        approved_by: admin._id,
+        approved_at: new Date()
       }
     ]);
 
@@ -206,9 +219,21 @@ const seedFashionData = async () => {
       description: 'Nang niu ban chan Viet'
     });
 
+    const techShop = await Shop.create({
+      name: 'Tech World',
+      owner_user_id: sellers[2]._id,
+      slug: 'tech-world',
+      address: 'TP.HCM',
+      phone: '19009999',
+      logo_url: 'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/images_cheyul.jpg',
+      banner_url: 'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/images_cheyul.jpg',
+      description: 'Thế giới công nghệ chính hãng'
+    });
+
     await SellerWallet.insertMany([
       { shop_id: fashionShop._id, total_balance: 15000000, pending_balance: 5000000, available_balance: 10000000 },
-      { shop_id: sneakerShop._id, total_balance: 8000000, pending_balance: 3000000, available_balance: 5000000 }
+      { shop_id: sneakerShop._id, total_balance: 8000000, pending_balance: 3000000, available_balance: 5000000 },
+      { shop_id: techShop._id, total_balance: 0, pending_balance: 0, available_balance: 0 }
     ]);
 
     console.log('📂 Seeding Categories...');
@@ -220,7 +245,14 @@ const seedFashionData = async () => {
     const subWomenDress = await Category.create({ name: 'Women Dress', slug: 'women-dress', parent_id: catWomen._id });
     const subAccessoriesBag = await Category.create({ name: 'Bags', slug: 'bags', parent_id: catAccessories._id });
 
+    // New categories
+    const catComputer = await Category.create({ name: 'Máy tính', slug: 'may-tinh' });
+    const catPhone = await Category.create({ name: 'Điện thoại', slug: 'dien-thoai' });
+    const catWatch = await Category.create({ name: 'Đồng hồ', slug: 'dong-ho', parent_id: catAccessories._id });
+    const catCamera = await Category.create({ name: 'Máy ảnh', slug: 'may-anh', parent_id: catAccessories._id });
+
     console.log('👗 Seeding Products...');
+    // Existing products
     const p1 = await Product.create({
       shop_id: fashionShop._id,
       category_id: subWomenDress._id,
@@ -287,6 +319,105 @@ const seedFashionData = async () => {
       { product_id: p2._id, media_type: 'image', media_url: imageUrl, sort_order: 1 },
       { product_id: p3._id, media_type: 'image', media_url: imageUrl, sort_order: 1 }
     ]);
+
+    // NEW PRODUCTS SEEDING
+    const newProductsData = [
+      {
+        category: catComputer,
+        shop: techShop,
+        prefix: 'COMP',
+        basePrice: 15000000,
+        images: [
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635483/download_2_ear0t1.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/download_1_bmxgdl.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/images_cheyul.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/download_jjnu3b.jpg'
+        ]
+      },
+      {
+        category: catPhone,
+        shop: techShop,
+        prefix: 'PHON',
+        basePrice: 10000000,
+        images: [
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635622/download_7_wt0ash.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635622/download_5_fqcbqh.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635622/download_6_hy16sv.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635622/download_4_bbhc2d.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635623/download_3_tvzrh7.jpg'
+        ]
+      },
+      {
+        category: catMen,
+        shop: fashionShop,
+        prefix: 'CLOT',
+        basePrice: 600000,
+        images: [
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635722/download_12_uadxf9.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635722/download_10_dkmvhc.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635722/download_13_wswbck.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635723/download_9_wb2s3i.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635722/download_11_p83s9g.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635723/download_8_j5mubh.jpg'
+        ]
+      },
+      {
+        category: catWatch,
+        shop: fashionShop,
+        prefix: 'WATC',
+        basePrice: 2500000,
+        images: [
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635870/download_17_hn9j4t.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635870/download_16_ayhzea.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635870/download_15_jhojon.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635871/download_14_tzqesh.jpg'
+        ]
+      },
+      {
+        category: catCamera,
+        shop: techShop,
+        prefix: 'CAME',
+        basePrice: 12000000,
+        images: [
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635966/download_21_mgbb6j.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635966/download_22_lbqh6k.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635966/download_20_ipylki.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635967/download_19_hmv5nz.jpg',
+          'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635967/download_18_pyel94.jpg'
+        ]
+      }
+    ];
+
+    for (const group of newProductsData) {
+      for (let i = 0; i < group.images.length; i++) {
+        const product = await Product.create({
+          shop_id: group.shop._id,
+          category_id: group.category._id,
+          name: `${group.category.name} Premium Model ${i + 1}`,
+          slug: `${group.category.slug}-premium-${i + 1}-${Date.now()}`,
+          description: `Sản phẩm ${group.category.name} cao cấp, chính hãng với thiết kế hiện đại.`,
+          mrp_price: group.basePrice + (i * 200000),
+          selling_price: (group.basePrice + (i * 200000)) * 0.85,
+          sku: `${group.prefix}-${i + 1}`,
+          approval_status: 'approved'
+        });
+
+        await ProductMedia.create({
+          product_id: product._id,
+          media_type: 'image',
+          media_url: group.images[i],
+          sort_order: 1
+        });
+
+        await ProductVariant.create({
+          product_id: product._id,
+          attributes: { color: 'Default', size: 'Standard' },
+          stock_quantity: 100,
+          additional_price: 0,
+          sku: `${group.prefix}-${i + 1}-VAR`
+        });
+      }
+    }
 
     await ProductApproval.create({
       product_id: p1._id,
