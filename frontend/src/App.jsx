@@ -7,6 +7,7 @@ import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
+import Search from './pages/Search';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
       </Routes>
     </Router>

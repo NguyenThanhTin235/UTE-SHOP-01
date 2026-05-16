@@ -177,3 +177,114 @@ exports.getProductDetail = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getCategories = async (req, res, next) => {
+  try {
+    const categories = await Category.find();
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Categories fetched successfully',
+      data: toCamelCase(categories),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.searchProducts = async (req, res, next) => {
+  try {
+    const {
+      q,
+      category,
+      minPrice,
+      maxPrice,
+      rating,
+      sort,
+      page = 1,
+      limit = 12
+    } = req.query;
+
+    const query = {
+      approval_status: 'approved',
+      is_active: true
+    };
+
+    // 1. Keyword Search
+    if (q) {
+      query.$text = { $search: q };
+    }
+
+    // 2. Category Filter
+    if (category) {
+      // Find category and its children if needed, but for now exact match or specific hierarchy
+      const cat = await Category.findOne({ slug: category });
+      if (cat) {
+        // If it's a parent, we might want to include subcategories. 
+        // For simplicity, let's just find products in this exact category or its children.
+        const subCats = await Category.find({ parent_id: cat._id });
+        const catIds = [cat._id, ...subCats.map(c => c._id)];
+        query.category_id = { $in: catIds };
+      }
+    }
+
+    // 3. Price Range
+    if (minPrice || maxPrice) {
+      query.selling_price = {};
+      if (minPrice) query.selling_price.$gte = Number(minPrice);
+      if (maxPrice) query.selling_price.$lte = Number(maxPrice);
+    }
+
+    // 4. Rating
+    if (rating) {
+      query.average_rating = { $gte: Number(rating) };
+    }
+
+    // 5. Sorting
+    let sortOption = { createdAt: -1 }; // Default: Newest
+    if (sort === 'price_asc') sortOption = { selling_price: 1 };
+    else if (sort === 'price_desc') sortOption = { selling_price: -1 };
+    else if (sort === 'top_rated') sortOption = { average_rating: -1 };
+    else if (sort === 'oldest') sortOption = { createdAt: 1 };
+
+    // 6. Execution with Pagination
+    const skip = (Number(page) - 1) * Number(limit);
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(Number(limit));
+
+    // 7. Attach Media & Categories
+    const results = await Promise.all(products.map(async (p) => {
+      const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 }).limit(1);
+      const cat = await Category.findById(p.category_id).select('name slug');
+      return {
+        ...p.toObject(),
+        media: media.map(m => m.media_url),
+        category: cat
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Products fetched successfully',
+      data: toCamelCase(results),
+      meta: {
+        pagination: {
+          total,
+          count: results.length,
+          perPage: Number(limit),
+          currentPage: Number(page),
+          totalPages: Math.ceil(total / Number(limit))
+        }
+      },
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
