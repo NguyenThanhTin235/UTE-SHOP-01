@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+        <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
