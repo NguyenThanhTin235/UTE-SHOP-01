@@ -9,7 +9,12 @@ const shopSchema = new mongoose.Schema({
   logo_url: { type: String },
   banner_url: { type: String },
   status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },
-  description: { type: String }
+  description: { type: String },
+  rating: { type: Number, default: 0 },
+  followers: { type: Number, default: 0 },
+  response_rate: { type: Number, default: 0 }, // Percentage
+  joined_at: { type: Date, default: Date.now },
+  response_time: { type: String, default: 'within hours' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Shop', shopSchema);

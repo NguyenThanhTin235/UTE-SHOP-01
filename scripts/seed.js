@@ -205,7 +205,12 @@ const seedFashionData = async () => {
       phone: '19001234',
       logo_url: imageUrl,
       banner_url: imageUrl,
-      description: 'Thoi trang nu thiet ke cao cap'
+      description: 'Thoi trang nu thiet ke cao cap',
+      rating: 4.8,
+      followers: 125000,
+      response_rate: 99,
+      joined_at: new Date('2021-01-01'),
+      response_time: 'within minutes'
     });
 
     const sneakerShop = await Shop.create({
@@ -216,7 +221,12 @@ const seedFashionData = async () => {
       phone: '19005678',
       logo_url: imageUrl,
       banner_url: imageUrl,
-      description: 'Nang niu ban chan Viet'
+      description: 'Nang niu ban chan Viet',
+      rating: 4.9,
+      followers: 85000,
+      response_rate: 95,
+      joined_at: new Date('2022-05-15'),
+      response_time: 'within hours'
     });
 
     const techShop = await Shop.create({
@@ -227,7 +237,12 @@ const seedFashionData = async () => {
       phone: '19009999',
       logo_url: 'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/images_cheyul.jpg',
       banner_url: 'https://res.cloudinary.com/dmxxo6wgl/image/upload/v1778635484/images_cheyul.jpg',
-      description: 'Thế giới công nghệ chính hãng'
+      description: 'Thế giới công nghệ chính hãng',
+      rating: 4.7,
+      followers: 42000,
+      response_rate: 92,
+      joined_at: new Date('2023-10-10'),
+      response_time: 'within a day'
     });
 
     await SellerWallet.insertMany([
@@ -258,12 +273,28 @@ const seedFashionData = async () => {
       category_id: subWomenDress._id,
       name: 'Vintage Floral Dress',
       slug: 'vintage-floral-dress',
-      description: 'Lightweight summer dress',
+      description: '<p>A beautiful vintage-inspired floral dress perfect for summer outings. Made from 100% breathable cotton, this dress features a flattering A-line silhouette and delicate puff sleeves.</p><ul><li>Material: 100% Cotton</li><li>Pattern: Floral Print</li><li>Sleeve: Short Puff Sleeves</li><li>Length: Mid-calf</li></ul>',
       mrp_price: 500000,
       selling_price: 450000,
       sku: 'GU-DX-01',
       approval_status: 'approved'
     });
+
+    const pRelated = await Product.create({
+      shop_id: fashionShop._id,
+      category_id: subWomenDress._id,
+      name: 'Bohemian Summer Maxi',
+      slug: 'bohemian-summer-maxi',
+      description: 'Flowy bohemian style maxi dress with intricate patterns.',
+      mrp_price: 750000,
+      selling_price: 680000,
+      sku: 'GU-DX-02',
+      approval_status: 'approved'
+    });
+
+    await ProductMedia.insertMany([
+      { product_id: pRelated._id, media_type: 'image', media_url: imageUrl, sort_order: 1 }
+    ]);
 
     const p2 = await Product.create({
       shop_id: sneakerShop._id,
@@ -630,19 +661,41 @@ const seedFashionData = async () => {
     });
 
     console.log('⭐ Seeding Reviews...');
-    const productReview = await ProductReview.create({
-      user_id: customers[0]._id,
-      product_id: p1._id,
-      order_item_id: orderItem1._id,
-      rating: 5,
-      comment: 'Great quality'
-    });
+    const productReviews = await ProductReview.insertMany([
+      {
+        user_id: customers[0]._id,
+        product_id: p1._id,
+        order_item_id: orderItem1._id,
+        rating: 5,
+        comment: 'Great quality, the fabric is so soft and the colors are vibrant!'
+      },
+      {
+        user_id: customers[1]._id,
+        product_id: p1._id,
+        rating: 4,
+        comment: 'Very pretty dress, but slightly longer than expected. Still love it!'
+      },
+      {
+        user_id: customers[0]._id,
+        product_id: p2._id,
+        rating: 5,
+        comment: 'Best sneakers I have ever owned. Super comfortable for walking.'
+      },
+      {
+        user_id: customers[1]._id,
+        product_id: p2._id,
+        rating: 5,
+        comment: 'Fast delivery and perfect fit. The design is very modern.'
+      }
+    ]);
 
-    await ProductReviewMedia.create({
-      product_review_id: productReview._id,
-      media_type: 'image',
-      media_url: imageUrl
-    });
+    for (const review of productReviews) {
+      await ProductReviewMedia.create({
+        product_review_id: review._id,
+        media_type: 'image',
+        media_url: imageUrl
+      });
+    }
 
     await ShopReview.create({
       user_id: customers[0]._id,
