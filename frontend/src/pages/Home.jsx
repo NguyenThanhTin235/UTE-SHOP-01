@@ -16,13 +16,37 @@ const Home = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('recommended');
+  const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+  // Tab-specific product lists and pagination
+  const [recommendedList, setRecommendedList] = useState([]);
+  const [bestSellersList, setBestSellersList] = useState([]);
+  const [newArrivalsList, setNewArrivalsList] = useState([]);
+
+  const [recommendedPage, setRecommendedPage] = useState(1);
+  const [bestSellersPage, setBestSellersPage] = useState(1);
+  const [newArrivalsPage, setNewArrivalsPage] = useState(1);
+
+  const [hasMoreRecommended, setHasMoreRecommended] = useState(true);
+  const [hasMoreBestSellers, setHasMoreBestSellers] = useState(true);
+  const [hasMoreNewArrivals, setHasMoreNewArrivals] = useState(true);
+
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/public/homepage');
         if (response.data.success) {
-          setData(response.data.data);
+          const resData = response.data.data;
+          setData(resData);
+          setRecommendedList(resData.recommended || []);
+          setBestSellersList(resData.bestSellers || []);
+          setNewArrivalsList(resData.newArrivals || []);
+
+          setHasMoreRecommended((resData.recommended || []).length >= 10);
+          setHasMoreBestSellers((resData.bestSellers || []).length >= 10);
+          setHasMoreNewArrivals((resData.newArrivals || []).length >= 10);
         }
       } catch (error) {
         console.error('Error fetching home data:', error);
@@ -35,6 +59,82 @@ const Home = () => {
     fetchHomeData();
   }, []);
 
+  // Countdown timer for flash sale
+  useEffect(() => {
+    const campaign = data?.campaign;
+    if (!campaign?.endAt) return;
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const end = new Date(campaign.endAt).getTime();
+      const diff = Math.max(0, end - now);
+
+      setCountdown({
+        hours: String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0'),
+        minutes: String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0'),
+        seconds: String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0')
+      });
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [data?.campaign]);
+
+  const handleLoadMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+
+    try {
+      let nextPage = 1;
+      let sortParam = '';
+
+      if (activeTab === 'recommended') {
+        nextPage = recommendedPage + 1;
+        sortParam = ''; // Default sorting
+      } else if (activeTab === 'best-sellers') {
+        nextPage = bestSellersPage + 1;
+        sortParam = 'top_rated';
+      } else if (activeTab === 'new-arrivals') {
+        nextPage = newArrivalsPage + 1;
+        sortParam = 'oldest';
+      }
+
+      const response = await axios.get(`http://localhost:5000/api/public/products`, {
+        params: {
+          sort: sortParam,
+          page: nextPage,
+          limit: 10
+        }
+      });
+
+      if (response.data.success) {
+        const newProducts = response.data.data;
+        const meta = response.data.meta;
+        const totalPages = meta?.pagination?.totalPages || 1;
+
+        if (activeTab === 'recommended') {
+          setRecommendedList(prev => [...prev, ...newProducts]);
+          setRecommendedPage(nextPage);
+          setHasMoreRecommended(nextPage < totalPages && newProducts.length > 0);
+        } else if (activeTab === 'best-sellers') {
+          setBestSellersList(prev => [...prev, ...newProducts]);
+          setBestSellersPage(nextPage);
+          setHasMoreBestSellers(nextPage < totalPages && newProducts.length > 0);
+        } else if (activeTab === 'new-arrivals') {
+          setNewArrivalsList(prev => [...prev, ...newProducts]);
+          setNewArrivalsPage(nextPage);
+          setHasMoreNewArrivals(nextPage < totalPages && newProducts.length > 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more products:', error);
+      toast.error('Unable to load more products');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf8ff]">
@@ -43,7 +143,19 @@ const Home = () => {
     );
   }
 
-  const { banners, categories, flashDeals, newArrivals, bestSellers, campaign } = data || {};
+  const { banners, categories, flashDeals, campaign } = data || {};
+
+  const currentList = activeTab === 'recommended' 
+    ? recommendedList 
+    : activeTab === 'best-sellers' 
+    ? bestSellersList 
+    : newArrivalsList;
+
+  const currentHasMore = activeTab === 'recommended'
+    ? hasMoreRecommended
+    : activeTab === 'best-sellers'
+    ? hasMoreBestSellers
+    : hasMoreNewArrivals;
 
   return (
     <div className="text-[#131b2e] min-h-screen bg-[#faf8ff] font-['Manrope']">
@@ -122,17 +234,17 @@ const Home = () => {
               </div>
               <div className="flex items-center gap-3 ml-4">
                 <div className="flex flex-col items-center">
-                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">02</div>
+                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">{countdown.hours}</div>
                   <span className="text-[8px] uppercase font-bold mt-1 opacity-50">Hrs</span>
                 </div>
                 <span className="font-bold mb-4">:</span>
                 <div className="flex flex-col items-center">
-                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">45</div>
+                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">{countdown.minutes}</div>
                   <span className="text-[8px] uppercase font-bold mt-1 opacity-50">Min</span>
                 </div>
                 <span className="font-bold mb-4">:</span>
                 <div className="flex flex-col items-center">
-                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">12</div>
+                  <div className="bg-[#131b2e] text-white px-3 py-1.5 rounded-lg text-sm font-bold font-mono shadow-sm">{countdown.seconds}</div>
                   <span className="text-[8px] uppercase font-bold mt-1 opacity-50">Sec</span>
                 </div>
               </div>
@@ -159,9 +271,9 @@ const Home = () => {
                   <div className="p-4 flex-grow flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-bold text-[#004ac6] uppercase tracking-widest">Tech Essential</span>
-                      <span className="text-[10px] font-medium text-[#434655] flex items-center gap-1"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
+                      <span className="text-[10px] font-medium text-[#434655] flex items-center gap-1"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0} ({product.reviewCount || 0})</span>
                     </div>
-                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 hover:text-[#004ac6] transition-colors block mb-3 min-h-[2.5rem]">{product.name}</Link>
+                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 h-[2.5rem] overflow-hidden hover:text-[#004ac6] transition-colors mb-3">{product.name}</Link>
                     
                     <div className="mt-auto space-y-3">
                       <div className="space-y-1">
@@ -171,7 +283,7 @@ const Home = () => {
                         </div>
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold text-[#434655] uppercase">
-                            <span>Sold 65%</span>
+                            <span>Sold {product.soldCount || 0}</span>
                           </div>
                           <div className="h-1 bg-[#e1e4f5] rounded-full overflow-hidden">
                             <div className="h-full bg-[#004ac6]" style={{ width: '65%' }}></div>
@@ -200,7 +312,7 @@ const Home = () => {
             </div>
           </div>
 
-          {(!((activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals)) || (activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals).length === 0) ? (
+          {!currentList || currentList.length === 0 ? (
             <div className="bg-white border border-[#c3c6d7] rounded-2xl p-12 text-center text-[#434655]">
               <span className="material-symbols-outlined text-4xl mb-3 text-[#004ac6]">inventory_2</span>
               <p className="text-base font-bold text-[#131b2e]">No products in this category</p>
@@ -208,20 +320,22 @@ const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {(activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals).map((product) => (
+              {currentList.map((product) => (
                 <div key={product.id} className="product-card bg-white border border-[#c3c6d7] rounded-2xl overflow-hidden flex flex-col group cursor-pointer">
                   <Link to={`/product/${product.slug}`} className="aspect-square bg-[#eaedff] relative block overflow-hidden">
                     <img src={product.media?.[0] || "https://via.placeholder.com/400"} alt={product.name} className="w-full h-full object-cover p-2 group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute top-3 left-3 bg-[#004ac6] text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase tracking-tight">CAMPUS TREND</div>
+                    <div className={`absolute top-3 left-3 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase tracking-tight ${activeTab === 'best-sellers' ? 'bg-amber-500' : activeTab === 'new-arrivals' ? 'bg-emerald-600' : 'bg-[#004ac6]'}`}>
+                      {activeTab === 'best-sellers' ? 'BEST SELLER' : activeTab === 'new-arrivals' ? 'NEW ARRIVAL' : 'CAMPUS TREND'}
+                    </div>
                   </Link>
                   <div className="p-4 flex-grow flex flex-col">
-                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 leading-snug hover:text-[#004ac6] transition-colors block mb-2 min-h-[2.5rem]">{product.name}</Link>
+                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 h-[2.75rem] overflow-hidden leading-snug hover:text-[#004ac6] transition-colors mb-2">{product.name}</Link>
                     <div className="mt-auto space-y-3">
                       <div className="flex flex-col gap-1">
                         <span className="font-bold text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-[#434655]">Lifestyle</span>
-                          <span className="text-[10px] text-[#434655] ml-auto flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
+                          <span className="text-[10px] text-[#434655]">Sold {product.soldCount || 0}</span>
+                          <span className="text-[10px] text-[#434655] ml-auto flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0} ({product.reviewCount || 0})</span>
                         </div>
                       </div>
                       <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95">
@@ -235,11 +349,24 @@ const Home = () => {
             </div>
           )}
 
-          <div className="flex justify-center pt-8">
-            <button className="px-12 py-3 rounded-xl border-2 border-[#004ac6] text-[#004ac6] font-bold hover:bg-[#004ac6] hover:text-white transition-all duration-300">
-              Load More Products
-            </button>
-          </div>
+          {currentHasMore && (
+            <div className="flex justify-center pt-8">
+              <button 
+                onClick={handleLoadMore} 
+                disabled={loadingMore} 
+                className="px-12 py-3 rounded-xl border-2 border-[#004ac6] text-[#004ac6] font-bold hover:bg-[#004ac6] hover:text-white transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
+              >
+                {loadingMore ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current"></div>
+                    Loading...
+                  </>
+                ) : (
+                  'Load More Products'
+                )}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* Student Perks */}
