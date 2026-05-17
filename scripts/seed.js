@@ -277,7 +277,8 @@ const seedFashionData = async () => {
       mrp_price: 500000,
       selling_price: 450000,
       sku: 'GU-DX-01',
-      approval_status: 'approved'
+      approval_status: 'approved',
+      average_rating: 4.5
     });
 
     const pRelated = await Product.create({
@@ -289,7 +290,8 @@ const seedFashionData = async () => {
       mrp_price: 750000,
       selling_price: 680000,
       sku: 'GU-DX-02',
-      approval_status: 'approved'
+      approval_status: 'approved',
+      average_rating: 4.8
     });
 
     await ProductMedia.insertMany([
@@ -305,7 +307,8 @@ const seedFashionData = async () => {
       mrp_price: 1100000,
       selling_price: 999000,
       sku: 'BH-X-2026',
-      approval_status: 'approved'
+      approval_status: 'approved',
+      average_rating: 5.0
     });
 
     const p3 = await Product.create({
@@ -317,7 +320,8 @@ const seedFashionData = async () => {
       mrp_price: 280000,
       selling_price: 250000,
       sku: 'UT-AT-22',
-      approval_status: 'pending'
+      approval_status: 'pending',
+      average_rating: 4.2
     });
 
     const v1 = await ProductVariant.create({
@@ -430,7 +434,8 @@ const seedFashionData = async () => {
           mrp_price: group.basePrice + (i * 200000),
           selling_price: (group.basePrice + (i * 200000)) * 0.85,
           sku: `${group.prefix}-${i + 1}`,
-          approval_status: 'approved'
+          approval_status: 'approved',
+          average_rating: 4.5 + (i * 0.1)
         });
 
         await ProductMedia.create({

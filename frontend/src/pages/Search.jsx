@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import FABGroup from '../components/FABGroup';
 import toast from 'react-hot-toast';
 
 const Search = () => {
@@ -45,7 +46,7 @@ const Search = () => {
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        toast.error('Không thể tải danh sách sản phẩm');
+        toast.error('Unable to load product list');
       } finally {
         setLoading(false);
       }
@@ -214,27 +215,49 @@ const Search = () => {
                 </button>
               </div>
 
-              {/* Ratings */}
+              {/* Preferences */}
               <div>
                 <h3 className="text-[12px] font-bold uppercase tracking-widest text-[#505f76] mb-4">Preferences</h3>
-                <div className="space-y-4">
-                  {[4, 3, 2].map(star => (
-                    <label key={star} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="rating"
-                        checked={Number(rating) === star}
-                        onChange={() => {
-                          setRating(star);
-                          handleFilterChange('rating', star);
-                        }}
-                        className="w-5 h-5 rounded-full border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]/20 transition-all"
-                      />
-                      <span className={`text-sm font-medium group-hover:text-[#004ac6] transition-colors ${Number(rating) === star ? 'text-[#004ac6] font-bold' : ''}`}>
-                        {star}.0+ <span className="material-symbols-outlined text-[14px] fill-current text-amber-500">star</span>
-                      </span>
-                    </label>
-                  ))}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-[#434655]">Minimum Rating</p>
+                    {[4, 3, 2].map(star => (
+                      <label key={star} className="flex items-center gap-3 cursor-pointer group">
+                        <input 
+                          type="radio" 
+                          name="rating"
+                          checked={Number(rating) === star}
+                          onChange={() => {
+                            setRating(star);
+                            handleFilterChange('rating', star);
+                          }}
+                          className="w-5 h-5 rounded-full border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]/20 transition-all"
+                        />
+                        <span className={`text-sm font-medium group-hover:text-[#004ac6] transition-colors ${Number(rating) === star ? 'text-[#004ac6] font-bold' : ''}`}>
+                          {star}.0+ <span className="material-symbols-outlined text-[14px] fill-current text-amber-500">star</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-[#434655] mb-2">Available Colors</p>
+                    <div className="flex gap-2">
+                      <button className="w-6 h-6 rounded-full bg-[#131b2e] ring-2 ring-[#004ac6] ring-offset-2 transition-all"></button>
+                      <button className="w-6 h-6 rounded-full bg-white border border-[#c3c6d7] hover:scale-110 transition-all"></button>
+                      <button className="w-6 h-6 rounded-full bg-[#004ac6] hover:scale-110 transition-all"></button>
+                      <button className="w-6 h-6 rounded-full bg-[#505f76] hover:scale-110 transition-all"></button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-[#434655] mb-2">Dimensions</p>
+                    <div className="flex gap-2">
+                      <button className="px-3 py-1.5 rounded-lg border border-[#c3c6d7] text-xs font-bold hover:bg-[#f2f3ff] transition-all">Compact</button>
+                      <button className="px-3 py-1.5 rounded-lg bg-[#004ac6] text-white text-xs font-bold shadow-md">Standard</button>
+                      <button className="px-3 py-1.5 rounded-lg border border-[#c3c6d7] text-xs font-bold hover:bg-[#f2f3ff] transition-all">Large</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -247,7 +270,7 @@ const Search = () => {
             <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-[#131b2e]">
-                  {searchParams.get('q') ? `Results for "${searchParams.get('q')}"` : 'All Products'}
+                  {searchParams.get('q') ? `Results for "${searchParams.get('q')}"` : 'Curated Research Goods'}
                 </h1>
                 <p className="text-sm text-[#434655] mt-1">
                   Showing {meta?.pagination.count > 0 ? (meta.pagination.currentPage - 1) * meta.pagination.perPage + 1 : 0}-
@@ -321,15 +344,36 @@ const Search = () => {
             ) : (
               <div className="text-center py-20 bg-white rounded-2xl border border-[#c3c6d7] shadow-sm">
                 <span className="material-symbols-outlined text-6xl text-[#c3c6d7] mb-4">search_off</span>
-                <p className="text-[#505f76] font-medium">Không tìm thấy sản phẩm nào phù hợp.</p>
+                <p className="text-[#505f76] font-medium">No matching products found.</p>
                 <button 
                   onClick={handleClearAll}
                   className="mt-4 text-[#004ac6] font-bold hover:underline"
                 >
-                  Xóa tất cả bộ lọc
+                  Clear all filters
                 </button>
               </div>
             )}
+
+            {/* Membership Banner */}
+            <section className="bg-[#f2f3ff] rounded-3xl overflow-hidden relative border border-[#c3c6d7]/30 group my-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center p-8 md:p-12">
+                <div className="md:col-span-7 space-y-6">
+                  <span className="bg-[#004ac6] text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">Membership Offer</span>
+                  <h2 className="font-extrabold text-3xl text-[#004ac6] tracking-tight">Academic Premium Membership</h2>
+                  <p className="text-[#434655] text-sm leading-relaxed max-w-md">
+                    Unlock wholesale pricing, early access to rare archival collections, and priority lab equipment calibration services.
+                  </p>
+                  <button className="bg-[#004ac6] text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl">
+                    Join the Institute
+                  </button>
+                </div>
+                <div className="md:col-span-5 relative hidden md:block">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
+                    <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600" alt="Office" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  </div>
+                </div>
+              </div>
+            </section>
 
             {/* Pagination */}
             {meta?.pagination.totalPages > 1 && (
@@ -367,6 +411,28 @@ const Search = () => {
       </main>
 
       <Footer />
+
+      {/* BottomNavBar (Mobile Only) */}
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-white border-t border-[#c3c6d7] md:hidden shadow-lg">
+        <Link to="/" className="flex flex-col items-center justify-center text-[#505f76] hover:text-[#004ac6]">
+          <span className="material-symbols-outlined">home</span>
+          <span className="text-[10px] font-bold">Home</span>
+        </Link>
+        <Link to="/search" className="flex flex-col items-center justify-center text-[#004ac6]">
+          <span className="material-symbols-outlined">storefront</span>
+          <span className="text-[10px] font-bold">Products</span>
+        </Link>
+        <Link to="/cart" className="flex flex-col items-center justify-center bg-[#eaedff] text-[#004ac6] rounded-full px-4 py-1 font-bold shadow-sm">
+          <span className="material-symbols-outlined">shopping_cart</span>
+          <span className="text-[10px]">Cart</span>
+        </Link>
+        <Link to="/user/profile" className="flex flex-col items-center justify-center text-[#505f76] hover:text-[#004ac6]">
+          <span className="material-symbols-outlined">person</span>
+          <span className="text-[10px] font-bold">Account</span>
+        </Link>
+      </nav>
+
+      <FABGroup />
     </div>
   );
 };

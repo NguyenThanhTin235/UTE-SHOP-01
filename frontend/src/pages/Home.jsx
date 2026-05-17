@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import FABGroup from '../components/FABGroup';
 
 const Home = () => {
   const { user } = useSelector((state) => state.auth);
@@ -25,7 +26,7 @@ const Home = () => {
         }
       } catch (error) {
         console.error('Error fetching home data:', error);
-        toast.error('Không thể tải dữ liệu trang chủ');
+        toast.error('Unable to load homepage data');
       } finally {
         setLoading(false);
       }
@@ -58,9 +59,9 @@ const Home = () => {
             </div>
             <nav className="p-2">
               {categories?.map((cat, idx) => (
-                <Link key={cat.id} to={`/category/${cat.slug}`} className={`category-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${idx === 0 ? 'active' : 'text-[#434655]'}`}>
+                <Link key={cat.id} to={`/search?category=${cat.slug}`} className={`category-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${idx === 0 ? 'active' : 'text-[#434655]'}`}>
                   <span className="material-symbols-outlined text-[20px]">
-                    {cat.slug.includes('electronics') ? 'devices' : cat.slug.includes('fashion') ? 'apparel' : cat.slug.includes('book') ? 'menu_book' : 'category'}
+                    {cat.slug.includes('may-tinh') ? 'computer' : cat.slug.includes('dien-thoai') ? 'smartphone' : cat.slug.includes('dong-ho') ? 'watch' : cat.slug.includes('may-anh') ? 'photo_camera' : cat.slug.includes('women') || cat.slug.includes('men') || cat.slug.includes('fashion') ? 'apparel' : cat.slug.includes('book') ? 'menu_book' : 'category'}
                   </span>
                   {cat.name}
                 </Link>
@@ -80,7 +81,7 @@ const Home = () => {
               </h1>
               <p className="text-white/80 text-lg">Engineered for focus. Curated for performance. Discover the intersection of sophisticated design and academic utility.</p>
               <div className="flex gap-4 pt-4">
-                <Link to="/shop" className="bg-[#004ac6] text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-[#004ac6]/20">Explore the Collection</Link>
+                <Link to="/search" className="bg-[#004ac6] text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-[#004ac6]/20">Explore the Collection</Link>
                 <Link to="#" className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-3 rounded-full font-bold hover:bg-white/20 transition-colors">View Lookbook</Link>
               </div>
             </div>
@@ -96,14 +97,14 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
-              { icon: 'precision_manufacturing', label: 'Engineering' },
-              { icon: 'architecture', label: 'Design & Art' },
-              { icon: 'payments', label: 'Business' },
-              { icon: 'biotech', label: 'Sciences' },
-              { icon: 'history_edu', label: 'Humanities' },
-              { icon: 'balance', label: 'Law & Policy' },
+              { icon: 'precision_manufacturing', label: 'Engineering', slug: 'may-tinh' },
+              { icon: 'architecture', label: 'Design & Art', slug: 'women' },
+              { icon: 'payments', label: 'Business', slug: 'men' },
+              { icon: 'biotech', label: 'Sciences', slug: 'dien-thoai' },
+              { icon: 'history_edu', label: 'Humanities', slug: 'accessories' },
+              { icon: 'balance', label: 'Law & Policy', slug: 'bags' },
             ].map((d, i) => (
-              <button key={i} className="group p-4 bg-white border border-[#c3c6d7] rounded-2xl hover:border-[#004ac6] transition-all text-center">
+              <button key={i} onClick={() => navigate(`/search?category=${d.slug}`)} className="group p-4 bg-white border border-[#c3c6d7] rounded-2xl hover:border-[#004ac6] transition-all text-center">
                 <span className="material-symbols-outlined text-3xl mb-2 text-[#434655] group-hover:text-[#004ac6] transition-colors">{d.icon}</span>
                 <p className="text-xs font-bold uppercase tracking-wide">{d.label}</p>
               </button>
@@ -136,49 +137,57 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <Link to="/deals" className="text-sm font-bold text-[#004ac6] hover:underline">View All Deals</Link>
+            <Link to="/search?sort=top_rated" className="text-sm font-bold text-[#004ac6] hover:underline">View All Deals</Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {flashDeals?.map((product) => (
-              <div key={product.id} className="product-card bg-white border border-[#c3c6d7] rounded-2xl overflow-hidden flex flex-col group cursor-pointer">
-                <Link to={`/product/${product.slug}`} className="aspect-[4/3] bg-[#eaedff] relative block overflow-hidden">
-                  <img src={product.media?.[0] || "https://via.placeholder.com/400x300"} alt={product.name} className="w-full h-full object-cover p-2 group-hover:scale-110 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
-                    -{Math.round((1 - product.sellingPrice / product.mrpPrice) * 100)}%
-                  </div>
-                </Link>
-                <div className="p-4 flex-grow flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-[#004ac6] uppercase tracking-widest">Tech Essential</span>
-                    <span className="text-[10px] font-medium text-[#434655] flex items-center gap-1"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
-                  </div>
-                  <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 hover:text-[#004ac6] transition-colors block mb-3 min-h-[2.5rem]">{product.name}</Link>
-                  
-                  <div className="mt-auto space-y-3">
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-bold text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
-                        <span className="text-xs text-[#434655] line-through">{product.mrpPrice.toLocaleString()}₫</span>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-bold text-[#434655] uppercase">
-                          <span>Sold 65%</span>
-                        </div>
-                        <div className="h-1 bg-[#e1e4f5] rounded-full overflow-hidden">
-                          <div className="h-full bg-[#004ac6]" style={{ width: '65%' }}></div>
-                        </div>
-                      </div>
+          {(!flashDeals || flashDeals.length === 0) ? (
+            <div className="bg-white border border-[#c3c6d7] rounded-2xl p-12 text-center text-[#434655]">
+              <span className="material-symbols-outlined text-4xl mb-3 text-[#004ac6]">bolt</span>
+              <p className="text-base font-bold text-[#131b2e]">No Active Flash Sale</p>
+              <p className="text-xs mt-1">Flash deals are currently being prepared. Please check back later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {flashDeals.map((product) => (
+                <div key={product.id} className="product-card bg-white border border-[#c3c6d7] rounded-2xl overflow-hidden flex flex-col group cursor-pointer">
+                  <Link to={`/product/${product.slug}`} className="aspect-[4/3] bg-[#eaedff] relative block overflow-hidden">
+                    <img src={product.media?.[0] || "https://via.placeholder.com/400x300"} alt={product.name} className="w-full h-full object-cover p-2 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                      -{Math.round((1 - product.sellingPrice / product.mrpPrice) * 100)}%
                     </div>
-                    <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#004ac6] text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm">
-                      <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                      Add to Cart
-                    </button>
+                  </Link>
+                  <div className="p-4 flex-grow flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold text-[#004ac6] uppercase tracking-widest">Tech Essential</span>
+                      <span className="text-[10px] font-medium text-[#434655] flex items-center gap-1"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
+                    </div>
+                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 hover:text-[#004ac6] transition-colors block mb-3 min-h-[2.5rem]">{product.name}</Link>
+                    
+                    <div className="mt-auto space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-bold text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
+                          <span className="text-xs text-[#434655] line-through">{product.mrpPrice.toLocaleString()}₫</span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-[#434655] uppercase">
+                            <span>Sold 65%</span>
+                          </div>
+                          <div className="h-1 bg-[#e1e4f5] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#004ac6]" style={{ width: '65%' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#004ac6] text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all active:scale-95 shadow-sm">
+                        <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Product Exploration */}
@@ -191,32 +200,40 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {(activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals)?.map((product) => (
-              <div key={product.id} className="product-card bg-white border border-[#c3c6d7] rounded-2xl overflow-hidden flex flex-col group cursor-pointer">
-                <Link to={`/product/${product.slug}`} className="aspect-square bg-[#eaedff] relative block overflow-hidden">
-                  <img src={product.media?.[0] || "https://via.placeholder.com/400"} alt={product.name} className="w-full h-full object-cover p-2 group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-[#004ac6] text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase tracking-tight">CAMPUS TREND</div>
-                </Link>
-                <div className="p-4 flex-grow flex flex-col">
-                  <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 leading-snug hover:text-[#004ac6] transition-colors block mb-2 min-h-[2.5rem]">{product.name}</Link>
-                  <div className="mt-auto space-y-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-bold text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-[#434655]">Lifestyle</span>
-                        <span className="text-[10px] text-[#434655] ml-auto flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
+          {(!((activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals)) || (activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals).length === 0) ? (
+            <div className="bg-white border border-[#c3c6d7] rounded-2xl p-12 text-center text-[#434655]">
+              <span className="material-symbols-outlined text-4xl mb-3 text-[#004ac6]">inventory_2</span>
+              <p className="text-base font-bold text-[#131b2e]">No products in this category</p>
+              <p className="text-xs mt-1">Products are currently being updated. Please check back later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {(activeTab === 'new-arrivals' ? newArrivals : activeTab === 'best-sellers' ? bestSellers : newArrivals).map((product) => (
+                <div key={product.id} className="product-card bg-white border border-[#c3c6d7] rounded-2xl overflow-hidden flex flex-col group cursor-pointer">
+                  <Link to={`/product/${product.slug}`} className="aspect-square bg-[#eaedff] relative block overflow-hidden">
+                    <img src={product.media?.[0] || "https://via.placeholder.com/400"} alt={product.name} className="w-full h-full object-cover p-2 group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-3 left-3 bg-[#004ac6] text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase tracking-tight">CAMPUS TREND</div>
+                  </Link>
+                  <div className="p-4 flex-grow flex flex-col">
+                    <Link to={`/product/${product.slug}`} className="font-bold text-sm line-clamp-2 leading-snug hover:text-[#004ac6] transition-colors block mb-2 min-h-[2.5rem]">{product.name}</Link>
+                    <div className="mt-auto space-y-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-bold text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-[#434655]">Lifestyle</span>
+                          <span className="text-[10px] text-[#434655] ml-auto flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px] fill-1 text-amber-500">star</span> {product.averageRating || 5.0}</span>
+                        </div>
                       </div>
+                      <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95">
+                        <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                        Add to Cart
+                      </button>
                     </div>
-                    <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95">
-                      <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                      Add to Cart
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="flex justify-center pt-8">
             <button className="px-12 py-3 rounded-xl border-2 border-[#004ac6] text-[#004ac6] font-bold hover:bg-[#004ac6] hover:text-white transition-all duration-300">
@@ -262,12 +279,7 @@ const Home = () => {
 
       <Footer />
 
-      {/* AI Chatbot FAB */}
-      <button className="fixed bottom-8 right-8 w-16 h-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all z-50 group">
-        <span className="material-symbols-outlined text-3xl group-hover:hidden">smart_toy</span>
-        <span className="material-symbols-outlined text-3xl hidden group-hover:block">chat</span>
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-white">1</span>
-      </button>
+      <FABGroup />
     </div>
   );
 };
