@@ -70,3 +70,7 @@ node_modules/
 
 # Agent config
 .antigravity/
+
+# Ignored templates
+template/
+IMAGE/

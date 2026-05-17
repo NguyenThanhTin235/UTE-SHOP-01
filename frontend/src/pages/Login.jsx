@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { login, reset } from '../redux/authSlice';
-import InputField from '../components/InputField';
-import PrimaryButton from '../components/PrimaryButton';
+import { login, googleLogin, reset } from '../redux/authSlice';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { email, password, rememberMe } = formData;
+  const { email, password } = formData;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -33,16 +32,25 @@ const Login = () => {
     if (isSuccess && user) {
       toast.dismiss();
       toast.success('Login successful!');
-      navigate('/user/profile');
+      // Role-based redirect: customer → /, admin → /admin/, manager → /manager/, seller/vendor → /seller/
+      if (user.role === 'admin') {
+        window.location.href = '/admin/';
+      } else if (user.role === 'manager') {
+        window.location.href = '/manager/';
+      } else if (user.role === 'seller' || user.role === 'vendor') {
+        window.location.href = '/seller/';
+      } else {
+        navigate('/');
+      }
       dispatch(reset());
     }
   }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }));
   };
 
@@ -51,125 +59,129 @@ const Login = () => {
     dispatch(login({ email, password }));
   };
 
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      console.log(tokenResponse);
+      dispatch(googleLogin(tokenResponse.access_token));
+    },
+    onError: () => toast.error('Google Login Failed'),
+  });
+
   return (
     <Layout>
-      <div className="container-fluid p-0" style={{ backgroundColor: '#f9fafb' }}>
-        <div className="container-xl py-5">
-          <main className="row g-0 bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '1200px', border: '1px solid #eee', minHeight: '700px' }}>
-            {/* Left Side: Visual Section */}
-            <div className="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 text-white position-relative"
-                 style={{ 
-                   background: 'url("https://images.unsplash.com/photo-1441984904996-e0b6ed29ae27?auto=format&fit=crop&w=1000&q=80") center/cover no-repeat',
-                   minHeight: '700px'
-                 }}>
-              <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.1), rgba(0,0,0,0.4))' }}></div>
-              
-              <div className="position-relative z-1 text-center">
-                <div className="d-inline-flex align-items-center gap-2 mb-1">
-                  <div className="border border-2 border-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-                    <i className="fa-solid fa-diamond fs-6"></i>
-                  </div>
-                  <span className="fs-3 fw-bold">UTEShop</span>
-                </div>
-                <p className="small opacity-90 tracking-widest text-uppercase mb-0" style={{ letterSpacing: '1px', fontSize: '12px' }}>Multi-vendor Fashion Marketplace</p>
-                <div className="mx-auto mt-3" style={{ width: '150px', height: '1px', background: 'rgba(255,255,255,0.4)' }}></div>
-              </div>
+      <div className="w-full max-w-[440px] my-auto py-8">
+        {/* Brand Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="font-['Manrope'] text-3xl font-bold text-[#004ac6] tracking-tighter">UTEShop</Link>
+        </div>
 
-              <div className="position-relative z-1 glass-card p-4 rounded-4 mx-2 mb-2" 
-                   style={{ 
-                     background: 'rgba(255, 255, 255, 0.15)', 
-                     backdropFilter: 'blur(12px)', 
-                     border: '1px solid rgba(255, 255, 255, 0.25)',
-                     boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-                   }}>
-                <p className="fs-5 fw-medium fst-italic mb-4" style={{ lineHeight: '1.4' }}>"Redefining modern elegance through a curated collective of global fashion visionaries."</p>
-                <div className="d-flex align-items-center gap-3">
-                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=100&h=100&q=80" 
-                       alt="Elena Rossi" className="rounded-circle" style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
-                  <div className="text-start">
-                    <h6 className="mb-0 fw-bold" style={{ fontSize: '14px' }}>Elena Rossi</h6>
-                    <span className="opacity-80" style={{ fontSize: '12px' }}>Head of Curation</span>
-                  </div>
-                </div>
+        {/* Login Card */}
+        <div className="bg-white rounded-xl p-8 border border-[#c3c6d7] shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
+          <div className="mb-8 text-left">
+            <h1 className="text-3xl font-bold text-[#131b2e]">Login</h1>
+            <p className="text-sm text-[#434655] mt-1">Welcome back to the UTEShop community.</p>
+          </div>
+
+          <form onSubmit={onSubmit} className="space-y-4 text-left">
+            {/* Email Field */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#434655] block px-1" htmlFor="email">Email address</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#434655] text-[20px]">mail</span>
+                <input 
+                  className="w-full pl-11 pr-4 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-base text-[#131b2e]" 
+                  id="email" 
+                  name="email" 
+                  placeholder="name@example.com" 
+                  required 
+                  type="email" 
+                  value={email} 
+                  onChange={onChange} 
+                />
               </div>
             </div>
 
-            {/* Right Side: Form Section */}
-            <div className="col-lg-6 d-flex align-items-center justify-content-center p-4 p-md-5" style={{ backgroundColor: '#f9fafb' }}>
-              <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm w-100" style={{ maxWidth: '450px' }}>
-                <div className="text-center mb-5">
-                  <h1 className="fw-bold h2 mb-2" style={{ color: '#111827' }}>Welcome back</h1>
-                  <p className="text-muted small">Login to continue shopping</p>
-                </div>
-
-                <form onSubmit={onSubmit}>
-                  <InputField
-                    label="Email Address"
-                    type="email"
-                    name="email"
-                    value={email}
-                    placeholder="name@example.com"
-                    icon="fa-regular fa-envelope"
-                    onChange={onChange}
-                    required
-                  />
-
-                  <InputField
-                    label="Password"
-                    type="password"
-                    name="password"
-                    value={password}
-                    placeholder="Enter your password"
-                    icon="fa-solid fa-lock"
-                    onChange={onChange}
-                    required
-                  />
-
-                  <div className="d-flex justify-content-between align-items-center mb-4" style={{ fontSize: '13px' }}>
-                    <div className="form-check">
-                      <input 
-                        type="checkbox" 
-                        className="form-check-input" 
-                        id="rememberMe" 
-                        name="rememberMe"
-                        checked={rememberMe}
-                        onChange={onChange}
-                      />
-                      <label className="form-check-label text-muted" htmlFor="rememberMe">Remember me</label>
-                    </div>
-                    <Link to="/forgot-password" className="text-dark fw-bold text-decoration-none">Forgot password?</Link>
-                  </div>
-
-                  <PrimaryButton type="submit" isLoading={isLoading} className="py-3 rounded-3 mb-4 shadow-sm w-100 fw-bold">
-                    Login
-                  </PrimaryButton>
-
-                  <div className="d-flex align-items-center my-4">
-                    <hr className="flex-grow-1 text-muted opacity-10" />
-                    <span className="mx-3 text-muted fw-bold" style={{ fontSize: '10px', letterSpacing: '1px' }}>OR CONTINUE WITH</span>
-                    <hr className="flex-grow-1 text-muted opacity-10" />
-                  </div>
-
-                  <div className="row g-3 mb-5">
-                    <div className="col-6">
-                      <button type="button" className="btn btn-outline-light border text-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-bg-light rounded-3 shadow-sm" style={{ fontSize: '13px', fontWeight: '500' }}>
-                        <i className="fa-brands fa-google text-danger"></i> Google
-                      </button>
-                    </div>
-                    <div className="col-6">
-                      <button type="button" className="btn btn-outline-light border text-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-bg-light rounded-3 shadow-sm" style={{ fontSize: '13px', fontWeight: '500' }}>
-                        <i className="fa-brands fa-facebook-f text-primary"></i> Facebook
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-center small text-muted">
-                    Don't have an account? <Link to="/register" className="text-danger fw-bold text-decoration-none ms-1">Sign up</Link>
-                  </div>
-                </form>
+            {/* Password Field */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-xs font-medium text-[#434655]" htmlFor="password">Password</label>
+                <Link className="text-xs font-medium text-[#004ac6] hover:underline transition-all" to="/forgot-password">Forgot Password?</Link>
+              </div>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#434655] text-[20px]">lock</span>
+                <input 
+                  className="w-full pl-11 pr-11 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-base text-[#131b2e]" 
+                  id="password" 
+                  name="password" 
+                  placeholder="••••••••" 
+                  required 
+                  type={showPassword ? "text" : "password"} 
+                  value={password} 
+                  onChange={onChange} 
+                />
+                <button 
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#434655] hover:text-[#004ac6] transition-colors" 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <span className="material-symbols-outlined text-[20px]">{showPassword ? "visibility" : "visibility_off"}</span>
+                </button>
               </div>
             </div>
-          </main>
+
+            {/* Primary Action */}
+            <div className="pt-2">
+              <button 
+                className="w-full py-3 px-4 bg-[#004ac6] text-white font-bold text-xl rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2" 
+                type="submit" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-8">
+            <div className="h-px bg-[#c3c6d7] flex-grow"></div>
+            <span className="text-xs font-medium text-[#737686]">or login with</span>
+            <div className="h-px bg-[#c3c6d7] flex-grow"></div>
+          </div>
+
+          {/* Social Options */}
+          <div className="space-y-6">
+            <button 
+              type="button" 
+              onClick={() => handleGoogleLogin()} 
+              className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#c3c6d7] rounded-lg hover:bg-[#f2f3ff] transition-colors bg-white shadow-sm"
+            >
+              <img alt="Google" className="w-5 h-5" src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" />
+              <span className="text-xs font-medium text-[#131b2e]">Continue with Google</span>
+            </button>
+          </div>
+
+          {/* Secondary Option */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-[#434655]">
+              Don't have an account? <Link className="text-[#004ac6] font-bold hover:underline ml-1" to="/register">Sign up</Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Security/Trust Badges */}
+        <div className="mt-8 flex justify-center items-center gap-8 opacity-60">
+          <div className="flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">verified_user</span>
+            <span className="text-xs font-medium uppercase tracking-widest text-[#131b2e]">SSL SECURED</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+            <span className="text-xs font-medium uppercase tracking-widest text-[#131b2e]">GENUINE PRODUCTS</span>
+          </div>
         </div>
       </div>
     </Layout>
@@ -177,3 +189,4 @@ const Login = () => {
 };
 
 export default Login;
+

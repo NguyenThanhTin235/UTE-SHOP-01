@@ -3,6 +3,20 @@ const jwt = require('jsonwebtoken');
 const OTP = require('../models/OTP');
 const User = require('../models/User');
 const sendEmail = require('../utils/mail');
+const UserRole = require('../models/UserRole');
+const Role = require('../models/Role');
+
+const getUserRole = async (userId, fallbackRole = 'customer') => {
+  try {
+    const userRole = await UserRole.findOne({ user_id: userId }).populate('role_id');
+    if (userRole && userRole.role_id && userRole.role_id.name) {
+      return userRole.role_id.name.toLowerCase(); // 'admin', 'manager', 'seller', 'customer'
+    }
+  } catch (err) {
+    console.error('Error fetching UserRole:', err);
+  }
+  return fallbackRole;
+};
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
@@ -116,26 +130,29 @@ const authenticate = async (email, password) => {
   user.lockout_until = null;
   await user.save();
 
+  const roleName = await getUserRole(user._id, user.role || 'customer');
+
   const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: roleName },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 
-  const redirectUrl = user.role === 'admin' ? '/admin/profile' : '/user/profile';
+  const roleRedirects = { admin: '/admin/', manager: '/manager/', seller: '/seller/', vendor: '/seller/', customer: '/' };
+  const redirectUrl = roleRedirects[roleName] || '/';
 
   const userObj = user.toObject();
   const userData = {
     id: userObj._id,
-    fullName: userObj.full_name,
+    full_name: userObj.full_name,
     email: userObj.email,
     phone: userObj.phone || null,
-    role: userObj.role,
-    studentId: userObj.student_id || null,
-    faculty: userObj.faculty || null,
+    dob: userObj.dob || null,
+    gender: userObj.gender || null,
+    role: roleName,
     avatar_url: userObj.avatar_url || null,
     status: userObj.status,
-    coinBalance: userObj.coin_balance,
+    coin_balance: userObj.coin_balance,
     createdAt: userObj.createdAt,
     updatedAt: userObj.updatedAt
   };
@@ -249,13 +266,68 @@ const registerUser = async (userData) => {
     coin_balance: 0
   });
 
+  const roleName = 'customer';
   const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: roleName },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 
-  return { user, token };
+  const userObj = user.toObject();
+  userObj.role = roleName;
+
+  return { user: userObj, token };
+};
+
+/**
+ * Social Authenticate (Google/Facebook)
+ */
+const socialAuthenticate = async (userData) => {
+  const { email, full_name, avatar_url, provider, provider_id } = userData;
+
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // Update avatar if the user doesn't have one yet
+    if (!user.avatar_url && avatar_url) {
+      user.avatar_url = avatar_url;
+      await user.save();
+    }
+  } else {
+    // Create new user
+    user = await User.create({
+      full_name,
+      email,
+      password: await hashPassword(Math.random().toString(36).slice(-10)), // Random password
+      avatar_url,
+      role: 'customer',
+      status: 'active',
+      email_verified_at: new Date(),
+    });
+  }
+
+  const roleName = await getUserRole(user._id, 'customer');
+  const token = jwt.sign(
+    { id: user._id, role: roleName },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+  );
+
+  const userObj = user.toObject();
+  const returnUserData = {
+    id: userObj._id,
+    full_name: userObj.full_name,
+    email: userObj.email,
+    avatar_url: userObj.avatar_url,
+    phone: userObj.phone || null,
+    dob: userObj.dob || null,
+    gender: userObj.gender || null,
+    role: roleName,
+    status: userObj.status,
+    createdAt: userObj.createdAt,
+  };
+
+  return { token, user: returnUserData };
 };
 
 module.exports = {
@@ -265,5 +337,6 @@ module.exports = {
   sendOTPEmail,
   authenticate,
   sendRegistrationOTP,
-  registerUser
+  registerUser,
+  socialAuthenticate
 };

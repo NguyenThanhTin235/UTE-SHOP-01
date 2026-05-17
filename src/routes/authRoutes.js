@@ -33,4 +33,7 @@ router.post('/reset-password', authController.resetPassword);
 router.put('/profile', protect, profileUpdateRules(), validate, authController.updateProfile);
 router.post('/profile/avatar', protect, upload.single('avatar'), authController.uploadAvatar);
 
+// Social Login
+router.post('/google', authController.googleLogin);
+
 module.exports = router;

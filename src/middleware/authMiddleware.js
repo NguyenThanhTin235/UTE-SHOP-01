@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const UserRole = require('../models/UserRole');
+const Role = require('../models/Role');
 const response = require('../utils/response');
 
 const protect = async (req, res, next) => {
@@ -26,6 +28,17 @@ const protect = async (req, res, next) => {
         });
       }
 
+      if (decoded.role) {
+        req.user.role = decoded.role;
+      } else {
+        const userRole = await UserRole.findOne({ user_id: req.user._id }).populate('role_id');
+        if (userRole && userRole.role_id && userRole.role_id.name) {
+          req.user.role = userRole.role_id.name.toLowerCase();
+        } else {
+          req.user.role = 'customer';
+        }
+      }
+
       next();
     } catch (error) {
       console.error('Auth Middleware Error:', error);
@@ -44,4 +57,4 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+module.exports = { protect, verifyToken: protect };

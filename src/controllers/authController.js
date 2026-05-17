@@ -1,8 +1,11 @@
+const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 const authService = require('../services/authService');
 const responseHelper = require('../utils/responseHelper');
 const response = require('../utils/response');
+const { toCamelCase } = require('../utils/formatter');
 
 /**
  * @desc    Login user
@@ -68,16 +71,16 @@ exports.register = async (req, res, next) => {
       success: true,
       code: 201,
       message: 'Registration successful',
-      data: {
+      data: toCamelCase({
         token: result.token,
         user: {
           id: result.user._id,
-          full_name: result.user.full_name,
+          fullName: result.user.full_name,
           email: result.user.email,
           role: result.user.role,
-          avatar_url: result.user.avatar_url || null
+          avatarUrl: result.user.avatar_url || null
         }
-      },
+      }),
       timestamp: Math.floor(Date.now() / 1000)
     });
   } catch (error) {
@@ -185,10 +188,10 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    user.full_name = fullName || user.full_name;
-    user.phone = phone || user.phone;
-    user.dob = dob || user.dob;
-    user.gender = gender || user.gender;
+    if (fullName) user.full_name = fullName;
+    if (phone) user.phone = phone;
+    if (dob) user.dob = dob;
+    if (gender) user.gender = gender;
 
     const updatedUser = await user.save();
 
@@ -262,6 +265,51 @@ exports.uploadAvatar = async (req, res) => {
     return response.error(res, {
       statusCode: 500,
       message: 'Server error while uploading avatar',
+    });
+  }
+};
+
+/**
+ * @desc    Google Social Login
+ * @route   POST /api/auth/google
+ */
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { tokenId } = req.body; // access_token from frontend
+
+    // Fetch user info using the access token
+    const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${tokenId}`);
+    const { email, name, picture, sub } = googleRes.data;
+
+    if (!email) {
+      return response.error(res, {
+        statusCode: 400,
+        message: 'Google account does not provide email',
+      });
+    }
+
+    const result = await authService.socialAuthenticate({
+      email,
+      full_name: name,
+      avatar_url: picture,
+      provider: 'google',
+      provider_id: sub
+    });
+
+    return response.success(res, {
+      message: 'Google login successful',
+      data: {
+        token: result.token,
+        user: result.user,
+      },
+    });
+  } catch (error) {
+    console.error('Google Login Error:', error.response?.data || error.message);
+    return response.error(res, {
+      statusCode: 401,
+      message: 'Google authentication failed',
     });
   }
 };
