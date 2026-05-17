@@ -7,6 +7,124 @@
 	},
 	"item": [
 		{
+			"name": "Public",
+			"item": [
+				{
+					"name": "Get Homepage Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/homepage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"homepage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/products?q=áo&category=Electronics&minPrice=100000&maxPrice=500000&rating=4&sort=price_asc&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"products"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "áo"
+								},
+								{
+									"key": "category",
+									"value": "Electronics"
+								},
+								{
+									"key": "minPrice",
+									"value": "100000"
+								},
+								{
+									"key": "maxPrice",
+									"value": "500000"
+								},
+								{
+									"key": "rating",
+									"value": "4"
+								},
+								{
+									"key": "sort",
+									"value": "price_asc"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/product/:slug",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"product",
+								":slug"
+							],
+							"variable": [
+								{
+									"key": "slug",
+									"value": "ao-thun-nam-co-tron"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Authentication",
 			"item": [
 				{
