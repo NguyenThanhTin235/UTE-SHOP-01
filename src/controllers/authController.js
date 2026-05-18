@@ -2,6 +2,7 @@ const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
+const Notification = require('../models/Notification');
 const authService = require('../services/authService');
 const responseHelper = require('../utils/responseHelper');
 const response = require('../utils/response');
@@ -15,6 +16,22 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await authService.authenticate(email, password);
+
+    // Gửi thông báo đăng nhập mới
+    try {
+      await Notification.create({
+        user_id: result.user._id,
+        title: 'Security Alert: New Login',
+        content: `A new login to your account ${result.user.email} was just detected.`,
+        detailContent: `We detected a new login to your UTEShop account.\n\n**Account:** ${result.user.email}\n**Time:** ${new Date().toLocaleString('en-US')}\n**Device/Browser:** Web System Login\n\nIf this was you, you can ignore this alert. If you did not perform this login, please change your password immediately.`,
+        type: 'system',
+        category: 'System',
+        date: 'JUST NOW',
+        link: '/profile'
+      });
+    } catch (notifErr) {
+      console.error('Notification Error on Login:', notifErr);
+    }
 
     return response.success(res, {
       message: 'Login successful',
@@ -66,6 +83,22 @@ exports.register = async (req, res, next) => {
       password,
       otp_code
     });
+
+    // Gửi thông báo chào mừng
+    try {
+      await Notification.create({
+        user_id: result.user._id,
+        title: 'Welcome to UTEShop!',
+        content: 'Thank you for registering. Explore our premium academic collections now!',
+        detailContent: `Hello ${result.user.full_name},\n\nWelcome to UTEShop, the premium academic shopping platform. We are committed to providing a modern, accurate, and high-quality shopping experience.\n\nDon't forget to complete your profile and explore exclusive vouchers for new members!`,
+        type: 'system',
+        category: 'System',
+        date: 'JUST NOW',
+        link: '/search'
+      });
+    } catch (notifErr) {
+      console.error('Notification Error on Register:', notifErr);
+    }
 
     res.status(201).json({
       success: true,
@@ -164,6 +197,22 @@ exports.resetPassword = async (req, res) => {
 
     user.password = await authService.hashPassword(newPassword);
     await user.save();
+
+    // Gửi thông báo đổi mật khẩu thành công
+    try {
+      await Notification.create({
+        user_id: user._id,
+        title: 'Password Reset Successful',
+        content: 'Your account password has been successfully reset.',
+        detailContent: `The password for account ${user.email} was successfully changed via the Forgot Password feature.\n\n**Time:** ${new Date().toLocaleString('en-US')}\n\nIf you did not make this request, please contact UTEShop support immediately.`,
+        type: 'system',
+        category: 'System',
+        date: 'JUST NOW',
+        link: '/profile'
+      });
+    } catch (notifErr) {
+      console.error('Notification Error on Reset Password:', notifErr);
+    }
 
     return responseHelper.successResponse(res, 'Password has been updated successfully');
   } catch (error) {
@@ -297,6 +346,22 @@ exports.googleLogin = async (req, res) => {
       provider: 'google',
       provider_id: sub
     });
+
+    // Gửi thông báo đăng nhập Google thành công
+    try {
+      await Notification.create({
+        user_id: result.user._id,
+        title: 'Google Login Successful',
+        content: `Account ${result.user.email} was logged in via Google.`,
+        detailContent: `We detected a new login to your UTEShop account via Google Authentication (OAuth2).\n\n**Account:** ${result.user.email}\n**Time:** ${new Date().toLocaleString('en-US')}\n\nIf this was you, you can ignore this alert.`,
+        type: 'system',
+        category: 'System',
+        date: 'JUST NOW',
+        link: '/profile'
+      });
+    } catch (notifErr) {
+      console.error('Notification Error on Google Login:', notifErr);
+    }
 
     return response.success(res, {
       message: 'Google login successful',

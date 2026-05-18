@@ -1,18 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'].includes(location.pathname);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
     setSearchTerm(q || '');
   }, [location.search]);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        const response = await axios.get('http://localhost:5000/api/notifications', config);
+        if (response.data && response.data.success) {
+          const data = response.data.data || [];
+          const unread = data.filter(n => !n.is_read).length;
+          setUnreadCount(unread);
+        }
+      } catch (error) {
+        console.error('Fetch unread notifications error:', error);
+      }
+    };
+
+    if (!isAuthPage) {
+      fetchUnreadCount();
+    }
+  }, [location.pathname, isAuthPage, user]);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -43,8 +72,6 @@ const Header = () => {
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
   };
-
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'].includes(location.pathname);
 
   return (
     <header className="bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.05)] sticky top-0 z-50 font-medium text-[#131b2e] font-['Manrope']">
@@ -91,13 +118,17 @@ const Header = () => {
           {!isAuthPage && (
             <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
               <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
+              {unreadCount > 0 ? (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-[#ba1a1a] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : null}
             </Link>
           )}
 
           {user ? (
             <Link to="/user/profile" className="flex items-center gap-2 p-1 pr-3 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 border border-[#c3c6d7]/30">
-              <img src={user.avatarUrl ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'User')}&background=004ac6&color=fff`} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+              <img src={user.avatarUrl ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'User')}&background=004ac6&color=fff`} alt="Avatar" className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
               <span className="text-sm font-bold text-[#131b2e] hidden md:block tracking-tight">{user.fullName}</span>
             </Link>
           ) : (
