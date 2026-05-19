@@ -913,6 +913,13 @@ const seedFashionData = async () => {
       page_type: 'faq'
     });
 
+    console.log('❤️ Seeding Wishlist...');
+    await Wishlist.insertMany([
+      { user_id: customers[0]._id, product_id: p1._id },
+      { user_id: customers[0]._id, product_id: p2._id },
+      { user_id: customers[0]._id, product_id: p3._id }
+    ]);
+
     console.log('📣 Seeding Notifications & Coins...');
     await Notification.insertMany([
       {

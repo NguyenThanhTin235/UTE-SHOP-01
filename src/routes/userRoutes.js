@@ -30,4 +30,12 @@ router.put('/addresses/:addressId', verifyToken, userController.updateAddress);
 // Xóa địa chỉ
 router.delete('/addresses/:addressId', verifyToken, userController.removeAddress);
 
+/**
+ * ── WISHLIST MANAGEMENT ──
+ */
+router.get('/wishlist', verifyToken, userController.getWishlist);
+router.post('/wishlist', verifyToken, userController.addToWishlist);
+router.delete('/wishlist/:productId', verifyToken, userController.removeFromWishlist);
+
 module.exports = router;
+

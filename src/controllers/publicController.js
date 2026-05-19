@@ -289,7 +289,7 @@ exports.searchProducts = async (req, res, next) => {
       color,
       dimension,
       page = 1,
-      limit = 12
+      limit = 8
     } = req.query;
 
     const query = {

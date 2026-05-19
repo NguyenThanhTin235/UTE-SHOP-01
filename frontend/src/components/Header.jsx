@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
@@ -116,14 +117,20 @@ const Header = () => {
           </Link>
 
           {!isAuthPage && (
-            <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
-              <span className="material-symbols-outlined">notifications</span>
-              {unreadCount > 0 ? (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-[#ba1a1a] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              ) : null}
-            </Link>
+            user ? (
+              <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
+                <span className="material-symbols-outlined">notifications</span>
+                {unreadCount > 0 ? (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-[#ba1a1a] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
+            ) : (
+              <button onClick={() => toast.error('Vui lòng đăng nhập để xem thông báo')} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative cursor-pointer">
+                <span className="material-symbols-outlined">notifications</span>
+              </button>
+            )
           )}
 
           {user ? (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Header from '../components/Header';
@@ -9,8 +10,10 @@ import FABGroup from '../components/FABGroup';
 const ProductDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   
   // Interactions
   const [selectedImage, setSelectedImage] = useState('');
@@ -61,6 +64,29 @@ const ProductDetail = () => {
     }
   }, [selectedColor, selectedSize, data, quantity]);
 
+  // Check if product is in user's wishlist
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (!user || !data?.product) return;
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
+          },
+        };
+        const response = await axios.get('http://localhost:5000/api/users/wishlist', config);
+        if (response.data && response.data.success) {
+          const currentProductId = data.product._id || data.product.id;
+          const found = response.data.data.some(item => item.productId === currentProductId);
+          setIsWishlisted(found);
+        }
+      } catch (error) {
+        setIsWishlisted(false);
+      }
+    };
+    checkWishlist();
+  }, [user, data]);
+
   if (loading) {
     return <div className="min-h-screen bg-background text-on-background flex items-center justify-center font-['Manrope'] font-bold text-lg">Loading Academic Collection...</div>;
   }
@@ -85,6 +111,36 @@ const ProductDetail = () => {
     toast.success('Added to cart successfully!');
   };
 
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để quản lý danh sách yêu thích');
+      return;
+    }
+    const currentProductId = product._id || product.id;
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
+        },
+      };
+      if (isWishlisted) {
+        const response = await axios.delete(`http://localhost:5000/api/users/wishlist/${currentProductId}`, config);
+        if (response.data && response.data.success) {
+          setIsWishlisted(false);
+          toast.success('Đã xóa khỏi danh sách yêu thích');
+        }
+      } else {
+        const response = await axios.post('http://localhost:5000/api/users/wishlist', { productId: currentProductId }, config);
+        if (response.data && response.data.success) {
+          setIsWishlisted(true);
+          toast.success('Đã thêm vào danh sách yêu thích');
+        }
+      }
+    } catch (error) {
+      toast.error('Lỗi khi cập nhật danh sách yêu thích');
+    }
+  };
+
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col font-['Manrope']">
       <Header />
@@ -107,13 +163,22 @@ const ProductDetail = () => {
           <div className="lg:col-span-7 space-y-4">
             <div className="relative aspect-square bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/30 group">
               <img src={selectedImage || product?.imageUrl || 'https://via.placeholder.com/600?text=No+Image+Available'} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110 cursor-zoom-in" />
-              <div className="absolute top-6 left-6 flex flex-col gap-2">
+              <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
                 {currentStock > 0 ? (
                    <span className="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">In Stock</span>
                 ) : (
                    <span className="bg-error text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">Out of Stock</span>
                 )}
                 <span className="bg-[#131b2e] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">Authentic</span>
+              </div>
+              <div className="absolute top-6 right-6 z-10">
+                <button 
+                  onClick={handleToggleWishlist}
+                  className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-primary shadow-lg hover:bg-white hover:scale-110 transition-all cursor-pointer"
+                  title={isWishlisted ? "Xóa khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+                >
+                  <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: isWishlisted ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                </button>
               </div>
             </div>
             <div className="grid grid-cols-4 gap-4">
@@ -257,11 +322,11 @@ const ProductDetail = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
-              <button onClick={handleAddToCart} disabled={currentStock <= 0} className="flex items-center justify-center gap-2 border-2 border-primary text-primary py-4 rounded-2xl font-bold hover:bg-primary/5 transition-all disabled:opacity-50 active:scale-95">
+              <button onClick={handleAddToCart} disabled={currentStock <= 0} className="flex items-center justify-center gap-2 border-2 border-primary text-primary py-4 rounded-2xl font-bold hover:bg-primary/5 transition-all disabled:opacity-50 active:scale-95 cursor-pointer">
                 <span className="material-symbols-outlined">add_shopping_cart</span>
                 Add to Cart
               </button>
-              <button disabled={currentStock <= 0} className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95">
+              <button disabled={currentStock <= 0} className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 cursor-pointer">
                 Buy It Now
               </button>
             </div>
