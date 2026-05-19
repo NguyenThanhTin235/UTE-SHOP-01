@@ -32,6 +32,7 @@ app.use('/api', limiter);
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
+app.use('/api/seller', require('./routes/sellerRoutes'));
 
 // Global Error Handler
 app.use((err, req, res, next) => {

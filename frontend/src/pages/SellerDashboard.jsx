@@ -3,13 +3,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
-
+import SellerProducts from '../components/seller/SellerProducts';
+import SellerAddProduct from '../components/seller/SellerAddProduct';
+import SellerOrders from '../components/seller/SellerOrders';
+import SellerOrderDetail from '../components/seller/SellerOrderDetail';
+import SellerCancellations from '../components/seller/SellerCancellations';
 const SellerDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -131,46 +136,45 @@ const SellerDashboard = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
-        {/* Header */}
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#004ac6] text-2xl">dashboard_customize</span>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard Overview</h1>
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Header */}
+            <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4">
+                <span className="material-symbols-outlined text-[#004ac6] text-2xl">dashboard_customize</span>
+                <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard Overview</h1>
 
-            <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-80 group focus-within:ring-2 focus-within:ring-blue-100 transition-all border border-slate-200/60">
-              <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#004ac6]">search</span>
-              <input
-                type="text"
-                placeholder="Search analytics..."
-                className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 placeholder:font-medium ml-2 outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-px bg-slate-200 mx-2"></div>
-
-            <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
-              <span className="material-symbols-outlined text-2xl">notifications</span>
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-
-            <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
-              <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
-                JD
+                <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-80 group focus-within:ring-2 focus-within:ring-blue-100 transition-all border border-slate-200/60">
+                  <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#004ac6]">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search analytics..."
+                    className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 placeholder:font-medium ml-2 outline-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-              <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>
-              <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
-            </div>
-          </div>
-        </header>
 
-        {/* Dashboard Body */}
-        <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
-          {activeTab === 'dashboard' && (
-            <>
+              <div className="flex items-center gap-4">
+                <div className="h-8 w-px bg-slate-200 mx-2"></div>
+
+                <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
+                  <span className="material-symbols-outlined text-2xl">notifications</span>
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+
+                <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
+                  <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
+                    {user?.fullName?.charAt(0).toUpperCase() || 'J'}
+                  </div>
+                  <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>
+                  <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
+                </div>
+              </div>
+            </header>
+
+            <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               {/* Bento Grid Stats (4 cards) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Card 1: Today's Revenue */}
@@ -419,37 +423,62 @@ const SellerDashboard = () => {
                   <button onClick={() => toast.success('Opening promo creation tool...')} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition-all shrink-0 cursor-pointer shadow-sm">Create Promo</button>
                 </div>
               </div>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {activeTab !== 'dashboard' && (
-            <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
-                {navItems.find(i => i.id === activeTab)?.icon}
-              </span>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-                {navItems.find(i => i.id === activeTab)?.label} Management
-              </h2>
-              <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                Manage your store {navItems.find(i => i.id === activeTab)?.label.toLowerCase()} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
-              </p>
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => toast.success(`Creating new item in ${navItems.find(i => i.id === activeTab)?.label}...`)}
-                  className="px-6 py-3 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#004ac6]/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-                >
-                  Create New {navItems.find(i => i.id === activeTab)?.label}
-                </button>
-                <button 
-                  onClick={() => toast.success(`Exporting ${navItems.find(i => i.id === activeTab)?.label} data...`)}
-                  className="px-6 py-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 active:scale-95 transition-all cursor-pointer"
-                >
-                  Export Data
-                </button>
+        {activeTab === 'products' && (
+          <SellerProducts setActiveTab={setActiveTab} />
+        )}
+        
+        {activeTab === 'addProduct' && (
+          <SellerAddProduct setActiveTab={setActiveTab} />
+        )}
+
+        {activeTab === 'orders' && (
+          <SellerOrders onViewDetails={(id) => {
+            setSelectedOrderId(id);
+            setActiveTab('order-detail');
+          }} />
+        )}
+
+        {activeTab === 'order-detail' && selectedOrderId && (
+          <SellerOrderDetail orderId={selectedOrderId} onBack={() => setActiveTab('orders')} />
+        )}
+
+        {activeTab === 'cancellations' && (
+          <SellerCancellations setActiveTab={setActiveTab} />
+        )}
+
+        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && (
+            <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
+              <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
+                <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
+                  {navItems.find(i => i.id === activeTab)?.icon}
+                </span>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                  {navItems.find(i => i.id === activeTab)?.label} Management
+                </h2>
+                <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                  Manage your store {navItems.find(i => i.id === activeTab)?.label.toLowerCase()} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
+                </p>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => toast.success(`Creating new item in ${navItems.find(i => i.id === activeTab)?.label}...`)}
+                    className="px-6 py-3 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#004ac6]/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Create New {navItems.find(i => i.id === activeTab)?.label}
+                  </button>
+                  <button 
+                    onClick={() => toast.success(`Exporting ${navItems.find(i => i.id === activeTab)?.label} data...`)}
+                    className="px-6 py-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Export Data
+                  </button>
+                </div>
               </div>
             </div>
           )}
-        </div>
 
         {/* Floating Action Buttons */}
         <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
