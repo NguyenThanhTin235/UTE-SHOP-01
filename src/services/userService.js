@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Address = require('../models/Address');
 
 class UserService {
   /**
@@ -64,41 +65,44 @@ class UserService {
   }
 
   /**
+   * Lấy danh sách địa chỉ
+   */
+  async getAddresses(userId) {
+    const addresses = await Address.find({ user_id: userId }).sort({ is_default: -1, createdAt: -1 });
+    return addresses;
+  }
+
+  /**
    * Thêm địa chỉ mới
    */
   async addAddress(userId, addressData) {
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-
     // Nếu là địa chỉ đầu tiên, tự động đặt làm mặc định
-    if (user.addresses.length === 0) {
+    const count = await Address.countDocuments({ user_id: userId });
+    if (count === 0) {
       addressData.is_default = true;
     } else if (addressData.is_default) {
       // Nếu đặt địa chỉ mới làm mặc định, bỏ mặc định các địa chỉ cũ
-      user.addresses.forEach(addr => addr.is_default = false);
+      await Address.updateMany({ user_id: userId }, { is_default: false });
     }
 
-    user.addresses.push(addressData);
-    await user.save();
-    return user.addresses[user.addresses.length - 1];
+    addressData.user_id = userId;
+    const newAddress = await Address.create(addressData);
+    return newAddress;
   }
 
   /**
    * Cập nhật địa chỉ
    */
   async updateAddress(userId, addressId, updateData) {
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-
-    const address = user.addresses.id(addressId);
+    const address = await Address.findOne({ _id: addressId, user_id: userId });
     if (!address) throw new Error('Address not found');
 
     if (updateData.is_default && !address.is_default) {
-      user.addresses.forEach(addr => addr.is_default = false);
+      await Address.updateMany({ user_id: userId }, { is_default: false });
     }
 
     Object.assign(address, updateData);
-    await user.save();
+    await address.save();
     return address;
   }
 
@@ -106,22 +110,23 @@ class UserService {
    * Xóa địa chỉ
    */
   async removeAddress(userId, addressId) {
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-
-    const address = user.addresses.id(addressId);
+    const address = await Address.findOne({ _id: addressId, user_id: userId });
     if (!address) throw new Error('Address not found');
 
     const wasDefault = address.is_default;
-    user.addresses.pull(addressId);
+    await Address.findByIdAndDelete(addressId);
 
     // Nếu xóa địa chỉ mặc định, đặt địa chỉ đầu tiên còn lại làm mặc định
-    if (wasDefault && user.addresses.length > 0) {
-      user.addresses[0].is_default = true;
+    if (wasDefault) {
+      const firstAddress = await Address.findOne({ user_id: userId }).sort({ createdAt: 1 });
+      if (firstAddress) {
+        firstAddress.is_default = true;
+        await firstAddress.save();
+      }
     }
 
-    await user.save();
-    return user.addresses;
+    const addresses = await Address.find({ user_id: userId }).sort({ is_default: -1, createdAt: -1 });
+    return addresses;
   }
 }
 

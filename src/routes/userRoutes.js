@@ -21,6 +21,9 @@ router.put('/profile/change-password', verifyToken, userController.changePasswor
  * ── ADDRESS MANAGEMENT ──
  */
 
+// Lấy danh sách địa chỉ
+router.get('/addresses', verifyToken, userController.getAddresses);
+
 // Thêm địa chỉ mới
 router.post('/addresses', verifyToken, userController.addAddress);
 
