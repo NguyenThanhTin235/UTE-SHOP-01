@@ -18,6 +18,12 @@ router.put('/profile', verifyToken, userController.updateProfile);
 router.put('/profile/change-password', verifyToken, userController.changePassword);
 
 /**
+ * ── SECURITY SETTINGS ──
+ */
+router.get('/security/settings', verifyToken, userController.getSecuritySettings);
+router.put('/security/settings', verifyToken, userController.updateSecuritySettings);
+
+/**
  * ── ADDRESS MANAGEMENT ──
  */
 

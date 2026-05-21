@@ -359,6 +359,54 @@ class UserController {
       });
     }
   }
+
+  /**
+   * Lấy cài đặt bảo mật
+   */
+  async getSecuritySettings(req, res) {
+    try {
+      const userId = req.user.id;
+      const settings = await userService.getSecuritySettings(userId);
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        data: settings,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: error.message,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+  }
+
+  /**
+   * Cập nhật cài đặt bảo mật
+   */
+  async updateSecuritySettings(req, res) {
+    try {
+      const userId = req.user.id;
+      const settings = req.body;
+      const updated = await userService.updateSecuritySettings(userId, settings);
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Cập nhật cài đặt bảo mật thành công',
+        data: updated,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: error.message,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+  }
 }
 
 module.exports = new UserController();

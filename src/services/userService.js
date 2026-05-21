@@ -31,6 +31,30 @@ class UserService {
     user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
 
+    // Gửi email cảnh báo thay đổi mật khẩu (nếu bật tùy chọn)
+    if (user.security_alerts?.password_changes !== false) {
+      const sendEmail = require('../utils/mail');
+      const { getAlertTemplate } = require('../utils/emailTemplates');
+      const message = `Hello ${user.full_name},\n\nYour UTEShop account password was successfully changed. If you did not request this change, please secure your account immediately.\n\nBest regards,\nUTEShop Support Team`;
+      const html = getAlertTemplate(
+        'Password Changed Successfully',
+        `Hello ${user.full_name}, the password for your UTEShop account was successfully updated.`,
+        [
+          { label: 'Date/Time', value: new Date().toLocaleString('en-US') },
+          { label: 'Status', value: 'Completed Successfully' }
+        ],
+        'green',
+        false
+      );
+
+      sendEmail({
+        email: user.email,
+        subject: '[UTEShop] Security Alert: Password Changed Successfully',
+        message,
+        html
+      }).catch(err => console.error('Failed to send password change alert email:', err));
+    }
+
     return true;
   }
 
@@ -127,6 +151,53 @@ class UserService {
 
     const addresses = await Address.find({ user_id: userId }).sort({ is_default: -1, createdAt: -1 });
     return addresses;
+  }
+
+  /**
+   * Lấy cài đặt bảo mật
+   */
+  async getSecuritySettings(userId) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    return {
+      twoFactorEnabled: user.two_factor_enabled || false,
+      securityAlerts: {
+        loginAlerts: user.security_alerts?.login_alerts ?? true,
+        passwordChanges: user.security_alerts?.password_changes ?? true
+      }
+    };
+  }
+
+  /**
+   * Cập nhật cài đặt bảo mật
+   */
+  async updateSecuritySettings(userId, settings) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    
+    if (settings.twoFactorEnabled !== undefined) {
+      user.two_factor_enabled = settings.twoFactorEnabled;
+    }
+    if (settings.securityAlerts) {
+      if (!user.security_alerts) {
+        user.security_alerts = {};
+      }
+      if (settings.securityAlerts.loginAlerts !== undefined) {
+        user.security_alerts.login_alerts = settings.securityAlerts.loginAlerts;
+      }
+      if (settings.securityAlerts.passwordChanges !== undefined) {
+        user.security_alerts.password_changes = settings.securityAlerts.passwordChanges;
+      }
+    }
+    
+    await user.save();
+    return {
+      twoFactorEnabled: user.two_factor_enabled,
+      securityAlerts: {
+        loginAlerts: user.security_alerts.login_alerts,
+        passwordChanges: user.security_alerts.password_changes
+      }
+    };
   }
 }
 

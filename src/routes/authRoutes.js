@@ -24,6 +24,7 @@ router.post(
 
 // Login
 router.post('/login', authController.login);
+router.post('/verify-2fa', authController.verify2FA);
 
 // Quên mật khẩu
 router.post('/forgot-password', authController.forgotPassword);

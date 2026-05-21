@@ -17,6 +17,7 @@ import AddressBook from './pages/AddressBook';
 import AdminDashboard from './pages/AdminDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import SellerDashboard from './pages/SellerDashboard';
+import SecuritySettings from './pages/SecuritySettings';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -74,6 +75,7 @@ function App() {
         <Route path="/reviews" element={user ? <Reviews /> : <Navigate to="/login" />} />
         <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
+        <Route path="/security" element={user ? <SecuritySettings /> : <Navigate to="/login" />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />

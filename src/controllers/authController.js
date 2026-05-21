@@ -15,29 +15,89 @@ const { toCamelCase } = require('../utils/formatter');
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const result = await authService.authenticate(email, password);
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+    
+    const result = await authService.authenticate(email, password, ipAddress, deviceInfo);
+
+    if (result.require2Fa) {
+      return response.success(res, {
+        statusCode: 200,
+        message: '2FA verification code required',
+        data: {
+          require2Fa: true,
+          email: result.email
+        }
+      });
+    }
 
     // Gửi thông báo đăng nhập mới
     try {
-      await Notification.create({
-        user_id: result.user._id,
-        title: 'Security Alert: New Login',
-        content: `A new login to your account ${result.user.email} was just detected.`,
-        detailContent: `We detected a new login to your UTEShop account.\n\n**Account:** ${result.user.email}\n**Time:** ${new Date().toLocaleString('en-US')}\n**Device/Browser:** Web System Login\n\nIf this was you, you can ignore this alert. If you did not perform this login, please change your password immediately.`,
-        type: 'system',
-        category: 'System',
-        date: 'JUST NOW',
-        link: '/profile'
-      });
-    } catch (notifErr) {
-      console.error('Notification Error on Login:', notifErr);
+      const io = req.app.get('socketio');
+      if (io && result.user) {
+        io.to(result.user.id).emit('notification', {
+          title: 'Đăng nhập mới',
+          message: 'Tài khoản của bạn vừa được đăng nhập thành công.'
+        });
+      }
+    } catch (e) {
+      console.log('Socket notification failed');
     }
 
     return response.success(res, {
+      statusCode: 200,
+      message: 'Đăng nhập thành công',
+      data: {
+        token: result.token,
+        user: toCamelCase(result.user),
+        redirectUrl: result.redirectUrl
+      }
+    });
+  } catch (err) {
+    return response.error(res, {
+      statusCode: 401,
+      message: err.message
+    });
+  }
+};
+
+/**
+ * Xác thực mã OTP 2FA để đăng nhập
+ */
+exports.verify2FA = async (req, res) => {
+  try {
+    const { email, otpCode } = req.body;
+    if (!email || !otpCode) {
+      return response.error(res, {
+        statusCode: 422,
+        message: 'Please provide email and OTP code'
+      });
+    }
+
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+
+    const result = await authService.verify2FA(email, otpCode, ipAddress, deviceInfo);
+
+    // Gửi thông báo đăng nhập mới
+    try {
+      const io = req.app.get('socketio');
+      if (io && result.user) {
+        io.to(result.user.id).emit('notification', {
+          title: 'New Login Detected',
+          message: 'Your account has been successfully logged in.'
+        });
+      }
+    } catch (e) {
+      console.log('Socket notification failed');
+    }
+
+    return response.success(res, {
+      statusCode: 200,
       message: 'Login successful',
       data: {
         token: result.token,
-        user: result.user,
+        user: toCamelCase(result.user),
         redirectUrl: result.redirectUrl
       }
     });
@@ -214,6 +274,30 @@ exports.resetPassword = async (req, res) => {
       console.error('Notification Error on Reset Password:', notifErr);
     }
 
+    // Gửi email cảnh báo thay đổi mật khẩu (nếu bật tùy chọn)
+    if (user.security_alerts?.password_changes !== false) {
+      const sendEmail = require('../utils/mail');
+      const { getAlertTemplate } = require('../utils/emailTemplates');
+      const message = `Hello ${user.full_name},\n\nYour UTEShop account password was successfully reset. If you did not request this change, please secure your account immediately.\n\nBest regards,\nUTEShop Support Team`;
+      const html = getAlertTemplate(
+        'Password Reset Successful',
+        `Hello ${user.full_name}, the password for your UTEShop account was successfully reset.`,
+        [
+          { label: 'Date/Time', value: new Date().toLocaleString('en-US') },
+          { label: 'Status', value: 'Completed Successfully' }
+        ],
+        'green',
+        false
+      );
+
+      sendEmail({
+        email: user.email,
+        subject: '[UTEShop] Security Alert: Password Reset Successful',
+        message,
+        html
+      }).catch(err => console.error('Failed to send password reset success email:', err));
+    }
+
     return responseHelper.successResponse(res, 'Password has been updated successfully');
   } catch (error) {
     console.error('Reset Password Error:', error);
@@ -339,13 +423,16 @@ exports.googleLogin = async (req, res) => {
       });
     }
 
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+
     const result = await authService.socialAuthenticate({
       email,
       full_name: name,
       avatar_url: picture,
       provider: 'google',
       provider_id: sub
-    });
+    }, ipAddress, deviceInfo);
 
     // Gửi thông báo đăng nhập Google thành công
     try {

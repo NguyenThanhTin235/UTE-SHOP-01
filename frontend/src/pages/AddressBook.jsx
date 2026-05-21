@@ -26,6 +26,7 @@ const AddressBook = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   
   const [formData, setFormData] = useState({
     label: '',
@@ -102,20 +103,25 @@ const AddressBook = () => {
     setShowForm(true);
   };
 
-  const handleDeleteClick = async (addressId) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
-      try {
-        const config = {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-          },
-        };
-        await axios.delete(`http://localhost:5000/api/users/addresses/${addressId}`, config);
-        toast.success('Address deleted successfully');
-        fetchAddresses();
-      } catch (error) {
-        toast.error('Failed to delete address');
-      }
+  const handleDeleteClick = (addressId) => {
+    setDeleteConfirmId(addressId);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+      };
+      await axios.delete(`http://localhost:5000/api/users/addresses/${deleteConfirmId}`, config);
+      toast.success('Address deleted successfully');
+      fetchAddresses();
+    } catch (error) {
+      toast.error('Failed to delete address');
+    } finally {
+      setDeleteConfirmId(null);
     }
   };
 
@@ -458,6 +464,38 @@ const AddressBook = () => {
         </section>
       </div>
       <FABGroup />
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-[#c3c6d7]/30 transform scale-100 transition-all text-center space-y-6">
+            <div className="w-16 h-16 bg-[#ba1a1a]/10 rounded-full flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-[#ba1a1a] text-[36px]">delete_forever</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-[#131b2e]">Delete Shipping Address</h3>
+              <p className="text-[#434655] text-sm leading-relaxed">
+                Are you sure you want to delete this address? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-4 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 py-3 rounded-xl border border-[#737686] text-[#505f76] font-bold hover:bg-[#eaedff] transition-all text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 py-3 rounded-xl bg-[#ba1a1a] text-white font-bold hover:bg-[#ba1a1a]/90 transition-all text-sm shadow-md shadow-[#ba1a1a]/20 cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
