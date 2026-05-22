@@ -19,6 +19,10 @@ import ManagerDashboard from './pages/ManagerDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import SecuritySettings from './pages/SecuritySettings';
 import ProtectedRoute from './components/ProtectedRoute';
+import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess';
+import VNPayMock from './pages/VNPayMock';
+
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
 import { useEffect } from 'react';
@@ -77,6 +81,9 @@ function App() {
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
         <Route path="/security" element={user ? <SecuritySettings /> : <Navigate to="/login" />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
+        <Route path="/order-success" element={user ? <OrderSuccess /> : <Navigate to="/login" />} />
+        <Route path="/vnpay-mock" element={user ? <VNPayMock /> : <Navigate to="/login" />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
         <Route path="/product/:slug" element={<ProductDetail />} />

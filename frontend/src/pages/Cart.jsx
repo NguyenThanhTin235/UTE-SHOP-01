@@ -690,7 +690,7 @@ const Cart = () => {
                           toast.error('Please select at least one item to checkout');
                           return;
                         }
-                        toast.success('Redirecting to secure checkout...');
+                        navigate('/checkout', { state: { selectedItemIds: Array.from(selectedItemIds) } });
                       }}
                       className="w-full bg-[#004ac6] text-white py-4 rounded-xl font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer"
                     >
@@ -762,7 +762,7 @@ const Cart = () => {
                     toast.error('Please select items to checkout');
                     return;
                   }
-                  toast.success('Processing your order...');
+                  navigate('/checkout', { state: { selectedItemIds: Array.from(selectedItemIds) } });
                 }}
                 className="bg-[#004ac6] text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-bold text-base shadow-md active:scale-95 hover:opacity-90 transition-all cursor-pointer"
               >

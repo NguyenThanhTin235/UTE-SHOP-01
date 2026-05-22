@@ -34,6 +34,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
+app.use('/api/checkout', require('./routes/checkoutRoutes'));
 
 
 // Global Error Handler
