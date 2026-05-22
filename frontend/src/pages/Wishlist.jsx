@@ -62,8 +62,30 @@ const Wishlist = () => {
     }
   };
 
-  const handleAddToCart = (item) => {
-    toast.success(`${item.name} added to cart!`);
+  const handleAddToCart = async (item) => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.post(
+        'http://localhost:5000/api/cart/add',
+        {
+          productId: item.productId,
+          variantId: null,
+          quantity: 1
+        },
+        config
+      );
+      if (response.data && response.data.success) {
+        toast.success('Product added to cart successfully!');
+        window.dispatchEvent(new Event('cartUpdate'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add product to cart');
+    }
   };
 
   const onLogout = (e) => {

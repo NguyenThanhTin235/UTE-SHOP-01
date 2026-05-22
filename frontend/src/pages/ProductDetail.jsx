@@ -57,7 +57,7 @@ const ProductDetail = () => {
       const found = data.variants.find(v => v.attributes?.color === selectedColor && v.attributes?.size === selectedSize);
       if (found) {
         setSelectedVariant(found);
-        if (quantity > (found.stockQuantity || 0)) setQuantity(found.stockQuantity || 1);
+        if (quantity !== '' && quantity > (found.stockQuantity || 0)) setQuantity(found.stockQuantity || 1);
       } else {
         setSelectedVariant(null);
       }
@@ -103,17 +103,110 @@ const ProductDetail = () => {
   const currentStock = selectedVariant ? selectedVariant.stockQuantity : stock;
 
   const handleQuantityChange = (type) => {
-    if (type === 'inc' && quantity < currentStock) setQuantity(q => q + 1);
-    if (type === 'dec' && quantity > 1) setQuantity(q => q - 1);
+    if (type === 'inc' && (quantity === '' || quantity < currentStock)) {
+      setQuantity(q => (q === '' ? 1 : Number(q) + 1));
+    }
+    if (type === 'dec' && quantity > 1) {
+      setQuantity(q => Number(q) - 1);
+    }
   };
 
-  const handleAddToCart = () => {
-    toast.success('Added to cart successfully!');
+  const handleDirectQuantityChange = (valStr) => {
+    const cleanVal = valStr.replace(/[^0-9]/g, '');
+    setQuantity(cleanVal === '' ? '' : Number(cleanVal));
+  };
+
+  const handleQuantityBlur = () => {
+    let targetQty = quantity;
+    if (targetQty === '' || targetQty < 1) {
+      targetQty = 1;
+    }
+    if (currentStock > 0 && targetQty > currentStock) {
+      toast.error(`Only ${currentStock} items left in stock`);
+      targetQty = currentStock;
+    }
+    setQuantity(targetQty);
+  };
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      toast.error('Please log in to add products to your cart');
+      navigate('/login');
+      return;
+    }
+    let finalQty = Number(quantity);
+    if (isNaN(finalQty) || finalQty < 1) {
+      finalQty = 1;
+    }
+    if (currentStock > 0 && finalQty > currentStock) {
+      finalQty = currentStock;
+    }
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.post(
+        'http://localhost:5000/api/cart/add',
+        {
+          productId: product._id || product.id,
+          variantId: selectedVariant ? (selectedVariant._id || selectedVariant.id) : null,
+          quantity: finalQty
+        },
+        config
+      );
+      if (response.data && response.data.success) {
+        toast.success('Product added to cart successfully!');
+        window.dispatchEvent(new Event('cartUpdate'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add product to cart');
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast.error('Please log in to make a purchase');
+      navigate('/login');
+      return;
+    }
+    let finalQty = Number(quantity);
+    if (isNaN(finalQty) || finalQty < 1) {
+      finalQty = 1;
+    }
+    if (currentStock > 0 && finalQty > currentStock) {
+      finalQty = currentStock;
+    }
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.post(
+        'http://localhost:5000/api/cart/add',
+        {
+          productId: product._id || product.id,
+          variantId: selectedVariant ? (selectedVariant._id || selectedVariant.id) : null,
+          quantity: finalQty
+        },
+        config
+      );
+      if (response.data && response.data.success) {
+        window.dispatchEvent(new Event('cartUpdate'));
+        navigate('/cart');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error processing purchase');
+    }
   };
 
   const handleToggleWishlist = async () => {
     if (!user) {
-      toast.error('Vui lòng đăng nhập để quản lý danh sách yêu thích');
+      toast.error('Please log in to manage your wishlist');
       return;
     }
     const currentProductId = product._id || product.id;
@@ -127,17 +220,17 @@ const ProductDetail = () => {
         const response = await axios.delete(`http://localhost:5000/api/users/wishlist/${currentProductId}`, config);
         if (response.data && response.data.success) {
           setIsWishlisted(false);
-          toast.success('Đã xóa khỏi danh sách yêu thích');
+          toast.success('Removed from wishlist');
         }
       } else {
         const response = await axios.post('http://localhost:5000/api/users/wishlist', { productId: currentProductId }, config);
         if (response.data && response.data.success) {
           setIsWishlisted(true);
-          toast.success('Đã thêm vào danh sách yêu thích');
+          toast.success('Added to wishlist');
         }
       }
     } catch (error) {
-      toast.error('Lỗi khi cập nhật danh sách yêu thích');
+      toast.error('Error updating wishlist');
     }
   };
 
@@ -175,7 +268,7 @@ const ProductDetail = () => {
                 <button 
                   onClick={handleToggleWishlist}
                   className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-primary shadow-lg hover:bg-white hover:scale-110 transition-all cursor-pointer"
-                  title={isWishlisted ? "Xóa khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+                  title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >
                   <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: isWishlisted ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                 </button>
@@ -312,7 +405,18 @@ const ProductDetail = () => {
                   <button onClick={() => handleQuantityChange('dec')} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-high rounded-lg transition-colors">
                     <span className="material-symbols-outlined">remove</span>
                   </button>
-                  <input type="text" value={quantity} readOnly className="w-12 text-center bg-transparent border-none focus:ring-0 font-bold" />
+                  <input 
+                    type="text" 
+                    value={quantity} 
+                    onChange={(e) => handleDirectQuantityChange(e.target.value)}
+                    onBlur={handleQuantityBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.target.blur();
+                      }
+                    }}
+                    className="w-12 text-center bg-transparent border-none focus:ring-0 font-bold" 
+                  />
                   <button onClick={() => handleQuantityChange('inc')} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-high rounded-lg transition-colors">
                     <span className="material-symbols-outlined">add</span>
                   </button>
@@ -326,7 +430,7 @@ const ProductDetail = () => {
                 <span className="material-symbols-outlined">add_shopping_cart</span>
                 Add to Cart
               </button>
-              <button disabled={currentStock <= 0} className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 cursor-pointer">
+              <button onClick={handleBuyNow} disabled={currentStock <= 0} className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 cursor-pointer">
                 Buy It Now
               </button>
             </div>

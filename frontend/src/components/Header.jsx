@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { logout } from '../redux/authSlice';
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
@@ -23,6 +25,10 @@ const Header = () => {
     const fetchUnreadCount = async () => {
       try {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        if (!token) {
+          setUnreadCount(0);
+          return;
+        }
         const config = {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -36,13 +42,64 @@ const Header = () => {
         }
       } catch (error) {
         console.error('Fetch unread notifications error:', error);
+        if (error.response && error.response.status === 401) {
+          dispatch(logout());
+        }
       }
     };
 
-    if (!isAuthPage) {
+    if (!isAuthPage && user) {
       fetchUnreadCount();
+    } else {
+      setUnreadCount(0);
     }
-  }, [location.pathname, isAuthPage, user]);
+  }, [location.pathname, isAuthPage, user, dispatch]);
+
+  const [cartCount, setCartCount] = useState(0);
+
+  const fetchCartCount = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get('http://localhost:5000/api/cart', config);
+      if (response.data && response.data.success) {
+        const data = response.data.data || [];
+        setCartCount(data.length);
+      }
+    } catch (error) {
+      console.error('Fetch cart count error:', error);
+      if (error.response && error.response.status === 401) {
+        dispatch(logout());
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthPage && user) {
+      fetchCartCount();
+    } else {
+      setCartCount(0);
+    }
+
+    const handleCartUpdate = () => {
+      if (user) {
+        fetchCartCount();
+      }
+    };
+
+    window.addEventListener('cartUpdate', handleCartUpdate);
+    return () => {
+      window.removeEventListener('cartUpdate', handleCartUpdate);
+    };
+  }, [user, isAuthPage]);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -112,7 +169,7 @@ const Header = () => {
           <Link to="/cart" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 relative text-[#434655]">
             <span className="material-symbols-outlined">shopping_cart</span>
             <span className="absolute top-1 right-1 w-4 h-4 bg-[#004ac6] text-[10px] text-white flex items-center justify-center rounded-full font-bold">
-              {isAuthPage ? "0" : "3"}
+              {cartCount}
             </span>
           </Link>
 
@@ -127,7 +184,7 @@ const Header = () => {
                 ) : null}
               </Link>
             ) : (
-              <button onClick={() => toast.error('Vui lòng đăng nhập để xem thông báo')} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative cursor-pointer">
+              <button onClick={() => toast.error('Please log in to view notifications')} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative cursor-pointer">
                 <span className="material-symbols-outlined">notifications</span>
               </button>
             )

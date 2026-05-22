@@ -239,6 +239,37 @@ const Home = () => {
     }
   };
 
+  const handleAddToCart = async (productId) => {
+    if (!user) {
+      toast.error('Please log in to add products to your cart');
+      navigate('/login');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.post(
+        'http://localhost:5000/api/cart/add',
+        {
+          productId,
+          variantId: null,
+          quantity: 1
+        },
+        config
+      );
+      if (response.data && response.data.success) {
+        toast.success('Product added to cart successfully!');
+        window.dispatchEvent(new Event('cartUpdate'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add product to cart');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf8ff]">
@@ -397,7 +428,7 @@ const Home = () => {
                         </div>
                       </div>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); toast.success('Added to cart successfully!'); }}
+                        onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
                         className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95 shadow-sm"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
@@ -459,7 +490,7 @@ const Home = () => {
                         </div>
                       </div>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); toast.success('Added to cart successfully!'); }}
+                        onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
                         className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95 shadow-sm"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
@@ -514,7 +545,7 @@ const Home = () => {
                         </div>
                       </div>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); toast.success('Added to cart successfully!'); }}
+                        onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
                         className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95 shadow-sm"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
@@ -565,7 +596,7 @@ const Home = () => {
                         </div>
                       </div>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); toast.success('Added to cart successfully!'); }}
+                        onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
                         className="w-full flex items-center justify-center gap-2 py-2 bg-[#004ac6]/10 text-[#004ac6] rounded-xl font-bold text-xs hover:bg-[#004ac6] hover:text-white transition-all active:scale-95"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>

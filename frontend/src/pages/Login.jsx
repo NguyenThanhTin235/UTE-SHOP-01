@@ -35,7 +35,7 @@ const Login = () => {
 
     if (isSuccess && user) {
       toast.dismiss();
-      toast.success('Đăng nhập thành công!');
+      toast.success('Login successful!');
       // Role-based redirect: customer → /, admin → /admin/, manager → /manager/, seller/vendor → /seller/
       if (user.role === 'admin') {
         window.location.href = '/admin/';

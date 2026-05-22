@@ -97,7 +97,7 @@ const Search = () => {
 
   const handleToggleWishlist = async (productId) => {
     if (!user) {
-      toast.error('Vui lòng đăng nhập để quản lý danh sách yêu thích');
+      toast.error('Please log in to manage your wishlist');
       return;
     }
     const isWishlisted = wishlistIds.includes(productId);
@@ -111,17 +111,48 @@ const Search = () => {
         const response = await axios.delete(`http://localhost:5000/api/users/wishlist/${productId}`, config);
         if (response.data && response.data.success) {
           setWishlistIds(prev => prev.filter(id => id !== productId));
-          toast.success('Đã xóa khỏi danh sách yêu thích');
+          toast.success('Removed from wishlist');
         }
       } else {
         const response = await axios.post('http://localhost:5000/api/users/wishlist', { productId }, config);
         if (response.data && response.data.success) {
           setWishlistIds(prev => [...prev, productId]);
-          toast.success('Đã thêm vào danh sách yêu thích');
+          toast.success('Added to wishlist');
         }
       }
     } catch (error) {
-      toast.error('Lỗi khi cập nhật danh sách yêu thích');
+      toast.error('Error updating wishlist');
+    }
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!user) {
+      toast.error('Please log in to add products to your cart');
+      navigate('/login');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.post(
+        'http://localhost:5000/api/cart/add',
+        {
+          productId,
+          variantId: null,
+          quantity: 1
+        },
+        config
+      );
+      if (response.data && response.data.success) {
+        toast.success('Product added to cart successfully!');
+        window.dispatchEvent(new Event('cartUpdate'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add product to cart');
     }
   };
 
@@ -478,7 +509,7 @@ const Search = () => {
                   <div key={product.id} className="group bg-white rounded-2xl border border-transparent hover:border-[#c3c6d7] hover:shadow-xl transition-all duration-500 overflow-hidden relative flex flex-col h-full shadow-sm">
                     <button 
                       onClick={() => handleToggleWishlist(product.id || product._id)}
-                      title={isWishlisted ? "Xóa khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+                      title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                       className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-[#004ac6] hover:bg-white hover:scale-110 transition-all shadow-sm cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: isWishlisted ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
@@ -507,7 +538,10 @@ const Search = () => {
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-[#c3c6d7]/30 mt-auto">
                         <span className="font-bold text-base text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
-                        <button className="w-8 h-8 bg-[#eaedff] text-[#004ac6] rounded-xl flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer">
+                        <button 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(product.id || product._id); }}
+                          className="w-8 h-8 bg-[#eaedff] text-[#004ac6] rounded-xl flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
+                        >
                           <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
                         </button>
                       </div>
