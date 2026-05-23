@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sellerProductController = require('../controllers/sellerProductController');
 const sellerOrderController = require('../controllers/sellerOrderController');
+const sellerAnalyticsController = require('../controllers/sellerAnalyticsController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { uploadProduct } = require('../config/cloudinary');
 
@@ -27,5 +28,9 @@ router.put('/orders/:id/status', verifyToken, sellerOrderController.updateOrderS
 // Cancellations
 router.get('/cancellations', verifyToken, sellerCancellationController.getCancellations);
 router.put('/cancellations/:id/status', verifyToken, sellerCancellationController.updateCancellationStatus);
+
+// Analytics
+router.get('/analytics', verifyToken, sellerAnalyticsController.getAnalytics);
+router.get('/analytics/export', verifyToken, sellerAnalyticsController.exportAnalytics);
 
 module.exports = router;

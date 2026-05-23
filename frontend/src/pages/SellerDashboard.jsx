@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
+import axios from 'axios';
+import Chart from 'chart.js/auto';
 import SellerProducts from '../components/seller/SellerProducts';
 import SellerAddProduct from '../components/seller/SellerAddProduct';
 import SellerOrders from '../components/seller/SellerOrders';
 import SellerOrderDetail from '../components/seller/SellerOrderDetail';
 import SellerCancellations from '../components/seller/SellerCancellations';
+import SellerAnalytics from '../components/seller/SellerAnalytics';
 const SellerDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -21,6 +24,129 @@ const SellerDashboard = () => {
   const [aiMessages, setAiMessages] = useState([
     { sender: 'ai', text: "Hello Seller! I'm your UTEShop AI Assistant. How can I help you optimize your store sales and product listings today?" }
   ]);
+
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  const dashboardCanvasRef = useRef(null);
+  const dashboardChartInstance = useRef(null);
+
+  const fetchDashboardData = async () => {
+    setDashboardLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      // 1. Fetch 7 days analytics data
+      const analyticsRes = await axios.get('http://localhost:5000/api/seller/analytics?range=last7days', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // 2. Fetch recent orders
+      const ordersRes = await axios.get('http://localhost:5000/api/seller/orders?page=1&limit=5', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // 3. Fetch products to count out of stock
+      const productsRes = await axios.get('http://localhost:5000/api/seller/products?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      let outOfStockCount = 0;
+      if (productsRes.data.success) {
+        outOfStockCount = productsRes.data.data.filter(p => p.totalStock === 0 || p.currentStatus === 'Out of Stock').length;
+      }
+
+      if (analyticsRes.data.success && ordersRes.data.success) {
+        const analytics = analyticsRes.data.data;
+        const orders = ordersRes.data.data;
+        const summary = ordersRes.data.summary || { Pending: 0 };
+
+        setDashboardData({
+          kpis: analytics.kpis,
+          chart: analytics.charts.performance,
+          recentOrders: orders.slice(0, 3), // Lấy 3 đơn hàng gần nhất
+          summary: summary,
+          outOfStockCount: outOfStockCount,
+          topSelling: analytics.products.slice(0, 2) // Lấy 2 sản phẩm bán chạy nhất
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Unable to sync Dashboard data');
+    } finally {
+      setDashboardLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      fetchDashboardData();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard' && dashboardData && dashboardCanvasRef.current) {
+      if (dashboardChartInstance.current) {
+        dashboardChartInstance.current.destroy();
+      }
+
+      const ctx = dashboardCanvasRef.current.getContext('2d');
+
+      dashboardChartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dashboardData.chart.labels,
+          datasets: [{
+            label: 'Daily Revenue',
+            data: dashboardData.chart.current,
+            backgroundColor: dashboardData.chart.labels.map((label, idx) => {
+              if (idx === dashboardData.chart.labels.length - 1) {
+                return '#004ac6'; // Cột ngày hôm nay màu đậm nổi bật
+              }
+              if (idx === dashboardData.chart.labels.length - 2) {
+                return 'rgba(0, 74, 198, 0.6)'; // Cột ngày hôm qua màu vừa
+              }
+              return 'rgba(0, 74, 198, 0.2)'; // Các cột ngày trước màu nhạt
+            }),
+            hoverBackgroundColor: '#004ac6',
+            borderRadius: 8,
+            borderSkipped: 'bottom',
+            barPercentage: 0.6,
+            categoryPercentage: 0.7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: 'Manrope', size: 10, weight: 'bold' },
+                color: '#64748b',
+                callback: (value) => (value / 1e6).toFixed(1) + 'M ₫'
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: 'Manrope', size: 10, weight: 'bold' },
+                color: '#64748b'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (dashboardChartInstance.current) {
+        dashboardChartInstance.current.destroy();
+      }
+    };
+  }, [activeTab, dashboardData]);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -174,256 +300,307 @@ const SellerDashboard = () => {
               </div>
             </header>
 
-            <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
-              {/* Bento Grid Stats (4 cards) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Card 1: Today's Revenue */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="material-symbols-outlined text-[#004ac6]">payments</span>
-                      <span className="text-xs font-bold text-[#2e7d32] bg-[#2e7d32]/10 px-2 py-1 rounded-full">+12.5%</span>
+            {dashboardLoading || !dashboardData ? (
+              <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8 animate-pulse">
+                {/* Bento Grid Stats Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-36">
+                      <div className="flex justify-between items-start">
+                        <div className="w-8 h-8 bg-slate-100 rounded-lg"></div>
+                        <div className="w-14 h-5 bg-slate-100 rounded-full"></div>
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+                        <div className="h-6 bg-slate-100 rounded w-3/4"></div>
+                      </div>
                     </div>
-                    <p className="text-slate-500 text-sm font-medium">Today's Revenue</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">12,450,000 <span className="text-sm font-normal text-slate-500">VND</span></h3>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Card 2: New Orders */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="material-symbols-outlined text-slate-600">local_shipping</span>
-                      <span className="text-xs font-bold text-[#2e7d32] bg-[#2e7d32]/10 px-2 py-1 rounded-full">+5.2%</span>
-                    </div>
-                    <p className="text-slate-500 text-sm font-medium">New Orders</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">42 <span className="text-sm font-normal text-slate-500">Orders</span></h3>
+                {/* Chart Skeleton */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm h-[400px] flex flex-col gap-6">
+                  <div className="space-y-2">
+                    <div className="h-6 bg-slate-100 rounded w-1/4"></div>
+                    <div className="h-4 bg-slate-100 rounded w-1/3"></div>
                   </div>
+                  <div className="flex-1 bg-slate-50/50 rounded-xl"></div>
                 </div>
 
-                {/* Card 3: Out of Stock Items */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#b3261e] transition-all">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="material-symbols-outlined text-[#b3261e]">inventory</span>
-                      <span className="text-xs font-bold text-[#b3261e] bg-[#b3261e]/10 px-2 py-1 rounded-full">-3.1%</span>
-                    </div>
-                    <p className="text-slate-500 text-sm font-medium">Out of Stock</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">3 <span className="text-sm font-normal text-slate-500">Products</span></h3>
+                {/* Grid Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm h-[320px] flex flex-col gap-4">
+                    <div className="h-5 bg-slate-100 rounded w-1/5"></div>
+                    <div className="flex-1 bg-slate-50/50 rounded-xl"></div>
                   </div>
-                </div>
-
-                {/* Card 4: Chat Response Rate */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#2e7d32] transition-all">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="material-symbols-outlined text-[#2e7d32]">forum</span>
-                      <span className="text-xs font-bold text-[#2e7d32] bg-[#2e7d32]/10 px-2 py-1 rounded-full">+0.8%</span>
-                    </div>
-                    <p className="text-slate-500 text-sm font-medium">Chat Response Rate</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">98.5 <span className="text-sm font-normal text-slate-500">%</span></h3>
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm h-[320px] flex flex-col gap-4">
+                    <div className="h-5 bg-slate-100 rounded w-1/3"></div>
+                    <div className="flex-1 bg-slate-50/50 rounded-xl"></div>
                   </div>
                 </div>
               </div>
-
-              {/* Revenue Analytics Section */}
-              <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">Revenue Trends</h2>
-                    <p className="text-slate-500 text-sm font-medium mt-1">Performance comparison across different time periods</p>
+            ) : (
+              <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
+                {/* Bento Grid Stats (4 cards) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Card 1: Revenue (7 Days) */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="material-symbols-outlined text-[#004ac6]">payments</span>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                          dashboardData.kpis?.revenue?.growth >= 0 
+                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                            : 'text-[#b3261e] bg-[#b3261e]/10'
+                        }`}>
+                          {dashboardData.kpis?.revenue?.growth >= 0 ? '+' : ''}{dashboardData.kpis?.revenue?.growth}%
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-sm font-medium">Revenue (7 Days)</p>
+                      <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                        {dashboardData.kpis?.revenue?.value?.toLocaleString('vi-VN')} <span className="text-sm font-normal text-slate-500">₫</span>
+                      </h3>
+                    </div>
                   </div>
-                  <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60">
-                    <button className="px-5 py-1.5 text-sm font-bold bg-white text-[#004ac6] rounded-lg shadow-sm">Daily</button>
-                    <button className="px-5 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">Weekly</button>
-                    <button className="px-5 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">Monthly</button>
+
+                  {/* Card 2: Pending Orders */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="material-symbols-outlined text-slate-600">local_shipping</span>
+                        <span className="text-xs font-bold text-[#004ac6] bg-blue-50 px-2 py-1 rounded-full">Pending</span>
+                      </div>
+                      <p className="text-slate-500 text-sm font-medium">Pending Orders</p>
+                      <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                        {dashboardData.summary?.Pending || 0} <span className="text-sm font-normal text-slate-500">Orders</span>
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Out of Stock */}
+                  <div className={`bg-white p-6 rounded-2xl shadow-sm border flex flex-col justify-between transition-all ${
+                    dashboardData.outOfStockCount > 0 
+                      ? 'border-red-100 hover:border-[#b3261e]' 
+                      : 'border-slate-200 hover:border-[#2e7d32]'
+                  }`}>
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`material-symbols-outlined ${dashboardData.outOfStockCount > 0 ? 'text-[#b3261e]' : 'text-slate-600'}`}>inventory</span>
+                        {dashboardData.outOfStockCount > 0 ? (
+                          <span className="text-xs font-bold text-[#b3261e] bg-[#b3261e]/10 px-2 py-1 rounded-full animate-pulse">Restock Needed</span>
+                        ) : (
+                          <span className="text-xs font-bold text-[#2e7d32] bg-[#2e7d32]/10 px-2 py-1 rounded-full">In Stock</span>
+                        )}
+                      </div>
+                      <p className="text-slate-500 text-sm font-medium">Out of Stock</p>
+                      <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                        {dashboardData.outOfStockCount || 0} <span className="text-sm font-normal text-slate-500">Products</span>
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Store Conversion Rate */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#2e7d32] transition-all">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="material-symbols-outlined text-[#2e7d32]">analytics</span>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                          dashboardData.kpis?.conversion?.growth >= 0 
+                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                            : 'text-[#b3261e] bg-[#b3261e]/10'
+                        }`}>
+                          {dashboardData.kpis?.conversion?.growth >= 0 ? '+' : ''}{dashboardData.kpis?.conversion?.growth}%
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-sm font-medium">Store Conversion Rate</p>
+                      <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                        {dashboardData.kpis?.conversion?.value}% <span className="text-sm font-normal text-slate-500">Rate</span>
+                      </h3>
+                    </div>
                   </div>
                 </div>
-                <div className="p-8 flex-1 flex flex-col justify-end">
-                  <div className="relative h-[280px] w-full flex items-end justify-between gap-6 px-4 border-b border-slate-100 pb-2">
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">4.2M ₫</div>
-                      <div className="w-full bg-[#004ac6]/20 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '40%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mon</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">6.5M ₫</div>
-                      <div className="w-full bg-[#004ac6]/20 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '60%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tue</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">5.1M ₫</div>
-                      <div className="w-full bg-[#004ac6]/20 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '50%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Wed</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">9.8M ₫</div>
-                      <div className="w-full bg-[#004ac6]/60 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '85%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thu</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">12.45M ₫</div>
-                      <div className="w-full bg-[#004ac6] rounded-t-lg transition-all shadow-md shadow-blue-100" style={{ height: '75%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-[#004ac6] uppercase tracking-widest">Today</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">3.5M ₫</div>
-                      <div className="w-full bg-[#004ac6]/20 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '35%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sat</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center group h-full justify-end relative">
-                      <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">3.0M ₫</div>
-                      <div className="w-full bg-[#004ac6]/20 rounded-t-lg transition-all group-hover:bg-[#004ac6]" style={{ height: '30%' }}></div>
-                      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sun</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
 
-              {/* Detailed Stats Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Recent Orders Table */}
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Recent Orders</h3>
-                    <button onClick={() => toast.success('Viewing all recent orders')} className="text-[#004ac6] text-xs font-bold hover:underline cursor-pointer">View All</button>
-                  </div>
-                  <div className="overflow-x-auto flex-1">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-100 bg-slate-50/50">
-                          <th className="px-6 py-4">Order ID</th>
-                          <th className="px-6 py-4">Customer</th>
-                          <th className="px-6 py-4">Amount</th>
-                          <th className="px-6 py-4">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-xs font-mono font-bold text-[#004ac6]">#ORD-9921</td>
-                          <td className="px-6 py-4 text-xs font-medium">Alex Johnson</td>
-                          <td className="px-6 py-4 text-xs font-bold">1,250,000₫</td>
-                          <td className="px-6 py-4">
-                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#004ac6] text-[10px] font-bold border border-blue-100">Processing</span>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-xs font-mono font-bold text-[#004ac6]">#ORD-9920</td>
-                          <td className="px-6 py-4 text-xs font-medium">Maria Garcia</td>
-                          <td className="px-6 py-4 text-xs font-bold">450,000₫</td>
-                          <td className="px-6 py-4">
-                            <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Completed</span>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-xs font-mono font-bold text-[#004ac6]">#ORD-9919</td>
-                          <td className="px-6 py-4 text-xs font-medium">Kevin Smith</td>
-                          <td className="px-6 py-4 text-xs font-bold">2,100,000₫</td>
-                          <td className="px-6 py-4">
-                            <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Cancelled</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="mt-auto p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
-                    <span className="text-[11px] text-slate-500 font-medium">Showing <span className="text-slate-900 font-bold">1-3</span> of <span className="text-slate-900 font-bold">42</span> orders</span>
-                    <div className="flex items-center gap-1">
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-all cursor-not-allowed opacity-50">
-                        <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                      </button>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#004ac6] text-white text-xs font-bold shadow-sm">1</button>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-white text-xs font-bold transition-all cursor-pointer">2</button>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-white text-xs font-bold transition-all cursor-pointer">3</button>
-                      <span className="px-1 text-slate-400">...</span>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-white transition-all cursor-pointer">
-                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                {/* Revenue Analytics Section */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">Revenue Trends</h2>
+                      <p className="text-slate-500 text-sm font-medium mt-1">Performance comparison across different time periods</p>
+                    </div>
+                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60">
+                      <button onClick={() => setActiveTab('analytics')} className="px-5 py-1.5 text-sm font-bold bg-white text-[#004ac6] rounded-lg shadow-sm cursor-pointer hover:bg-slate-50 transition-all">
+                        Detailed Analytics
                       </button>
                     </div>
                   </div>
-                </div>
+                  <div className="p-8 flex-1 flex flex-col justify-end">
+                    <div className="relative h-[280px] w-full">
+                      <canvas ref={dashboardCanvasRef}></canvas>
+                    </div>
+                  </div>
+                </section>
 
-                {/* Store Performance & Top Selling */}
-                <div className="space-y-8 flex flex-col justify-between">
-                  {/* Store Performance */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs mb-6">Store Performance</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <span className="text-xs text-slate-500 font-medium">Fulfillment Rate</span>
-                        <span className="text-sm font-bold text-[#004ac6]">98%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-[#004ac6]" style={{ width: '98%' }}></div>
-                      </div>
-                      <div className="flex justify-between items-end">
-                        <span className="text-xs text-slate-500 font-medium">Response Time</span>
-                        <span className="text-sm font-bold text-[#2e7d32]">&lt; 5 mins</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-[#2e7d32]" style={{ width: '100%' }}></div>
-                      </div>
+                {/* Detailed Stats Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Recent Orders Table */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                      <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Recent Orders</h3>
+                      <button onClick={() => setActiveTab('orders')} className="text-[#004ac6] text-xs font-bold hover:underline cursor-pointer">View All</button>
+                    </div>
+                    <div className="overflow-x-auto flex-1">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-100 bg-slate-50/50">
+                            <th className="px-6 py-4">Order ID</th>
+                            <th className="px-6 py-4">Customer</th>
+                            <th className="px-6 py-4">Amount</th>
+                            <th className="px-6 py-4">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {dashboardData.recentOrders && dashboardData.recentOrders.length > 0 ? (
+                            dashboardData.recentOrders.map((order) => (
+                              <tr key={order._id} className="hover:bg-slate-50 transition-colors">
+                                <td 
+                                  onClick={() => {
+                                    setSelectedOrderId(order._id);
+                                    setActiveTab('order-detail');
+                                  }} 
+                                  className="px-6 py-4 text-xs font-mono font-bold text-[#004ac6] hover:underline cursor-pointer"
+                                >
+                                  {order.order_code}
+                                </td>
+                                <td className="px-6 py-4 text-xs font-medium">
+                                  {order.customer_id?.full_name || 'Anonymous Customer'}
+                                </td>
+                                <td className="px-6 py-4 text-xs font-bold">
+                                  {order.total_final?.toLocaleString('vi-VN')}₫
+                                </td>
+                                <td className="px-6 py-4">
+                                  {order.status === 'delivered' ? (
+                                    <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Completed</span>
+                                  ) : order.status === 'canceled' ? (
+                                    <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Cancelled</span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#004ac6] text-[10px] font-bold border border-blue-100">Processing</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="4" className="text-center py-8 text-slate-400 text-xs font-medium">
+                                No orders found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="mt-auto p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Showing recent orders of the shop
+                      </span>
+                      <button 
+                        onClick={() => setActiveTab('orders')} 
+                        className="text-[11px] text-[#004ac6] font-bold hover:underline cursor-pointer"
+                      >
+                        Go to Order Management →
+                      </button>
                     </div>
                   </div>
 
-                  {/* Top Selling */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-1 flex flex-col justify-between">
-                    <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs mb-4">Top Selling</h3>
-                    <div className="space-y-4 flex-1 flex flex-col justify-center">
-                      <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-all">
-                        <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-200/60 shrink-0">
-                          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100" alt="Product" className="w-full h-full object-cover" />
+                  {/* Store Performance & Top Selling */}
+                  <div className="space-y-8 flex flex-col justify-between">
+                    {/* Store Performance */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs mb-6">Store Performance</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                          <span className="text-xs text-slate-500 font-medium">Fulfillment Rate</span>
+                          <span className="text-sm font-bold text-[#004ac6]">98%</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate">Wireless Scholar Mouse</p>
-                          <p className="text-[10px] text-slate-500 font-medium">152 units sold</p>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#004ac6]" style={{ width: '98%' }}></div>
                         </div>
-                        <span className="text-xs font-bold text-[#004ac6] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">#1</span>
-                      </div>
-                      <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-all">
-                        <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-200/60 shrink-0">
-                          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100" alt="Product" className="w-full h-full object-cover" />
+                        <div className="flex justify-between items-end">
+                          <span className="text-xs text-slate-500 font-medium">Response Time</span>
+                          <span className="text-sm font-bold text-[#2e7d32]">&lt; 5 mins</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate">Academic Sport Sneakers</p>
-                          <p className="text-[10px] text-slate-500 font-medium">89 units sold</p>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#2e7d32]" style={{ width: '100%' }}></div>
                         </div>
-                        <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">#2</span>
                       </div>
                     </div>
+
+                    {/* Top Selling */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-1 flex flex-col justify-between">
+                      <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs mb-4">Top Selling</h3>
+                      <div className="space-y-4 flex-1 flex flex-col justify-center">
+                        {dashboardData.topSelling && dashboardData.topSelling.length > 0 ? (
+                          dashboardData.topSelling.map((prod, idx) => (
+                            <div key={prod.id || idx} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-all">
+                              <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-200/60 shrink-0">
+                                <img src={prod.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100"} alt={prod.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-slate-900 truncate">{prod.name}</p>
+                                <p className="text-[10px] text-slate-500 font-medium">{prod.orders} units sold</p>
+                              </div>
+                              <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                                idx === 0 
+                                  ? 'text-[#004ac6] bg-blue-50 border-blue-100' 
+                                  : 'text-slate-600 bg-slate-100 border-slate-200'
+                              }`}>
+                                #{idx + 1}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-slate-400 text-center py-4 font-medium">No top selling data available</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Growth Insights & Marketing Tips */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-blue-100">
+                        <span className="material-symbols-outlined text-[#004ac6]">auto_graph</span>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Growth Insight</h4>
+                        <p className="text-xs text-slate-600 leading-tight mt-0.5 font-medium">
+                          Your store's revenue over the last 7 days has shown strong growth. Keep optimizing your products!
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={() => setActiveTab('analytics')} className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-md shadow-[#004ac6]/20 hover:brightness-110 transition-all shrink-0 cursor-pointer">
+                      View Report
+                    </button>
+                  </div>
+
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-slate-200/60">
+                        <span className="material-symbols-outlined text-slate-600">campaign</span>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Marketing Tip</h4>
+                        <p className="text-xs text-slate-600 leading-tight mt-0.5 font-medium">Create flash sale campaigns to generate a sudden surge in traffic.</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setActiveTab('products')} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition-all shrink-0 cursor-pointer shadow-sm">
+                      Manage Products
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* Growth Insights & Marketing Tips */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-blue-100">
-                      <span className="material-symbols-outlined text-[#004ac6]">auto_graph</span>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">Growth Insight</h4>
-                      <p className="text-xs text-slate-600 leading-tight mt-0.5 font-medium">Your revenue is up 12% compared to last Thursday. Keep it up!</p>
-                    </div>
-                  </div>
-                  <button onClick={() => toast.success('Loading full growth report...')} className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-md shadow-[#004ac6]/20 hover:brightness-110 transition-all shrink-0 cursor-pointer">View Full Report</button>
-                </div>
-
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-slate-200/60">
-                      <span className="material-symbols-outlined text-slate-600">campaign</span>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">Marketing Tip</h4>
-                      <p className="text-xs text-slate-600 leading-tight mt-0.5 font-medium">Flash sales usually boost weekend traffic by 30%. Plan ahead.</p>
-                    </div>
-                  </div>
-                  <button onClick={() => toast.success('Opening promo creation tool...')} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition-all shrink-0 cursor-pointer shadow-sm">Create Promo</button>
-                </div>
-              </div>
-            </div>
+            )}
           </>
         )}
 
@@ -450,7 +627,11 @@ const SellerDashboard = () => {
           <SellerCancellations setActiveTab={setActiveTab} />
         )}
 
-        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && (
+        {activeTab === 'analytics' && (
+          <SellerAnalytics setActiveTab={setActiveTab} />
+        )}
+
+        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && activeTab !== 'analytics' && (
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
