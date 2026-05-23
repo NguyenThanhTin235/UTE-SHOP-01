@@ -134,6 +134,8 @@ const OrderDetail = () => {
         return 'bg-rose-500/10 text-rose-600 border border-rose-500/20';
       case 'cancel_pending':
         return 'bg-purple-500/10 text-purple-600 border border-purple-500/20';
+      case 'refunded':
+        return 'bg-purple-500/10 text-purple-600 border border-purple-500/20';
       default:
         return 'bg-gray-500/10 text-gray-600 border border-gray-500/20';
     }
@@ -146,8 +148,9 @@ const OrderDetail = () => {
   const isDelivered = order.status === 'delivered';
   const isCanceled = order.status === 'canceled';
   const isCancelPending = order.status === 'cancel_pending';
+  const isRefunded = order.status === 'refunded';
 
-  const step1Active = !isCanceled && !isCancelPending;
+  const step1Active = !isCanceled && !isCancelPending && !isRefunded;
   const step2Active = isConfirmed || isShipped || isDelivered;
   const step3Active = isShipped || isDelivered;
   const step4Active = isDelivered;
@@ -237,12 +240,12 @@ const OrderDetail = () => {
                  isShipped ? 'Shipped' :
                  isDelivered ? 'Delivered' :
                  isCanceled ? 'Cancelled' :
-                 isCancelPending ? 'Cancel Pending' : order.status}
+                 isCancelPending ? 'Cancel Pending' :
+                 isRefunded ? 'Refunded' : order.status}
               </span>
             </div>
 
-            {/* Stepper (Only show if not canceled and not cancel_pending) */}
-            {!isCanceled && !isCancelPending ? (
+            {!isCanceled && !isCancelPending && !isRefunded ? (
               <div className="flex items-center justify-between px-2 md:px-8 relative pt-4 pb-2">
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
@@ -282,16 +285,29 @@ const OrderDetail = () => {
               </div>
             ) : (
               <div className={`p-4 rounded-2xl flex items-start gap-4 ${
-                isCanceled ? 'bg-rose-50 border border-rose-100' : 'bg-purple-50 border border-purple-100'
+                isCanceled ? 'bg-rose-50 border border-rose-100' :
+                isRefunded ? 'bg-purple-50 border border-purple-100' : 'bg-purple-50 border border-purple-100'
               }`}>
-                <span className={`material-symbols-outlined text-3xl ${isCanceled ? 'text-rose-500' : 'text-purple-500'}`}>
-                  {isCanceled ? 'cancel' : 'hourglass_empty'}
+                <span className={`material-symbols-outlined text-3xl ${
+                  isCanceled ? 'text-rose-500' :
+                  isRefunded ? 'text-purple-500' : 'text-purple-500'
+                }`}>
+                  {isCanceled ? 'cancel' : isRefunded ? 'settings_backup_restore' : 'hourglass_empty'}
                 </span>
                 <div>
-                  <h4 className={`font-extrabold text-sm ${isCanceled ? 'text-rose-700' : 'text-purple-700'}`}>
-                    {isCanceled ? 'Order has been cancelled' : 'Cancellation Request Pending'}
+                  <h4 className={`font-extrabold text-sm ${
+                    isCanceled ? 'text-rose-700' :
+                    isRefunded ? 'text-purple-700' : 'text-purple-700'
+                  }`}>
+                    {isCanceled ? 'Order has been cancelled' :
+                     isRefunded ? 'Order has been refunded' : 'Cancellation Request Pending'}
                   </h4>
-                  {!isCanceled && (
+                  {isRefunded && (
+                    <p className="text-xs text-purple-600 mt-1 font-semibold">
+                      This order has been cancelled and refunded successfully.
+                    </p>
+                  )}
+                  {!isCanceled && !isRefunded && (
                     <p className="text-xs text-purple-600 mt-1 font-semibold">
                       Your cancellation request is awaiting shop confirmation.
                     </p>
@@ -380,9 +396,11 @@ const OrderDetail = () => {
                           Overall Status: 
                           <span className={`px-2.5 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider ${
                             order.paymentOrderId.paymentStatus === 'success' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
+                            order.paymentOrderId.paymentStatus === 'refunded' ? 'bg-purple-500/10 text-purple-600 border border-purple-500/20' :
                             order.paymentOrderId.paymentStatus === 'failed' ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                           }`}>
                             {order.paymentOrderId.paymentStatus === 'success' ? 'Success' :
+                             order.paymentOrderId.paymentStatus === 'refunded' ? 'Refunded' :
                              order.paymentOrderId.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                           </span>
                         </p>

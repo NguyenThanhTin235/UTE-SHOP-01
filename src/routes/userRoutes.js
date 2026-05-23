@@ -46,5 +46,10 @@ router.get('/wishlist', verifyToken, userController.getWishlist);
 router.post('/wishlist', verifyToken, userController.addToWishlist);
 router.delete('/wishlist/:productId', verifyToken, userController.removeFromWishlist);
 
+/**
+ * ── COINS MANAGEMENT ──
+ */
+router.get('/coins/transactions', verifyToken, userController.getCoinTransactions);
+
 module.exports = router;
 

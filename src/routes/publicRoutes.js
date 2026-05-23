@@ -8,6 +8,7 @@ router.get('/homepage', publicController.getHomepageData);
 router.get('/categories', publicController.getCategories);
 router.get('/products', publicController.searchProducts);
 router.get('/product/:slug', publicController.getProductDetail);
+router.get('/shop/:slug', publicController.getShopDetail);
 
 router.get('/preview-email', (req, res) => {
   const type = req.query.type || 'reset';

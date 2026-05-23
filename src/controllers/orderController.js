@@ -456,7 +456,14 @@ class OrderController {
         // --- CASE 1: Within 30 minutes - Cancel immediately without confirmation ---
         // 1. Update order status to canceled
         order.status = 'canceled';
-        order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status; // mark failed/refunded
+        
+        let coinsRefundedFromPayment = 0;
+        if (order.payment_status === 'success') {
+          coinsRefundedFromPayment = order.total_final;
+          order.payment_status = 'refunded';
+        } else {
+          order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status; // mark failed/refunded
+        }
         await order.save({ session });
 
         // Update pending payments to failed
@@ -465,6 +472,28 @@ class OrderController {
           { status: 'failed', payment_date: new Date() },
           { session }
         );
+
+        // Update parent PaymentOrder and Payment to refunded if all sub-orders are refunded or failed
+        if (coinsRefundedFromPayment > 0) {
+          const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
+          if (paymentOrder) {
+            const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
+            const allRefundedOrFailed = siblingOrders.every(so => {
+              if (so._id.toString() === order._id.toString()) return true;
+              return so.payment_status === 'refunded' || so.payment_status === 'failed' || so.status === 'canceled';
+            });
+            if (allRefundedOrFailed) {
+              paymentOrder.payment_status = 'refunded';
+              await paymentOrder.save({ session });
+
+              await Payment.updateMany(
+                { payment_order_id: paymentOrder._id, status: 'success' },
+                { status: 'refunded' },
+                { session }
+              );
+            }
+          }
+        }
 
         // 2. Restore stocks of variants
         const orderItems = await OrderItem.find({ order_id: order._id }).session(session);
@@ -478,20 +507,30 @@ class OrderController {
           }
         }
 
-        // 3. Refund user coins if coin_discount was used
-        if (order.coin_discount > 0) {
+        // 3. Refund user coins if coin_discount was used or if payment was refunded as coins
+        if (order.coin_discount > 0 || coinsRefundedFromPayment > 0) {
           const user = await User.findById(userId).session(session);
           if (user) {
+            const totalRefundAmount = order.coin_discount + coinsRefundedFromPayment;
             const balanceBefore = user.coin_balance;
-            user.coin_balance += order.coin_discount;
+            user.coin_balance += totalRefundAmount;
             await user.save({ session });
 
             // Record coin refund transaction
+            let description = '';
+            if (order.coin_discount > 0 && coinsRefundedFromPayment > 0) {
+              description = `Coin refund (${order.coin_discount}) and payment cashback (${coinsRefundedFromPayment}) for cancelled order: ${order.order_code}`;
+            } else if (order.coin_discount > 0) {
+              description = `Coin refund for cancelled order: ${order.order_code}`;
+            } else {
+              description = `Payment cashback in coins for cancelled order: ${order.order_code}`;
+            }
+
             await CoinTransaction.create([{
               user_id: userId,
-              amount: order.coin_discount,
+              amount: totalRefundAmount,
               type: 'refund',
-              description: `Coin refund for cancelled order: ${order.order_code}`,
+              description,
               balance_before: balanceBefore,
               balance_after: user.coin_balance
             }], { session });
@@ -595,7 +634,7 @@ class OrderController {
             orderCode: order.order_code,
             status: 'canceled',
             requiresConfirmation: false,
-            refundedCoins: order.coin_discount
+            refundedCoins: order.coin_discount + coinsRefundedFromPayment
           })
         });
       } else {
@@ -873,7 +912,14 @@ class OrderController {
 
       // 4. Update order status to canceled
       order.status = 'canceled';
-      order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status;
+      
+      let coinsRefundedFromPayment = 0;
+      if (order.payment_status === 'success') {
+        coinsRefundedFromPayment = order.total_final;
+        order.payment_status = 'refunded';
+      } else {
+        order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status;
+      }
       await order.save({ session });
 
       // Update pending payments to failed
@@ -882,6 +928,28 @@ class OrderController {
         { status: 'failed', payment_date: new Date() },
         { session }
       );
+
+      // Update parent PaymentOrder and Payment to refunded if all sub-orders are refunded or failed
+      if (coinsRefundedFromPayment > 0) {
+        const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
+        if (paymentOrder) {
+          const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
+          const allRefundedOrFailed = siblingOrders.every(so => {
+            if (so._id.toString() === order._id.toString()) return true;
+            return so.payment_status === 'refunded' || so.payment_status === 'failed' || so.status === 'canceled';
+          });
+          if (allRefundedOrFailed) {
+            paymentOrder.payment_status = 'refunded';
+            await paymentOrder.save({ session });
+
+            await Payment.updateMany(
+              { payment_order_id: paymentOrder._id, status: 'success' },
+              { status: 'refunded' },
+              { session }
+            );
+          }
+        }
+      }
 
       // 5. Restore stocks of variants
       const orderItems = await OrderItem.find({ order_id: order._id }).session(session);
@@ -895,20 +963,30 @@ class OrderController {
         }
       }
 
-      // 6. Refund user coins if coin_discount was used
-      if (order.coin_discount > 0) {
+      // 6. Refund user coins if coin_discount was used or if payment was refunded as coins
+      if (order.coin_discount > 0 || coinsRefundedFromPayment > 0) {
         const user = await User.findById(order.customer_id).session(session);
         if (user) {
+          const totalRefundAmount = order.coin_discount + coinsRefundedFromPayment;
           const balanceBefore = user.coin_balance;
-          user.coin_balance += order.coin_discount;
+          user.coin_balance += totalRefundAmount;
           await user.save({ session });
 
           // Record coin refund transaction
+          let description = '';
+          if (order.coin_discount > 0 && coinsRefundedFromPayment > 0) {
+            description = `Coin refund (${order.coin_discount}) and payment cashback (${coinsRefundedFromPayment}) for cancelled order: ${order.order_code} (Approved by seller)`;
+          } else if (order.coin_discount > 0) {
+            description = `Coin refund for cancelled order: ${order.order_code} (Approved by seller)`;
+          } else {
+            description = `Payment cashback in coins for cancelled order: ${order.order_code} (Approved by seller)`;
+          }
+
           await CoinTransaction.create([{
             user_id: order.customer_id,
-            amount: order.coin_discount,
+            amount: totalRefundAmount,
             type: 'refund',
-            description: `Coin refund for cancelled order: ${order.order_code} (Approved by seller)`,
+            description,
             balance_before: balanceBefore,
             balance_after: user.coin_balance
           }], { session });
@@ -1407,6 +1485,8 @@ class OrderController {
       const oldStatus = order.status;
       order.status = newStatus;
 
+      let coinsRefundedFromPayment = 0;
+
       // Adjust payment status and trigger stock/coin refunds if status transitioned to canceled or refunded
       if (newStatus === 'delivered') {
         order.payment_status = 'success';
@@ -1430,17 +1510,46 @@ class OrderController {
             await paymentOrder.save({ session });
           }
         }
-      } else if (newStatus === 'refunded') {
-        order.payment_status = 'refunded';
-      } else if (newStatus === 'canceled') {
-        order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status;
-        
-        // Update pending payments to failed
-        await Payment.updateMany(
-          { payment_order_id: order.payment_order_id, status: 'pending' },
-          { status: 'failed', payment_date: new Date() },
-          { session }
-        );
+      } else if ((newStatus === 'canceled' || newStatus === 'refunded') && !['canceled', 'refunded'].includes(oldStatus)) {
+        if (order.payment_status === 'success') {
+          coinsRefundedFromPayment = order.total_final;
+          order.payment_status = 'refunded';
+        } else if (newStatus === 'canceled') {
+          order.payment_status = order.payment_status === 'pending' ? 'failed' : order.payment_status;
+        } else if (newStatus === 'refunded') {
+          order.payment_status = 'refunded';
+        }
+
+        if (newStatus === 'canceled') {
+          // Update pending payments to failed
+          await Payment.updateMany(
+            { payment_order_id: order.payment_order_id, status: 'pending' },
+            { status: 'failed', payment_date: new Date() },
+            { session }
+          );
+        }
+
+        // Update parent PaymentOrder and Payment to refunded if all sub-orders are refunded or failed
+        if (coinsRefundedFromPayment > 0 || newStatus === 'refunded') {
+          const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
+          if (paymentOrder) {
+            const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
+            const allRefundedOrFailed = siblingOrders.every(so => {
+              if (so._id.toString() === order._id.toString()) return true;
+              return so.payment_status === 'refunded' || so.payment_status === 'failed' || so.status === 'canceled';
+            });
+            if (allRefundedOrFailed) {
+              paymentOrder.payment_status = 'refunded';
+              await paymentOrder.save({ session });
+
+              await Payment.updateMany(
+                { payment_order_id: paymentOrder._id, status: 'success' },
+                { status: 'refunded' },
+                { session }
+              );
+            }
+          }
+        }
       }
 
       // If status is transitioning to canceled or refunded, and it wasn't already canceled/refunded, we restore stock/coins/coupons
@@ -1457,20 +1566,30 @@ class OrderController {
           }
         }
 
-        // 2. Refund user coins if coin_discount was used
-        if (order.coin_discount > 0) {
+        // 2. Refund user coins if coin_discount was used or if payment was refunded as coins
+        if (order.coin_discount > 0 || coinsRefundedFromPayment > 0) {
           const user = await User.findById(order.customer_id).session(session);
           if (user) {
+            const totalRefundAmount = order.coin_discount + coinsRefundedFromPayment;
             const balanceBefore = user.coin_balance;
-            user.coin_balance += order.coin_discount;
+            user.coin_balance += totalRefundAmount;
             await user.save({ session });
 
             // Record coin refund transaction
+            let description = '';
+            if (order.coin_discount > 0 && coinsRefundedFromPayment > 0) {
+              description = `Coin refund (${order.coin_discount}) and payment cashback (${coinsRefundedFromPayment}) for ${newStatus} order: ${order.order_code}`;
+            } else if (order.coin_discount > 0) {
+              description = `Coin refund for ${newStatus} order: ${order.order_code}`;
+            } else {
+              description = `Payment cashback in coins for ${newStatus} order: ${order.order_code}`;
+            }
+
             await CoinTransaction.create([{
               user_id: order.customer_id,
-              amount: order.coin_discount,
+              amount: totalRefundAmount,
               type: 'refund',
-              description: `Coin refund for ${newStatus} order: ${order.order_code}`,
+              description,
               balance_before: balanceBefore,
               balance_after: user.coin_balance
             }], { session });

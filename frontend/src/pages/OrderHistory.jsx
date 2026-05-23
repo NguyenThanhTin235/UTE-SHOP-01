@@ -138,6 +138,8 @@ const OrderHistory = () => {
         return { text: 'Cancelled', color: 'text-rose-500 bg-rose-500/10 border-rose-500/20', icon: 'cancel' };
       case 'cancel_pending':
         return { text: 'Cancel Pending', color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: 'hourglass_empty' };
+      case 'refunded':
+        return { text: 'Refunded', color: 'text-purple-600 bg-purple-500/10 border-purple-500/20', icon: 'settings_backup_restore' };
       default:
         return { text: status, color: 'text-gray-500 bg-gray-500/10 border-gray-500/20', icon: 'info' };
     }
@@ -338,10 +340,12 @@ const OrderHistory = () => {
                               <p className="text-xs text-[#737686] font-semibold">
                                 Payment: <span className={`font-bold ${
                                   order.paymentOrderId.paymentStatus === 'success' ? 'text-emerald-600' :
+                                  order.paymentOrderId.paymentStatus === 'refunded' ? 'text-purple-600' :
                                   order.paymentOrderId.paymentStatus === 'failed' ? 'text-rose-600' : 'text-amber-500'
                                 }`}>
                                   {order.paymentOrderId.paymentMethod === 'cod' ? 'COD (Cash on Delivery)' : 'VNPAY'} - {
                                     order.paymentOrderId.paymentStatus === 'success' ? 'Paid' :
+                                    order.paymentOrderId.paymentStatus === 'refunded' ? 'Refunded' :
                                     order.paymentOrderId.paymentStatus === 'failed' ? 'Failed' : 'Unpaid'
                                   }
                                 </span>

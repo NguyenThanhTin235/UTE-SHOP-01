@@ -25,6 +25,8 @@ import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import VNPayMock from './pages/VNPayMock';
 import VNPayReturn from './pages/VNPayReturn';
+import Coins from './pages/Coins';
+import ShopDetail from './pages/ShopDetail';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -85,6 +87,7 @@ function App() {
         <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
         <Route path="/security" element={user ? <SecuritySettings /> : <Navigate to="/login" />} />
+        <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
         <Route path="/order-success" element={user ? <OrderSuccess /> : <Navigate to="/login" />} />
@@ -94,6 +97,7 @@ function App() {
         <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/shop/:slug" element={<ShopDetail />} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />

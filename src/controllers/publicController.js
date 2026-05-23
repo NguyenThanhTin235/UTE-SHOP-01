@@ -453,3 +453,99 @@ exports.searchProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getShopDetail = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+
+    // 1. Fetch Shop by slug
+    const shopRaw = await Shop.findOne({ slug });
+    if (!shopRaw) {
+      return res.status(404).json({
+        success: false,
+        code: 404,
+        message: 'Shop not found',
+        data: null,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+
+    // 2. Fetch all approved & active products of the shop
+    const productsRaw = await Product.find({
+      shop_id: shopRaw._id,
+      approval_status: 'approved',
+      is_active: true
+    });
+
+    // 3. For each product, attach media, variants, rating, and soldCount
+    const products = await Promise.all(productsRaw.map(async (p) => {
+      const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 }).limit(1);
+      const reviews = await ProductReview.find({ product_id: p._id });
+      const avgRating = reviews.length > 0
+        ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
+        : 5.0;
+
+      const soldData = await OrderItem.aggregate([
+        { $match: { product_id: p._id } },
+        { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
+        { $unwind: '$order' },
+        { $match: { 'order.status': 'delivered' } },
+        { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
+      ]);
+      const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
+
+      const pObj = p.toObject();
+      delete pObj.average_rating;
+
+      return {
+        ...pObj,
+        averageRating: avgRating,
+        reviewCount: reviews.length,
+        soldCount: totalSold,
+        media: media.map(m => m.media_url)
+      };
+    }));
+
+    // 4. Group products
+    // a. All Products (sorted by newest)
+    const allProducts = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // b. Best Sellers (sorted by soldCount desc)
+    const bestSellers = [...products].sort((a, b) => b.soldCount - a.soldCount).slice(0, 10);
+
+    // c. Deep Discounts (sorted by discount percentage desc)
+    const deepDiscounts = products
+      .filter(p => p.mrp_price && p.mrp_price > p.selling_price)
+      .sort((a, b) => {
+        const discA = 1 - (a.selling_price / a.mrp_price);
+        const discB = 1 - (b.selling_price / b.mrp_price);
+        return discB - discA;
+      })
+      .slice(0, 10);
+
+    // 5. Calculate average shop rating dynamically from all products
+    const shopRating = products.length > 0
+      ? Number((products.reduce((acc, p) => acc + p.averageRating, 0) / products.length).toFixed(1))
+      : 5.0;
+
+    const shop = {
+      ...shopRaw.toObject(),
+      rating: shopRating
+    };
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Shop details fetched successfully',
+      data: toCamelCase({
+        shop,
+        bestSellers,
+        deepDiscounts,
+        allProducts
+      }),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};

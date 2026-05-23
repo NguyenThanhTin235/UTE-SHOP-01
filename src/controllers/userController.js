@@ -407,6 +407,42 @@ class UserController {
       });
     }
   }
+
+  /**
+   * Lấy lịch sử giao dịch xu của User
+   */
+  async getCoinTransactions(req, res) {
+    try {
+      const userId = req.user.id;
+      const CoinTransaction = require('../models/CoinTransaction');
+      const User = require('../models/User');
+
+      const transactions = await CoinTransaction.find({ user_id: userId })
+        .sort({ createdAt: -1 })
+        .populate('order_id', 'order_code total_final');
+
+      const user = await User.findById(userId).select('coin_balance');
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Lấy lịch sử giao dịch xu thành công',
+        data: {
+          coinBalance: user ? user.coin_balance : 0,
+          transactions: toCamelCase(transactions)
+        },
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    } catch (error) {
+      console.error('Get Coin Transactions Error:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: 'Lỗi hệ thống khi lấy lịch sử giao dịch xu',
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+  }
 }
 
 module.exports = new UserController();

@@ -772,7 +772,9 @@ const SellerDashboard = () => {
                             <span className="text-slate-500 font-medium">Payment Status</span>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                               selectedCancellation.paymentStatus === 'success' || selectedCancellation.paymentStatus === 'paid'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                : selectedCancellation.paymentStatus === 'refunded'
+                                ? 'bg-slate-50 text-slate-600 border-slate-200'
                                 : 'bg-amber-50 text-amber-700 border-amber-100'
                             }`}>
                               {selectedCancellation.paymentStatus?.toUpperCase() || 'PENDING'}

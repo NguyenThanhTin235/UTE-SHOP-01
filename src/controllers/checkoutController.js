@@ -231,9 +231,9 @@ class CheckoutController {
       const userCoins = user ? user.coin_balance : 0;
 
       if (useCoins && userCoins > 0) {
-        // Capped at 50% of the overall subtotal (product value only) and cannot pay for shipping
-        const maxCoinSpend = Math.floor(overallSubtotal * 0.5);
-        const remainingToDiscount = overallSubtotal - couponDiscount;
+        // Capped at 100% of the overall total (including shipping)
+        const maxCoinSpend = overallSubtotal + overallShipping;
+        const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(userCoins, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
       }
@@ -473,8 +473,8 @@ class CheckoutController {
       // Handle Coins
       let coinDiscount = 0;
       if (useCoins && user.coin_balance > 0) {
-        const maxCoinSpend = Math.floor(overallSubtotal * 0.5);
-        const remainingToDiscount = overallSubtotal - couponDiscount;
+        const maxCoinSpend = overallSubtotal + overallShipping;
+        const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(user.coin_balance, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
       }
@@ -537,6 +537,7 @@ class CheckoutController {
 
       // 7. Create PaymentOrder
       const paymentCode = `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const isFreeOrder = overallFinal === 0;
       const paymentOrder = await PaymentOrder.create({
         payment_code: paymentCode,
         customer_id: userId,
@@ -547,7 +548,7 @@ class CheckoutController {
         shipping_amount: overallShipping,
         final_amount: overallFinal,
         payment_method: paymentMethod,
-        payment_status: 'pending'
+        payment_status: isFreeOrder ? 'success' : 'pending'
       });
 
       // Create initial Payment transaction log (attempt)
@@ -556,7 +557,7 @@ class CheckoutController {
         payment_method: paymentMethod,
         transaction_id: paymentCode,
         amount: overallFinal,
-        status: 'pending',
+        status: isFreeOrder ? 'success' : 'pending',
         payment_date: new Date()
       });
 
@@ -585,7 +586,7 @@ class CheckoutController {
           platform_fee_rate: platformFeeRate,
           platform_fee_amount: platformFeeAmount,
           total_final: s.totalFinal,
-          payment_status: 'pending',
+          payment_status: isFreeOrder ? 'success' : 'pending',
           coin_earned: coinEarned
         });
 
@@ -617,6 +618,80 @@ class CheckoutController {
       }
 
       // 9. Processing payment response
+      if (isFreeOrder) {
+        // Clear items from cart
+        await CartItem.deleteMany({ _id: { $in: itemIds } });
+
+        // Send order paid and placed notifications
+        for (const order of createdOrders) {
+          try {
+            const firstOrderItem = await OrderItem.findOne({ order_id: order._id }).populate('product_id').populate('variant_id');
+            let orderSummary = undefined;
+            if (firstOrderItem && firstOrderItem.product_id) {
+              const media = await ProductMedia.findOne({ product_id: firstOrderItem.product_id._id }).sort({ sort_order: 1 });
+              const imageUrl = media ? media.media_url : 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400';
+
+              let variantName = 'Standard';
+              if (firstOrderItem.variant_id && firstOrderItem.variant_id.attributes) {
+                variantName = Object.entries(firstOrderItem.variant_id.attributes)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(' | ');
+              }
+
+              orderSummary = {
+                name: firstOrderItem.product_id.name,
+                qty: firstOrderItem.quantity,
+                variant: variantName,
+                image: imageUrl
+              };
+            }
+
+            const notification = await Notification.create({
+              user_id: userId,
+              title: 'Order Paid Successfully',
+              content: `Your payment for order ${order.order_code} was fully covered by coins.`,
+              detailContent: `Hello,\n\nGreat news! Your order ${order.order_code} has been fully paid using coins and is placed successfully.\n\nThe seller is preparing the products and will ship them soon.`,
+              category: 'Orders',
+              type: 'order',
+              date: 'JUST NOW',
+              link: `/order-history/${order._id}`,
+              orderSummary
+            });
+
+            const io = req.app.get('socketio');
+            if (io) {
+              io.to(userId.toString()).emit('notification', {
+                id: notification._id.toString(),
+                title: notification.title,
+                content: notification.content,
+                detailContent: notification.detailContent,
+                category: notification.category,
+                type: notification.type,
+                date: 'JUST NOW',
+                link: notification.link,
+                orderSummary: notification.orderSummary,
+                is_read: false
+              });
+            }
+          } catch (notifErr) {
+            console.error('Free Order Placement Notification Error:', notifErr);
+          }
+        }
+
+        return res.status(201).json({
+          success: true,
+          code: 201,
+          message: 'Order placed and paid successfully using coins',
+          data: toCamelCase({
+            paymentCode,
+            paymentMethod,
+            paymentStatus: 'success',
+            finalAmount: 0,
+            redirectUrl: `/order-success?paymentCode=${paymentCode}`
+          })
+        });
+      }
+
       if (paymentMethod === 'cod') {
         // Clear items from cart
         await CartItem.deleteMany({ _id: { $in: itemIds } });
