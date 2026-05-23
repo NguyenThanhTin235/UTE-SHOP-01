@@ -11,6 +11,7 @@ import SellerOrders from '../components/seller/SellerOrders';
 import SellerOrderDetail from '../components/seller/SellerOrderDetail';
 import SellerCancellations from '../components/seller/SellerCancellations';
 import SellerAnalytics from '../components/seller/SellerAnalytics';
+import SellerSettings from '../components/seller/SellerSettings';
 const SellerDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -631,7 +632,11 @@ const SellerDashboard = () => {
           <SellerAnalytics setActiveTab={setActiveTab} />
         )}
 
-        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && activeTab !== 'analytics' && (
+        {activeTab === 'settings' && (
+          <SellerSettings setActiveTab={setActiveTab} />
+        )}
+
+        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && activeTab !== 'analytics' && activeTab !== 'settings' && (
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
