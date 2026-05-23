@@ -373,12 +373,7 @@ const seedFashionData = async () => {
 
           const pSlug = slugify(`${cleanName}-${topKey.substr(0,3)}-${i + 1}-${Date.now().toString().substr(-4)}-${Math.random().toString(36).substr(2, 3)}`);
           const basePrice = Math.floor(Math.random() * 500000) + 350000;
-          // Tạo một số sản phẩm có mức giảm giá cực sâu (từ 40% đến 80%) để phục vụ tab Biggest Discounts
-          let discountRate = 0.10 + Math.random() * 0.15; // 10% - 25% default
-          if (i % 3 === 0) {
-            discountRate = 0.40 + Math.random() * 0.40; // 40% - 80% biggest discount
-          }
-          const sellingPrice = Math.floor(basePrice * (1 - discountRate));
+          const sellingPrice = Math.floor(basePrice * (0.75 + Math.random() * 0.15));
 
           const product = await Product.create({
             shop_id: currentShop._id,
@@ -389,8 +384,7 @@ const seedFashionData = async () => {
             mrp_price: basePrice,
             selling_price: sellingPrice,
             sku: `SKU-${topKey.substr(0,3).toUpperCase()}-${level3Name.substr(0,3).toUpperCase()}-${i + 1}-${Math.floor(Math.random()*1000)}`,
-            approval_status: 'approved',
-            view_count: Math.floor(Math.random() * 800) + 50
+            approval_status: 'approved'
           });
 
           await ProductMedia.create({
@@ -481,12 +475,11 @@ const seedFashionData = async () => {
       value: 20
     });
 
-    const campaignTargetsToInsert = allProducts.slice(0, 10).map(item => ({
+    await CampaignTarget.create({
       campaign_id: camp._id,
-      product_id: item.product._id,
+      product_id: p1._id,
       target_type: 'featured'
-    }));
-    await CampaignTarget.insertMany(campaignTargetsToInsert);
+    });
 
     const coupon = await Coupon.create({
       code: 'FASHION20',

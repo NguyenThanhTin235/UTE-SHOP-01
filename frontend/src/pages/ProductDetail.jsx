@@ -244,7 +244,7 @@ const ProductDetail = () => {
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
           {category?.breadcrumbs?.map((bc, i) => (
              <React.Fragment key={i}>
-                <Link to={`/search?category=${bc.slug}`} className="hover:text-primary">{bc.name}</Link>
+                <Link to={`/category/${bc.slug}`} className="hover:text-primary">{bc.name}</Link>
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
              </React.Fragment>
           ))}
@@ -292,7 +292,7 @@ const ProductDetail = () => {
             <div className="space-y-2">
               <p className="text-[12px] text-primary font-bold tracking-widest uppercase">{shop?.name || 'UTEShop Official Store'}</p>
               <h1 className="text-3xl font-extrabold text-on-surface leading-tight">{product.name}</h1>
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1 text-secondary">
                   <span className="material-symbols-outlined text-[18px] text-amber-500" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
                   <span className="font-bold">{product.averageRating || 'No ratings'}</span>
@@ -301,11 +301,6 @@ const ProductDetail = () => {
                 <span className="text-sm text-on-surface-variant underline cursor-pointer">{reviews?.length || 0} Reviews</span>
                 <span className="text-outline-variant">|</span>
                 <span className="text-sm text-on-surface-variant">{sold || 0} Sold</span>
-                <span className="text-outline-variant">|</span>
-                <div className="flex items-center gap-1 text-sm text-on-surface-variant" title="Total Views">
-                  <span className="material-symbols-outlined text-[16px] text-primary">visibility</span>
-                  <span>{product.viewCount || 0} Views</span>
-                </div>
               </div>
             </div>
 
@@ -641,7 +636,7 @@ const ProductDetail = () => {
                                   <div className="flex justify-between items-start">
                                       <div className="flex gap-4">
                                           {r.user?.avatarUrl && r.user.avatarUrl !== "https://ui-avatars.com/api/?name=User&background=random" ? (
-                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" referrerPolicy="no-referrer" />
+                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" />
                                           ) : (
                                               <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">
                                                   {r.user?.fullName ? r.user.fullName.substring(0, 2).toUpperCase() : 'JD'}

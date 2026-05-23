@@ -227,6 +227,17 @@ class UserController {
       });
     }
   }
+  /**
+   * Lấy số lượng thông báo chưa đọc
+   */
+  async getUnreadNotificationCount(req, res) {
+    try {
+      const Notification = require('../models/Notification');
+      const userId = req.user.id;
+      const count = await Notification.countDocuments({ user_id: userId, is_read: false });
+      return res.status(200).json({ success: true, count });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
 
   /**
    * Quản lý Wishlist: Lấy danh sách yêu thích
