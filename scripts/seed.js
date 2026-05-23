@@ -906,10 +906,82 @@ const seedFashionData = async () => {
       page_type: 'faq'
     });
 
+    console.log('❤️ Seeding Wishlist...');
+    await Wishlist.insertMany([
+      { user_id: customers[0]._id, product_id: p1._id },
+      { user_id: customers[0]._id, product_id: p2._id },
+      { user_id: customers[0]._id, product_id: p3._id }
+    ]);
+
     console.log('📣 Seeding Notifications & Coins...');
     await Notification.insertMany([
-      { user_id: customers[0]._id, title: 'Order delivered', content: 'Your order has been delivered.', type: 'order' },
-      { user_id: customers[1]._id, title: 'New promotion', content: 'Use FASHION20 to save more.', type: 'promotion' }
+      {
+        user_id: customers[0]._id,
+        title: 'Order #UTE99283 is out for delivery',
+        content: 'Your package is being delivered by our courier. Please stay reachable at your phone number.',
+        detailContent: 'Good news! Your order **#UTE99283** has left our sorting facility and is currently with our delivery partner.\n\nOur courier will attempt to deliver your package today between **09:00 AM and 06:00 PM**. Please ensure someone is available at the shipping address to receive the items.',
+        type: 'order',
+        category: 'Orders',
+        is_read: false,
+        date: '2 MINS AGO',
+        orderSummary: {
+          name: 'MacBook Pro 14" M3',
+          qty: 1,
+          variant: 'Space Gray',
+          image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=100'
+        },
+        link: '/profile'
+      },
+      {
+        user_id: customers[0]._id,
+        title: 'Flash Sale: Up to 70% OFF!',
+        content: 'The biggest sale of the season is here. Grab your favorite academic outfits before they\'re gone.',
+        detailContent: 'Get ready for the ultimate academic shopping experience! Enjoy up to **70% OFF** on premium hoodies, backpacks, and smart gadgets.\n\nUse code **FLASH70** at checkout. Hurry, offer valid only for the next 24 hours!',
+        type: 'promotion',
+        category: 'Promotions',
+        is_read: true,
+        date: '3 HOURS AGO',
+        link: '/search?category=clothing'
+      },
+      {
+        user_id: customers[0]._id,
+        title: 'Security Alert: New Login',
+        content: 'A new login was detected from a Chrome browser on Windows in Ho Chi Minh City.',
+        detailContent: 'We detected a new login to your UTEShop account from a new device/location.\n\n**Device:** Chrome on Windows\n**Location:** Ho Chi Minh City, Vietnam\n**IP Address:** 113.166.x.x\n\nIf this was you, you can safely ignore this alert. If you did not authorize this login, please change your password immediately.',
+        type: 'system',
+        category: 'System',
+        is_read: false,
+        date: 'YESTERDAY',
+        link: '/profile'
+      },
+      {
+        user_id: customers[0]._id,
+        title: 'Order #UTE99210 Delivered',
+        content: 'Your order has been successfully delivered. We hope you enjoy your new items!',
+        detailContent: 'Your order **#UTE99210** has been marked as delivered by our shipping partner.\n\nWe hope you love your new academic gear! Please take a moment to confirm receipt and leave a review for the products to earn UTEShop coins.',
+        type: 'order',
+        category: 'Orders',
+        is_read: true,
+        date: 'OCT 24',
+        orderSummary: {
+          name: 'Premium Academic Hoodie',
+          qty: 2,
+          variant: 'Navy Blue • M',
+          image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
+        },
+        link: '/profile'
+      },
+      {
+        user_id: customers[1]._id,
+        title: 'Welcome to UTEShop!',
+        content: 'Experience the premium academic marketplace. Enjoy your shopping!',
+        detailContent: 'Welcome to UTEShop! We are excited to have you on board. Explore our catalog for the best academic collections.',
+        type: 'system',
+        category: 'System',
+        is_read: false,
+        date: 'JUST NOW',
+        link: '/search'
+      }
     ]);
 
     await CoinTransaction.create({

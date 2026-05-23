@@ -54,6 +54,19 @@ export const login = createAsyncThunk(
   }
 );
 
+export const verify2FALogin = createAsyncThunk(
+  'auth/verify2FALogin',
+  async (verifyData, thunkAPI) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-2fa`, verifyData);
+      return response.data;
+    } catch (error) {
+      let message = error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, thunkAPI) => {
@@ -133,6 +146,8 @@ export const googleLogin = createAsyncThunk(
       if (response.data.data) {
         sessionStorage.setItem('user', JSON.stringify(response.data.data.user));
         sessionStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        localStorage.setItem('token', response.data.data.token);
       }
       return response.data;
     } catch (error) {
@@ -145,7 +160,7 @@ export const googleLogin = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: JSON.parse(sessionStorage.getItem('user')) || null,
+    user: JSON.parse(sessionStorage.getItem('user')) || JSON.parse(localStorage.getItem('user')) || null,
     isError: false,
     isSuccess: false,
     isLoading: false,
@@ -161,6 +176,8 @@ const authSlice = createSlice({
     logout: (state) => {
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       state.user = null;
       state.isError = false;
       state.isSuccess = false;
@@ -193,6 +210,8 @@ const authSlice = createSlice({
         state.user = action.payload.data.user;
         sessionStorage.setItem('user', JSON.stringify(action.payload.data.user));
         sessionStorage.setItem('token', action.payload.data.token);
+        localStorage.setItem('user', JSON.stringify(action.payload.data.user));
+        localStorage.setItem('token', action.payload.data.token);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -207,15 +226,39 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         state.message = action.payload.message;
-        state.user = action.payload.data.user;
-        sessionStorage.setItem('user', JSON.stringify(action.payload.data.user));
-        sessionStorage.setItem('token', action.payload.data.token);
+        if (action.payload.data && action.payload.data.user) {
+          state.user = action.payload.data.user;
+          sessionStorage.setItem('user', JSON.stringify(action.payload.data.user));
+          sessionStorage.setItem('token', action.payload.data.token);
+          localStorage.setItem('user', JSON.stringify(action.payload.data.user));
+          localStorage.setItem('token', action.payload.data.token);
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
         state.user = null;
+      })
+      .addCase(verify2FALogin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(verify2FALogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message;
+        if (action.payload.data && action.payload.data.user) {
+          state.user = action.payload.data.user;
+          sessionStorage.setItem('user', JSON.stringify(action.payload.data.user));
+          sessionStorage.setItem('token', action.payload.data.token);
+          localStorage.setItem('user', JSON.stringify(action.payload.data.user));
+          localStorage.setItem('token', action.payload.data.token);
+        }
+      })
+      .addCase(verify2FALogin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       })
       .addCase(forgotPassword.pending, (state) => {
         state.isLoading = true;
