@@ -1,18 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { logout } from '../redux/authSlice';
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'].includes(location.pathname);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
     setSearchTerm(q || '');
   }, [location.search]);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        if (!token) {
+          setUnreadCount(0);
+          return;
+        }
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        const response = await axios.get('http://localhost:5000/api/notifications', config);
+        if (response.data && response.data.success) {
+          const data = response.data.data || [];
+          const unread = data.filter(n => !n.is_read).length;
+          setUnreadCount(unread);
+        }
+      } catch (error) {
+        console.error('Fetch unread notifications error:', error);
+        if (error.response && error.response.status === 401) {
+          dispatch(logout());
+        }
+      }
+    };
+
+    if (!isAuthPage && user) {
+      fetchUnreadCount();
+    } else {
+      setUnreadCount(0);
+    }
+  }, [location.pathname, isAuthPage, user, dispatch]);
+
+  const [cartCount, setCartCount] = useState(0);
+
+  const fetchCartCount = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get('http://localhost:5000/api/cart', config);
+      if (response.data && response.data.success) {
+        const data = response.data.data || [];
+        setCartCount(data.length);
+      }
+    } catch (error) {
+      console.error('Fetch cart count error:', error);
+      if (error.response && error.response.status === 401) {
+        dispatch(logout());
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthPage && user) {
+      fetchCartCount();
+    } else {
+      setCartCount(0);
+    }
+
+    const handleCartUpdate = () => {
+      if (user) {
+        fetchCartCount();
+      }
+    };
+
+    window.addEventListener('cartUpdate', handleCartUpdate);
+    return () => {
+      window.removeEventListener('cartUpdate', handleCartUpdate);
+    };
+  }, [user, isAuthPage]);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -43,8 +130,6 @@ const Header = () => {
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
   };
-
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'].includes(location.pathname);
 
   return (
     <header className="bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.05)] sticky top-0 z-50 font-medium text-[#131b2e] font-['Manrope']">
@@ -84,15 +169,25 @@ const Header = () => {
           <Link to="/cart" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 relative text-[#434655]">
             <span className="material-symbols-outlined">shopping_cart</span>
             <span className="absolute top-1 right-1 w-4 h-4 bg-[#004ac6] text-[10px] text-white flex items-center justify-center rounded-full font-bold">
-              {isAuthPage ? "0" : "3"}
+              {cartCount}
             </span>
           </Link>
 
           {!isAuthPage && (
-            <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
-              <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
-            </Link>
+            user ? (
+              <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
+                <span className="material-symbols-outlined">notifications</span>
+                {unreadCount > 0 ? (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-[#ba1a1a] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
+            ) : (
+              <button onClick={() => toast.error('Please log in to view notifications')} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative cursor-pointer">
+                <span className="material-symbols-outlined">notifications</span>
+              </button>
+            )
           )}
 
           {user ? (
