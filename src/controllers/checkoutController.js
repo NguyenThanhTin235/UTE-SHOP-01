@@ -13,6 +13,7 @@ const PaymentOrder = require('../models/PaymentOrder');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const CoinTransaction = require('../models/CoinTransaction');
+const Notification = require('../models/Notification');
 const { toCamelCase } = require('../utils/formatter');
 
 class CheckoutController {
@@ -532,7 +533,7 @@ class CheckoutController {
           payment_order_id: paymentOrder._id,
           customer_id: userId,
           shop_id: s.shopId === 'default' ? new mongoose.Types.ObjectId() : s.shopId,
-          status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
+          status: 'pending',
           subtotal_amount: s.subtotal,
           shipping_fee: s.shippingFee,
           coupon_discount: s.couponDiscount,
@@ -575,6 +576,62 @@ class CheckoutController {
       if (paymentMethod === 'cod') {
         // Clear items from cart
         await CartItem.deleteMany({ _id: { $in: itemIds } });
+
+        // Send order placed notifications
+        for (const order of createdOrders) {
+          try {
+            const firstOrderItem = await OrderItem.findOne({ order_id: order._id }).populate('product_id').populate('variant_id');
+            let orderSummary = undefined;
+            if (firstOrderItem && firstOrderItem.product_id) {
+              const media = await ProductMedia.findOne({ product_id: firstOrderItem.product_id._id }).sort({ sort_order: 1 });
+              const imageUrl = media ? media.media_url : 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400';
+
+              let variantName = 'Standard';
+              if (firstOrderItem.variant_id && firstOrderItem.variant_id.attributes) {
+                variantName = Object.entries(firstOrderItem.variant_id.attributes)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(' | ');
+              }
+
+              orderSummary = {
+                name: firstOrderItem.product_id.name,
+                qty: firstOrderItem.quantity,
+                variant: variantName,
+                image: imageUrl
+              };
+            }
+
+            const notification = await Notification.create({
+              user_id: userId,
+              title: 'Order Placed Successfully',
+              content: `Your order ${order.order_code} has been placed successfully via Cash on Delivery (COD).`,
+              detailContent: `Hello,\n\nThank you for shopping at UTEShop! Your order ${order.order_code} has been placed successfully using Cash on Delivery (COD).\n\nThe shop is preparing the products and will ship them soon. You can track your order status in your Order History.`,
+              category: 'Orders',
+              type: 'order',
+              date: 'JUST NOW',
+              link: `/order-history/${order._id}`,
+              orderSummary
+            });
+
+            const io = req.app.get('socketio');
+            if (io) {
+              io.to(userId.toString()).emit('notification', {
+                id: notification._id.toString(),
+                title: notification.title,
+                content: notification.content,
+                detailContent: notification.detailContent,
+                category: notification.category,
+                type: notification.type,
+                date: 'JUST NOW',
+                link: notification.link,
+                orderSummary: notification.orderSummary,
+                is_read: false
+              });
+            }
+          } catch (notifErr) {
+            console.error('COD Order Placement Notification Error:', notifErr);
+          }
+        }
         
         return res.status(201).json({
           success: true,
@@ -680,6 +737,62 @@ class CheckoutController {
               query.variant_id = null;
             }
             await CartItem.findOneAndDelete(query);
+          }
+        }
+
+        // Send order placed and paid notifications
+        for (const order of orders) {
+          try {
+            const firstOrderItem = await OrderItem.findOne({ order_id: order._id }).populate('product_id').populate('variant_id');
+            let orderSummary = undefined;
+            if (firstOrderItem && firstOrderItem.product_id) {
+              const media = await ProductMedia.findOne({ product_id: firstOrderItem.product_id._id }).sort({ sort_order: 1 });
+              const imageUrl = media ? media.media_url : 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400';
+
+              let variantName = 'Standard';
+              if (firstOrderItem.variant_id && firstOrderItem.variant_id.attributes) {
+                variantName = Object.entries(firstOrderItem.variant_id.attributes)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(' | ');
+              }
+
+              orderSummary = {
+                name: firstOrderItem.product_id.name,
+                qty: firstOrderItem.quantity,
+                variant: variantName,
+                image: imageUrl
+              };
+            }
+
+            const notification = await Notification.create({
+              user_id: userId,
+              title: 'Order Paid Successfully',
+              content: `Your payment for order ${order.order_code} via VNPAY was successful and has been confirmed.`,
+              detailContent: `Hello,\n\nGreat news! Your payment for order ${order.order_code} has been successfully processed via VNPAY. The order status is now Confirmed.\n\nThe seller is preparing the products and will ship them soon.`,
+              category: 'Orders',
+              type: 'order',
+              date: 'JUST NOW',
+              link: `/order-history/${order._id}`,
+              orderSummary
+            });
+
+            const io = req.app.get('socketio');
+            if (io) {
+              io.to(userId.toString()).emit('notification', {
+                id: notification._id.toString(),
+                title: notification.title,
+                content: notification.content,
+                detailContent: notification.detailContent,
+                category: notification.category,
+                type: notification.type,
+                date: 'JUST NOW',
+                link: notification.link,
+                orderSummary: notification.orderSummary,
+                is_read: false
+              });
+            }
+          } catch (notifErr) {
+            console.error('VNPAY Callback Notification Error:', notifErr);
           }
         }
 

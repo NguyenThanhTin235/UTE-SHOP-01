@@ -12,7 +12,7 @@ const app = express();
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 3600, // limit each IP to 3600 requests per windowMs
   message: {
     success: false,
     code: 429,
@@ -35,6 +35,7 @@ app.use('/api/public', require('./routes/publicRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/checkout', require('./routes/checkoutRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes'));
 
 
 // Global Error Handler

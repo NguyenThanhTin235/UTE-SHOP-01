@@ -101,6 +101,231 @@ const Notifications = () => {
     }
   };
 
+  const getNotificationStyles = (item, isSelected = false) => {
+    if (!item) {
+      return {
+        icon: 'notifications',
+        classes: 'bg-blue-50 text-[#004ac6] border border-blue-100',
+        iconClass: 'bg-blue-50 text-[#004ac6] border border-blue-100',
+        cardClass: isSelected 
+          ? 'bg-[#eaedff] border-l-4 border-l-[#004ac6]' 
+          : !item?.is_read 
+            ? 'bg-[#f0f4ff] border-l-4 border-l-[#004ac6] hover:bg-[#004ac6]/5' 
+            : 'bg-white hover:bg-[#f7f9ff] border-l-4 border-l-transparent',
+        badgeClass: 'bg-[#004ac6]/10 text-[#004ac6] border border-blue-100/30',
+        detailBg: 'bg-[#f7f9ff]',
+        titleClass: 'text-[#131b2e] font-bold',
+        dateClass: 'text-[#004ac6]'
+      };
+    }
+    
+    let icon = 'notifications';
+    let iconClass = 'bg-blue-50 text-[#004ac6] border border-blue-100';
+    let badgeClass = 'bg-[#004ac6]/10 text-[#004ac6] border border-blue-100/30';
+    let detailBg = 'bg-[#f7f9ff]';
+    let dateClass = 'text-[#004ac6]';
+    
+    // Status color configurations
+    let theme = {
+      lightBg: 'bg-blue-50/40',
+      unreadBg: 'bg-blue-50/70',
+      selectedBg: 'bg-blue-100/80',
+      hoverBg: 'hover:bg-blue-50/30',
+      borderLeft: 'border-l-[#004ac6]',
+      text: 'text-[#004ac6]'
+    };
+
+    if (item.type === 'order') {
+      const title = item.title?.toLowerCase() || '';
+      
+      // Order Cancellation & Rejections
+      if (title.includes('cancel') || title.includes('reject')) {
+        icon = 'cancel';
+        iconClass = 'bg-rose-50 text-rose-700 border border-rose-100';
+        badgeClass = 'bg-rose-100 text-rose-800 border border-rose-200';
+        detailBg = 'bg-rose-50/20';
+        dateClass = 'text-rose-600';
+        theme = {
+          unreadBg: 'bg-rose-50/40',
+          selectedBg: 'bg-rose-100/60',
+          hoverBg: 'hover:bg-rose-50/25',
+          borderLeft: 'border-l-rose-500',
+          text: 'text-rose-800'
+        };
+      }
+      // Order Refund
+      else if (title.includes('refund')) {
+        icon = 'payments';
+        iconClass = 'bg-amber-50 text-amber-700 border border-amber-100';
+        badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
+        detailBg = 'bg-amber-50/20';
+        dateClass = 'text-amber-600';
+        theme = {
+          unreadBg: 'bg-amber-50/40',
+          selectedBg: 'bg-amber-100/60',
+          hoverBg: 'hover:bg-amber-50/25',
+          borderLeft: 'border-l-amber-500',
+          text: 'text-amber-800'
+        };
+      }
+      // Order Pending Cancellation Request
+      else if (title.includes('pending')) {
+        icon = 'hourglass_empty';
+        iconClass = 'bg-orange-50 text-orange-700 border border-orange-100';
+        badgeClass = 'bg-orange-100 text-orange-800 border border-orange-200';
+        detailBg = 'bg-orange-50/20';
+        dateClass = 'text-orange-600';
+        theme = {
+          unreadBg: 'bg-orange-50/40',
+          selectedBg: 'bg-orange-100/60',
+          hoverBg: 'hover:bg-orange-50/25',
+          borderLeft: 'border-l-orange-500',
+          text: 'text-orange-800'
+        };
+      }
+      // Order Dispute
+      else if (title.includes('dispute')) {
+        icon = 'warning';
+        iconClass = 'bg-purple-50 text-purple-700 border border-purple-100';
+        badgeClass = 'bg-purple-100 text-purple-800 border border-purple-200';
+        detailBg = 'bg-purple-50/20';
+        dateClass = 'text-purple-600';
+        theme = {
+          unreadBg: 'bg-purple-50/40',
+          selectedBg: 'bg-purple-100/60',
+          hoverBg: 'hover:bg-purple-50/25',
+          borderLeft: 'border-l-purple-500',
+          text: 'text-purple-800'
+        };
+      }
+      // Order Delivered
+      else if (title.includes('deliver') || title.includes('complete')) {
+        icon = 'check_circle';
+        iconClass = 'bg-teal-50 text-teal-700 border border-teal-100';
+        badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200';
+        detailBg = 'bg-teal-50/20';
+        dateClass = 'text-teal-600';
+        theme = {
+          unreadBg: 'bg-teal-50/40',
+          selectedBg: 'bg-teal-100/60',
+          hoverBg: 'hover:bg-teal-50/25',
+          borderLeft: 'border-l-teal-500',
+          text: 'text-teal-800'
+        };
+      }
+      // Order Shipped
+      else if (title.includes('ship') || title.includes('way')) {
+        icon = 'local_shipping';
+        iconClass = 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+        badgeClass = 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+        detailBg = 'bg-indigo-50/20';
+        dateClass = 'text-indigo-600';
+        theme = {
+          unreadBg: 'bg-indigo-50/40',
+          selectedBg: 'bg-indigo-100/60',
+          hoverBg: 'hover:bg-indigo-50/25',
+          borderLeft: 'border-l-indigo-500',
+          text: 'text-indigo-800'
+        };
+      }
+      // Order Confirmed
+      else if (title.includes('confirm') || title.includes('verified')) {
+        icon = 'task_alt';
+        iconClass = 'bg-sky-50 text-sky-700 border border-sky-100';
+        badgeClass = 'bg-sky-100 text-sky-800 border border-sky-200';
+        detailBg = 'bg-[#f0f9ff]';
+        dateClass = 'text-sky-600';
+        theme = {
+          unreadBg: 'bg-sky-50/40',
+          selectedBg: 'bg-sky-100/60',
+          hoverBg: 'hover:bg-sky-50/25',
+          borderLeft: 'border-l-sky-500',
+          text: 'text-sky-800'
+        };
+      }
+      // Order Placed/Paid
+      else if (title.includes('placed') || title.includes('paid') || title.includes('success')) {
+        icon = 'shopping_basket';
+        iconClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+        badgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+        detailBg = 'bg-emerald-50/20';
+        dateClass = 'text-emerald-600';
+        theme = {
+          unreadBg: 'bg-emerald-50/40',
+          selectedBg: 'bg-emerald-100/60',
+          hoverBg: 'hover:bg-emerald-50/25',
+          borderLeft: 'border-l-emerald-500',
+          text: 'text-emerald-800'
+        };
+      }
+      // Default Order
+      else {
+        icon = 'package_2';
+        iconClass = 'bg-blue-50 text-[#004ac6] border border-blue-100';
+        badgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
+        detailBg = 'bg-blue-50/20';
+        dateClass = 'text-[#004ac6]';
+        theme = {
+          unreadBg: 'bg-blue-50/40',
+          selectedBg: 'bg-blue-100/60',
+          hoverBg: 'hover:bg-blue-50/25',
+          borderLeft: 'border-l-[#004ac6]',
+          text: 'text-[#004ac6]'
+        };
+      }
+    } else if (item.type === 'promotion') {
+      icon = 'sell';
+      iconClass = 'bg-orange-50 text-orange-700 border border-orange-100';
+      badgeClass = 'bg-orange-100 text-orange-800 border border-orange-200';
+      detailBg = 'bg-orange-50/20';
+      dateClass = 'text-orange-600';
+      theme = {
+        unreadBg: 'bg-orange-50/40',
+        selectedBg: 'bg-orange-100/60',
+        hoverBg: 'hover:bg-orange-50/25',
+        borderLeft: 'border-l-orange-500',
+        text: 'text-orange-800'
+      };
+    } else {
+      // system
+      icon = 'settings_suggest';
+      iconClass = 'bg-slate-50 text-slate-700 border border-slate-200';
+      badgeClass = 'bg-slate-100 text-slate-800 border border-slate-200';
+      detailBg = 'bg-slate-50/20';
+      dateClass = 'text-slate-600';
+      theme = {
+        unreadBg: 'bg-slate-50/40',
+        selectedBg: 'bg-slate-100/60',
+        hoverBg: 'hover:bg-slate-50/25',
+        borderLeft: 'border-l-slate-400',
+        text: 'text-slate-800'
+      };
+    }
+
+    // Build overall card wrapper className
+    let cardClass = '';
+    if (isSelected) {
+      cardClass = `${theme.selectedBg} border-l-4 ${theme.borderLeft}`;
+    } else if (!item.is_read) {
+      cardClass = `${theme.unreadBg} border-l-4 ${theme.borderLeft} ${theme.hoverBg}`;
+    } else {
+      cardClass = `bg-white border-l-4 border-l-transparent ${theme.hoverBg}`;
+    }
+
+    const titleClass = !item.is_read ? `${theme.text} font-bold` : 'text-[#131b2e] font-bold';
+
+    return {
+      icon,
+      classes: iconClass, // backward compatibility
+      iconClass,
+      cardClass,
+      badgeClass,
+      detailBg,
+      titleClass,
+      dateClass
+    };
+  };
+
   const getActionText = (type, title) => {
     const t = title?.toLowerCase() || '';
     if (t.includes('delivered')) return 'Review Product';
@@ -261,21 +486,22 @@ const Notifications = () => {
                 ) : (
                   filteredNotifications.map((item) => {
                     const isSelected = selectedNotification?.id === item.id;
+                    const styles = getNotificationStyles(item, isSelected);
                     return (
                       <div 
                         key={item.id}
                         onClick={() => handleSelectNotification(item)} 
-                        className={`p-6 flex gap-4 cursor-pointer transition-colors border-b border-[#c3c6d7]/30 ${isSelected ? 'bg-[#eaedff] border-l-4 border-l-[#004ac6]' : !item.is_read ? 'bg-[#f0f4ff] border-l-4 border-l-[#004ac6] hover:bg-[#004ac6]/5' : 'hover:bg-[#f7f9ff] border-l-4 border-l-transparent'}`}
+                        className={`p-6 flex gap-4 cursor-pointer transition-colors border-b border-[#c3c6d7]/30 ${styles.cardClass}`}
                       >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${item.type === 'order' ? (item.title?.toLowerCase().includes('delivered') ? 'bg-green-100 text-green-600' : 'bg-[#004ac6]/10 text-[#004ac6]') : item.type === 'promotion' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${styles.iconClass}`}>
                           <span className="material-symbols-outlined">
-                            {item.type === 'order' ? (item.title?.toLowerCase().includes('delivered') ? 'check_circle' : 'package_2') : item.type === 'promotion' ? 'sell' : 'security'}
+                            {styles.icon}
                           </span>
                         </div>
                         <div className="flex-grow space-y-1">
                           <div className="flex justify-between items-start">
-                            <h3 className={`font-bold text-[#131b2e] ${!item.is_read ? 'text-[#004ac6]' : ''}`}>{item.title}</h3>
-                            <span className="text-[10px] font-bold text-[#004ac6] uppercase shrink-0 ml-2">{item.date || 'JUST NOW'}</span>
+                            <h3 className={styles.titleClass}>{item.title}</h3>
+                            <span className={`text-[10px] font-bold uppercase shrink-0 ml-2 ${styles.dateClass}`}>{item.date || 'JUST NOW'}</span>
                           </div>
                           <p className="text-sm text-[#434655] line-clamp-2">{item.content}</p>
                         </div>
@@ -291,13 +517,13 @@ const Notifications = () => {
               <section className="flex lg:flex flex-col w-full lg:w-[450px] border-t lg:border-t-0 lg:border-l border-[#c3c6d7] bg-white overflow-y-auto custom-scrollbar shrink-0">
                 <div className="p-8 space-y-8">
                   <div className="flex flex-col items-center text-center space-y-4 py-6 border-b border-[#c3c6d7]/60">
-                    <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center ${selectedNotification.type === 'order' ? (selectedNotification.title?.toLowerCase().includes('delivered') ? 'bg-green-100 text-green-600' : 'bg-[#004ac6]/10 text-[#004ac6]') : selectedNotification.type === 'promotion' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                    <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center ${getNotificationStyles(selectedNotification).classes}`}>
                       <span className="material-symbols-outlined text-4xl">
-                        {selectedNotification.type === 'order' ? (selectedNotification.title?.toLowerCase().includes('delivered') ? 'check_circle' : 'local_shipping') : selectedNotification.type === 'promotion' ? 'sell' : 'security'}
+                        {getNotificationStyles(selectedNotification).icon}
                       </span>
                     </div>
                     <div>
-                      <span className="px-3 py-1 bg-[#004ac6]/10 text-[#004ac6] text-[10px] font-black rounded-full uppercase tracking-widest">
+                      <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest ${getNotificationStyles(selectedNotification).badgeClass}`}>
                         {selectedNotification.category || 'Notification'}
                       </span>
                       <h2 className="text-xl font-black text-[#131b2e] mt-3">{selectedNotification.title}</h2>
@@ -306,7 +532,7 @@ const Notifications = () => {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="bg-[#f7f9ff] rounded-3xl p-6 border border-[#c3c6d7]/30">
+                    <div className={`rounded-3xl p-6 border border-[#c3c6d7]/30 ${getNotificationStyles(selectedNotification).detailBg}`}>
                       <p className="text-sm text-[#131b2e] leading-relaxed whitespace-pre-line font-medium">
                         {selectedNotification.detailContent || selectedNotification.content}
                       </p>

@@ -12,6 +12,8 @@ import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
 import Notifications from './pages/Notifications';
 import OrderHistory from './pages/OrderHistory';
+import OrderDetail from './pages/OrderDetail';
+import CancelOrder from './pages/CancelOrder';
 import Reviews from './pages/Reviews';
 import AddressBook from './pages/AddressBook';
 import AdminDashboard from './pages/AdminDashboard';
@@ -76,6 +78,8 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/order-history" element={user ? <OrderHistory /> : <Navigate to="/login" />} />
+        <Route path="/order-history/:orderId" element={user ? <OrderDetail /> : <Navigate to="/login" />} />
+        <Route path="/order-history/:orderId/cancel" element={user ? <CancelOrder /> : <Navigate to="/login" />} />
         <Route path="/reviews" element={user ? <Reviews /> : <Navigate to="/login" />} />
         <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
