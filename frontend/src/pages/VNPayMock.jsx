@@ -40,8 +40,8 @@ const VNPayMock = () => {
           toast.success('Simulated VNPAY payment successful!');
           navigate(`/order-success?paymentCode=${paymentCode}`);
         } else {
-          toast.error('VNPAY transaction failed or canceled. Stock and coins have been restored.');
-          navigate('/cart');
+          toast.error('VNPAY transaction failed or canceled. You can repay from your order history.');
+          navigate('/order-history');
         }
       } else {
         toast.error(response.data?.message || 'An error occurred while updating the order status');

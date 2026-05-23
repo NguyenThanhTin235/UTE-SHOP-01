@@ -24,6 +24,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import VNPayMock from './pages/VNPayMock';
+import VNPayReturn from './pages/VNPayReturn';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -88,6 +89,7 @@ function App() {
         <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
         <Route path="/order-success" element={user ? <OrderSuccess /> : <Navigate to="/login" />} />
         <Route path="/vnpay-mock" element={user ? <VNPayMock /> : <Navigate to="/login" />} />
+        <Route path="/payment/vnpay/return" element={user ? <VNPayReturn /> : <Navigate to="/login" />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
         <Route path="/product/:slug" element={<ProductDetail />} />

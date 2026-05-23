@@ -77,6 +77,38 @@ const OrderHistory = () => {
     navigate('/login');
   };
 
+  const handleRepay = async (paymentCode) => {
+    if (!paymentCode) {
+      toast.error('Invalid payment code');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token') || '';
+      const response = await axios.post(
+        'http://localhost:5000/api/checkout/repay-vnpay',
+        { paymentCode },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data && response.data.success && response.data.data?.redirectUrl) {
+        toast.success('Redirecting to VNPAY...');
+        window.location.href = response.data.data.redirectUrl;
+      } else {
+        toast.error(response.data?.message || 'Khởi tạo thanh toán lại thất bại');
+      }
+    } catch (error) {
+      console.error('Error repaying VNPAY order:', error);
+      toast.error(
+        error.response?.data?.message || 
+        'Không thể khởi tạo lại giao dịch thanh toán. Vui lòng thử lại sau.'
+      );
+    }
+  };
+
   const avatarSrc = user?.avatarUrl 
     ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) 
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
@@ -330,6 +362,17 @@ const OrderHistory = () => {
                               >
                                 Details
                               </Link>
+
+                              {order.status === 'pending' &&
+                               order.paymentOrderId?.paymentMethod === 'vnpay' &&
+                               ['pending', 'failed'].includes(order.paymentOrderId?.paymentStatus) && (
+                                 <button
+                                   onClick={() => handleRepay(order.paymentOrderId.paymentCode)}
+                                   className="bg-[#004ac6] text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center cursor-pointer"
+                                 >
+                                   Pay Now
+                                 </button>
+                              )}
 
                               {['pending', 'confirmed'].includes(order.status) && (
                                 <Link

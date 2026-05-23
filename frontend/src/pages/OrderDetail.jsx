@@ -72,6 +72,38 @@ const OrderDetail = () => {
     navigate('/login');
   };
 
+  const handleRepay = async (paymentCode) => {
+    if (!paymentCode) {
+      toast.error('Invalid payment code');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token') || '';
+      const response = await axios.post(
+        'http://localhost:5000/api/checkout/repay-vnpay',
+        { paymentCode },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data && response.data.success && response.data.data?.redirectUrl) {
+        toast.success('Redirecting to VNPAY...');
+        window.location.href = response.data.data.redirectUrl;
+      } else {
+        toast.error(response.data?.message || 'Khởi tạo thanh toán lại thất bại');
+      }
+    } catch (error) {
+      console.error('Error repaying VNPAY order:', error);
+      toast.error(
+        error.response?.data?.message || 
+        'Không thể khởi tạo lại giao dịch thanh toán. Vui lòng thử lại sau.'
+      );
+    }
+  };
+
   const avatarSrc = user?.avatarUrl 
     ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) 
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
@@ -336,8 +368,8 @@ const OrderDetail = () => {
                   <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
                     <span className="material-symbols-outlined text-[#004ac6] text-2xl">credit_card</span>
                     <div className="flex-grow">
-                      <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-1">Payment History</p>
-                      <div className="text-xs text-[#434655] space-y-1">
+                      <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-2">Payment History</p>
+                      <div className="text-xs text-[#434655] space-y-1.5">
                         <p>
                           Method: <span className="font-bold text-[#131b2e] uppercase">{order.paymentOrderId.paymentMethod === 'cod' ? 'COD' : order.paymentOrderId.paymentMethod}</span>
                         </p>
@@ -345,22 +377,69 @@ const OrderDetail = () => {
                           Payment Code: <span className="font-bold text-[#131b2e]">{order.paymentOrderId.paymentCode}</span>
                         </p>
                         <p className="flex items-center gap-1.5">
-                          Status: 
+                          Overall Status: 
                           <span className={`px-2.5 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider ${
-                            order.paymentOrderId.paymentStatus === 'success' ? 'bg-emerald-500/10 text-emerald-600' :
-                            order.paymentOrderId.paymentStatus === 'failed' ? 'bg-rose-500/10 text-rose-600' : 'bg-amber-500/10 text-amber-600'
+                            order.paymentOrderId.paymentStatus === 'success' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
+                            order.paymentOrderId.paymentStatus === 'failed' ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                           }`}>
                             {order.paymentOrderId.paymentStatus === 'success' ? 'Success' :
                              order.paymentOrderId.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                           </span>
                         </p>
-                        {order.paymentTransaction && (
-                          <div className="mt-2 pt-2 border-t border-[#c3c6d7]/20 text-[11px] text-[#737686] space-y-0.5">
+
+                        {/* Attempts History */}
+                        {order.paymentTransactions && order.paymentTransactions.length > 0 ? (
+                          <div className="mt-4 pt-4 border-t border-[#c3c6d7]/20 space-y-3">
+                            <p className="text-[10px] text-[#737686] font-extrabold uppercase tracking-wider">Transaction Attempts</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                              {order.paymentTransactions.map((tx, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className="p-3 rounded-xl bg-white border border-[#c3c6d7]/20 flex justify-between items-center hover:shadow-sm hover:border-[#004ac6]/30 transition-all duration-200"
+                                >
+                                  <div className="space-y-0.5 text-left">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-bold text-[#131b2e] text-[11px] truncate max-w-[120px] md:max-w-none">
+                                        {tx.transactionId || 'No Txn Ref'}
+                                      </span>
+                                      <span className={`px-2 py-0.5 rounded-full font-black text-[8px] uppercase tracking-wider ${
+                                        tx.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/10' :
+                                        tx.status === 'failed' ? 'bg-rose-500/10 text-rose-600 border border-rose-500/10' : 'bg-amber-500/10 text-amber-600 border border-amber-500/10'
+                                      }`}>
+                                        {tx.status}
+                                      </span>
+                                    </div>
+                                    {tx.status === 'success' && tx.responseData && (tx.responseData.vnpTransactionNo || tx.responseData.vnp_TransactionNo) && (
+                                      <p className="text-[9px] text-[#737686] font-medium">
+                                        Gateway Ref: <span className="font-semibold text-[#131b2e]">{tx.responseData.vnpTransactionNo || tx.responseData.vnp_TransactionNo}</span>
+                                      </p>
+                                    )}
+                                    <p className="text-[10px] text-[#737686] font-medium">
+                                      {new Date(tx.paymentDate).toLocaleString()}
+                                    </p>
+                                  </div>
+                                  <div className="text-right flex-shrink-0">
+                                    <p className="font-extrabold text-xs text-[#004ac6]">
+                                      {tx.amount?.toLocaleString()}₫
+                                    </p>
+                                    <p className="text-[9px] text-[#737686] font-bold uppercase tracking-wider mt-0.5">
+                                      {tx.paymentMethod === 'cod' ? 'COD' : tx.paymentMethod}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : order.paymentTransaction ? (
+                          <div className="mt-2 pt-2 border-t border-[#c3c6d7]/20 text-[11px] text-[#737686] space-y-0.5 text-left">
                             <p>Transaction ID: <span className="font-semibold text-[#131b2e]">{order.paymentTransaction.transactionId}</span></p>
+                            {order.paymentTransaction.status === 'success' && order.paymentTransaction.responseData && (order.paymentTransaction.responseData.vnpTransactionNo || order.paymentTransaction.responseData.vnp_TransactionNo) && (
+                              <p>Gateway Ref: <span className="font-semibold text-[#131b2e]">{order.paymentTransaction.responseData.vnpTransactionNo || order.paymentTransaction.responseData.vnp_TransactionNo}</span></p>
+                            )}
                             <p>Amount: <span className="font-semibold text-[#131b2e]">{order.paymentTransaction.amount?.toLocaleString()}₫</span></p>
                             <p>Transaction Time: <span className="font-semibold text-[#131b2e]">{new Date(order.paymentTransaction.paymentDate).toLocaleString()}</span></p>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -418,14 +497,6 @@ const OrderDetail = () => {
                     </div>
                   )}
 
-                  {order.coinEarned > 0 && (
-                    <div className="flex justify-between p-2.5 bg-[#f2f3ff]/50 rounded-xl">
-                      <span className="text-[10px] font-black text-[#004ac6] uppercase tracking-wider flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">stars</span> Accumulated Coins
-                      </span>
-                      <span className="text-[10px] font-black text-[#004ac6]">+{order.coinEarned} coins</span>
-                    </div>
-                  )}
 
                   <div className="pt-4 border-t border-[#c3c6d7]/20 mt-4 text-left">
                     <div className="flex justify-between items-center mb-6">
@@ -449,6 +520,17 @@ const OrderDetail = () => {
                       >
                         <span className="material-symbols-outlined text-[18px]">description</span> Download Invoice
                       </button>
+
+                      {order.status === 'pending' &&
+                       order.paymentOrderId?.paymentMethod === 'vnpay' &&
+                       ['pending', 'failed'].includes(order.paymentOrderId?.paymentStatus) && (
+                        <button
+                          onClick={() => handleRepay(order.paymentOrderId.paymentCode)}
+                          className="w-full bg-gradient-to-r from-[#005ba4] to-[#007cc4] hover:from-[#004780] hover:to-[#006bb0] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-[#005ba4]/10 flex items-center justify-center gap-1.5 cursor-pointer mb-2"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">credit_card</span> Pay Now
+                        </button>
+                      )}
 
                       {['pending', 'confirmed'].includes(order.status) && (
                         <Link
