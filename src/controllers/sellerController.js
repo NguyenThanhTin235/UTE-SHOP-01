@@ -10,8 +10,10 @@ const Category = require('../models/Category');
 const User = require('../models/User');
 const Address = require('../models/Address');
 const Shipment = require('../models/Shipment');
+const SellerWallet = require('../models/SellerWallet');
+const SellerWalletTransaction = require('../models/SellerWalletTransaction');
+const WithdrawRequest = require('../models/WithdrawRequest');
 const excelJS = require('exceljs');
-
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
     return (order.payment_status === 'success' || order.status === 'delivered') && order.status !== 'canceled';
@@ -1032,6 +1034,235 @@ const deleteShop = async (req, res, next) => {
     }
 };
 
+// Wallet APIs
+const getWalletInfo = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
+        if (!wallet) {
+            wallet = new SellerWallet({ shop_id: shop._id, total_balance: 0, pending_balance: 0, available_balance: 0 });
+            await wallet.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Wallet info retrieved successfully',
+            data: wallet
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getWalletTransactions = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
+            .populate('order_id', 'order_code')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await SellerWalletTransaction.countDocuments({ shop_id: shop._id });
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Transactions retrieved successfully',
+            data: transactions,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const requestWithdrawal = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { amount, bank_account } = req.body;
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
+        if (!wallet || wallet.available_balance < amount) {
+            return res.status(400).json({ success: false, code: 400, message: 'Insufficient balance' });
+        }
+
+        if (amount < 100000) {
+            return res.status(400).json({ success: false, code: 400, message: 'Minimum withdrawal amount is 100,000' });
+        }
+
+        // Deduct from available, add to pending
+        const beforeAvailable = wallet.available_balance;
+        wallet.available_balance -= amount;
+        wallet.pending_balance += amount;
+        await wallet.save();
+
+        const withdrawReq = new WithdrawRequest({
+            shop_id: shop._id,
+            amount: amount,
+            status: 'pending',
+            note: `Withdraw to ${bank_account}`
+        });
+        await withdrawReq.save();
+
+        // Log transaction
+        const trans = new SellerWalletTransaction({
+            shop_id: shop._id,
+            type: 'withdraw',
+            amount: -amount,
+            balance_before: beforeAvailable,
+            balance_after: wallet.available_balance
+        });
+        await trans.save();
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Withdrawal requested successfully',
+            data: withdrawReq
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getWithdrawalRequests = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const withdrawals = await WithdrawRequest.find({ shop_id: shop._id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await WithdrawRequest.countDocuments({ shop_id: shop._id });
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Withdrawal requests retrieved successfully',
+            data: withdrawals,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const exportTransactions = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
+
+        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
+            .populate('order_id', 'order_code')
+            .sort({ createdAt: -1 });
+
+        const workbook = new excelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Transactions');
+
+        worksheet.columns = [
+            { header: 'Date', key: 'date', width: 20 },
+            { header: 'Order ID', key: 'order', width: 20 },
+            { header: 'Type', key: 'type', width: 15 },
+            { header: 'Amount', key: 'amount', width: 15 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        transactions.forEach(t => {
+            worksheet.addRow({
+                date: t.createdAt.toLocaleString(),
+                order: t.order_id ? t.order_id.order_code : '---',
+                type: t.type,
+                amount: t.amount,
+                status: 'Completed'
+            });
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + 'transactions.csv');
+        await workbook.csv.write(res);
+        res.end();
+    } catch (error) {
+        next(error);
+    }
+};
+
+const exportWithdrawals = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
+
+        const withdrawals = await WithdrawRequest.find({ shop_id: shop._id }).sort({ createdAt: -1 });
+
+        const workbook = new excelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Withdrawals');
+
+        worksheet.columns = [
+            { header: 'Date', key: 'date', width: 20 },
+            { header: 'Amount', key: 'amount', width: 15 },
+            { header: 'Status', key: 'status', width: 15 },
+            { header: 'Note', key: 'note', width: 30 }
+        ];
+
+        withdrawals.forEach(w => {
+            worksheet.addRow({
+                date: w.createdAt.toLocaleString(),
+                amount: w.amount,
+                status: w.status,
+                note: w.note
+            });
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + 'withdrawals.csv');
+        await workbook.csv.write(res);
+        res.end();
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAnalytics,
     exportAnalytics,
@@ -1047,5 +1278,11 @@ module.exports = {
     getSettings,
     updateSettings,
     uploadShopAssets,
-    deleteShop
+    deleteShop,
+    getWalletInfo,
+    getWalletTransactions,
+    requestWithdrawal,
+    getWithdrawalRequests,
+    exportTransactions,
+    exportWithdrawals
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import { useNotifications } from '../../hooks/useNotifications';
 import Chart from 'chart.js/auto';
 
 const SellerAnalytics = ({ setActiveTab }) => {
@@ -21,6 +22,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
     const [aiTyping, setAiTyping] = useState(false);
 
     const { user } = useSelector(state => state.auth);
+    const { unreadCount } = useNotifications();
 
     // Refs for Chart Canvas
     const revenueCanvasRef = useRef(null);
@@ -88,7 +90,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
             }
 
             const ctx = revenueCanvasRef.current.getContext('2d');
-            
+
             // Create gradient backgrounds
             const currentGradient = ctx.createLinearGradient(0, 0, 0, 300);
             currentGradient.addColorStop(0, 'rgba(0, 74, 198, 0.25)');
@@ -141,7 +143,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                             titleFont: { size: 12, family: 'Manrope', weight: 'bold' },
                             bodyFont: { size: 12, family: 'Manrope' },
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     let label = context.dataset.label || '';
                                     if (label) {
                                         label += ': ';
@@ -164,7 +166,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                             ticks: {
                                 font: { family: 'Manrope', size: 10, weight: 'bold' },
                                 color: '#64748b',
-                                callback: function(value) {
+                                callback: function (value) {
                                     if (value >= 1e6) {
                                         return (value / 1e6).toFixed(1) + 'M ₫';
                                     }
@@ -220,7 +222,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                             titleFont: { size: 12, family: 'Manrope', weight: 'bold' },
                             bodyFont: { size: 12, family: 'Manrope' },
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const value = context.parsed;
                                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
@@ -316,7 +318,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `seller_revenue_report_${new Date().toISOString().slice(0,10)}.xlsx`);
+            link.setAttribute('download', `seller_revenue_report_${new Date().toISOString().slice(0, 10)}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -394,8 +396,8 @@ const SellerAnalytics = ({ setActiveTab }) => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={handleExportReport} 
+                    <button
+                        onClick={handleExportReport}
                         className="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:border-[#004ac6]/30"
                     >
                         <span className="material-symbols-outlined text-lg">download</span>
@@ -406,7 +408,9 @@ const SellerAnalytics = ({ setActiveTab }) => {
 
                     <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
                         <span className="material-symbols-outlined text-2xl">notifications</span>
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        )}
                     </button>
 
                     <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
@@ -430,29 +434,29 @@ const SellerAnalytics = ({ setActiveTab }) => {
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
                         <div className="flex items-center bg-slate-50 rounded-xl p-1">
-                            <button 
-                                onClick={() => { setRange('today'); setShowCustomDatePicker(false); }} 
+                            <button
+                                onClick={() => { setRange('today'); setShowCustomDatePicker(false); }}
                                 className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'today' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
                             >
                                 Today
                             </button>
-                            <button 
-                                onClick={() => { setRange('last7days'); setShowCustomDatePicker(false); }} 
+                            <button
+                                onClick={() => { setRange('last7days'); setShowCustomDatePicker(false); }}
                                 className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'last7days' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
                             >
                                 Last 7 Days
                             </button>
-                            <button 
-                                onClick={() => { setRange('last30days'); setShowCustomDatePicker(false); }} 
+                            <button
+                                onClick={() => { setRange('last30days'); setShowCustomDatePicker(false); }}
                                 className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'last30days' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
                             >
                                 Last 30 Days
                             </button>
                         </div>
-                        
+
                         <div className="hidden sm:block h-6 w-px bg-slate-200"></div>
 
-                        <button 
+                        <button
                             onClick={() => { setRange('custom'); setShowCustomDatePicker(!showCustomDatePicker); }}
                             className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 cursor-pointer ${range === 'custom' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
                         >
@@ -467,24 +471,24 @@ const SellerAnalytics = ({ setActiveTab }) => {
                     <form onSubmit={handleCustomFilterSubmit} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-3 duration-250">
                         <div className="flex flex-col gap-2">
                             <label className="text-xs font-black text-slate-500 uppercase tracking-widest">From Date</label>
-                            <input 
-                                type="date" 
-                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700" 
+                            <input
+                                type="date"
+                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
                         <div className="flex flex-col gap-2">
                             <label className="text-xs font-black text-slate-500 uppercase tracking-widest">To Date</label>
-                            <input 
-                                type="date" 
-                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700" 
+                            <input
+                                type="date"
+                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="bg-[#004ac6] text-white px-6 py-3 rounded-xl font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-md shadow-[#004ac6]/20 cursor-pointer"
                         >
                             Apply Filter
@@ -509,11 +513,10 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                     <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#004ac6] group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">trending_up</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${
-                                        analyticsData.kpis.revenue.growth >= 0 
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.revenue.growth >= 0
+                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
                                             : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
-                                    }`}>
+                                        }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.revenue.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
                                         </span>
@@ -534,11 +537,10 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                     <div className="size-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">ads_click</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${
-                                        analyticsData.kpis.conversion.growth >= 0 
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.conversion.growth >= 0
+                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
                                             : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
-                                    }`}>
+                                        }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.conversion.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
                                         </span>
@@ -559,11 +561,10 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                     <div className="size-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">group</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${
-                                        analyticsData.kpis.visitors.growth >= 0 
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.visitors.growth >= 0
+                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
                                             : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
-                                    }`}>
+                                        }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.visitors.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
                                         </span>
@@ -584,11 +585,10 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                     <div className="size-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">shopping_bag</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${
-                                        analyticsData.kpis.aov.growth >= 0 
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10' 
+                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.aov.growth >= 0
+                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
                                             : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
-                                    }`}>
+                                        }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.aov.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
                                         </span>
@@ -639,7 +639,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                     <canvas ref={categoryCanvasRef}></canvas>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {analyticsData.charts.categories.slice(0,4).map((cat, i) => {
+                                    {analyticsData.charts.categories.slice(0, 4).map((cat, i) => {
                                         const colors = ['#004ac6', '#fb923c', '#8b5cf6', '#10b981', '#64748b'];
                                         return (
                                             <div key={cat.label} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
@@ -733,8 +733,8 @@ const SellerAnalytics = ({ setActiveTab }) => {
 
             {/* AI Assistant Chat Component */}
             <div className="fixed bottom-8 right-8 z-[110] flex flex-col gap-4">
-                <button 
-                    onClick={() => setShowAI(!showAI)} 
+                <button
+                    onClick={() => setShowAI(!showAI)}
                     className="size-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border border-white/20 cursor-pointer"
                 >
                     <span className="material-symbols-outlined text-3xl">smart_toy</span>
@@ -770,11 +770,10 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'user' ? 'bg-[#131b2e] text-white' : 'bg-[#004ac6]/10 text-[#004ac6] border border-[#004ac6]/10'}`}>
                                     <span className="material-symbols-outlined text-sm">{msg.sender === 'user' ? 'person' : 'smart_toy'}</span>
                                 </div>
-                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed max-w-[80%] whitespace-pre-line ${
-                                    msg.sender === 'user'
+                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed max-w-[80%] whitespace-pre-line ${msg.sender === 'user'
                                         ? 'bg-[#131b2e] text-white rounded-tr-none'
                                         : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
-                                }`}>
+                                    }`}>
                                     {msg.text}
                                 </div>
                             </div>
@@ -803,8 +802,8 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                 value={aiInput}
                                 onChange={(e) => setAiInput(e.target.value)}
                             />
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="w-10 h-10 bg-[#004ac6] text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-md shadow-[#004ac6]/20"
                             >
                                 <span className="material-symbols-outlined">send</span>

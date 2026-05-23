@@ -35,4 +35,12 @@ router.put('/settings', verifyToken, sellerController.updateSettings);
 router.post('/settings/upload', verifyToken, uploadProduct.single('image'), sellerController.uploadShopAssets);
 router.delete('/settings', verifyToken, sellerController.deleteShop);
 
+// Wallet
+router.get('/wallet', verifyToken, sellerController.getWalletInfo);
+router.get('/wallet/transactions', verifyToken, sellerController.getWalletTransactions);
+router.get('/wallet/transactions/export', verifyToken, sellerController.exportTransactions);
+router.get('/wallet/withdrawals', verifyToken, sellerController.getWithdrawalRequests);
+router.get('/wallet/withdrawals/export', verifyToken, sellerController.exportWithdrawals);
+router.post('/wallet/withdraw', verifyToken, sellerController.requestWithdrawal);
+
 module.exports = router;

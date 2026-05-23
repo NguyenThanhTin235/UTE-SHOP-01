@@ -12,13 +12,30 @@ import SellerOrderDetail from '../components/seller/SellerOrderDetail';
 import SellerCancellations from '../components/seller/SellerCancellations';
 import SellerAnalytics from '../components/seller/SellerAnalytics';
 import SellerSettings from '../components/seller/SellerSettings';
+import SellerWallet from '../components/seller/SellerWallet';
 const SellerDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('sellerActiveTab') || 'dashboard';
+  });
+  const [selectedOrderId, setSelectedOrderId] = useState(() => {
+    return sessionStorage.getItem('sellerSelectedOrderId') || null;
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('sellerActiveTab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (selectedOrderId) {
+      sessionStorage.setItem('sellerSelectedOrderId', selectedOrderId);
+    } else {
+      sessionStorage.removeItem('sellerSelectedOrderId');
+    }
+  }, [selectedOrderId]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -151,6 +168,8 @@ const SellerDashboard = () => {
 
   const handleLogout = (e) => {
     e.preventDefault();
+    sessionStorage.removeItem('sellerActiveTab');
+    sessionStorage.removeItem('sellerSelectedOrderId');
     dispatch(logout());
     navigate('/login');
     toast.success('Logged out successfully');
@@ -200,29 +219,28 @@ const SellerDashboard = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
           {navItems.map((item, index) => {
             const showCategory = index === 0 || navItems[index - 1].category !== item.category;
             return (
               <React.Fragment key={item.id}>
                 {showCategory && item.category === 'Settings' && (
-                  <div className="pt-6 pb-2 px-4 border-t border-slate-100 mt-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System</p>
+                  <div className="pt-4 pb-2 px-4 border-t border-slate-100/80 mt-2">
                   </div>
                 )}
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
+                  className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] transition-all text-[15px] group cursor-pointer ${
                     activeTab === item.id
-                      ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm shadow-blue-100'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm shadow-blue-100/50'
+                      : 'text-[#475569] font-medium hover:bg-slate-50'
                   }`}
                 >
                   <span
-                    className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform"
+                    className="material-symbols-outlined text-[24px] w-6 flex justify-center group-hover:scale-110 transition-transform"
                     style={{ fontVariationSettings: activeTab === item.id ? "'FILL' 1" : "'FILL' 0" }}
                   >
-                    {item.icon}
+                    {item.icon === 'dashboard' ? 'space_dashboard' : item.icon}
                   </span>
                   <span>{item.label}</span>
                 </button>
@@ -243,7 +261,7 @@ const SellerDashboard = () => {
                 45,820,000 <span className="text-[10px] font-medium opacity-80">₫</span>
               </h3>
               <button 
-                onClick={() => toast.success('Accessing Seller Wallet...')} 
+                onClick={() => setActiveTab('wallet')} 
                 className="flex items-center justify-center w-full bg-white text-[#004ac6] py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
               >
                 Access Wallet
@@ -632,11 +650,15 @@ const SellerDashboard = () => {
           <SellerAnalytics setActiveTab={setActiveTab} />
         )}
 
+        {activeTab === 'wallet' && (
+          <SellerWallet />
+        )}
+
         {activeTab === 'settings' && (
           <SellerSettings setActiveTab={setActiveTab} />
         )}
 
-        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && activeTab !== 'analytics' && activeTab !== 'settings' && (
+        {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'addProduct' && activeTab !== 'orders' && activeTab !== 'order-detail' && activeTab !== 'cancellations' && activeTab !== 'wallet' && activeTab !== 'analytics' && activeTab !== 'settings' && (
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">

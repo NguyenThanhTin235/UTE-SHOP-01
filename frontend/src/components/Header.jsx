@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useNotifications } from '../hooks/useNotifications';
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState('');
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -59,13 +61,13 @@ const Header = () => {
             <Link className={`text-sm font-medium ${isActive('/support') ? 'text-[#004ac6] underline underline-offset-8 decoration-2 font-bold' : 'text-[#434655] hover:text-[#004ac6] transition-colors'}`} to="/support">Support</Link>
           </nav>
         </div>
-        
+
         {!isAuthPage && (
           <div className="hidden lg:flex flex-1 max-w-md relative group">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#434655] group-focus-within:text-[#004ac6] transition-colors">search</span>
-            <input 
-              type="text" 
-              placeholder="Search for academic collections..." 
+            <input
+              type="text"
+              placeholder="Search for academic collections..."
               className="w-full bg-[#f2f3ff] border-none rounded-full py-2.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-[#131b2e]"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -91,7 +93,9 @@ const Header = () => {
           {!isAuthPage && (
             <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
               <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
+              )}
             </Link>
           )}
 

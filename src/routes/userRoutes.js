@@ -30,4 +30,9 @@ router.put('/addresses/:addressId', verifyToken, userController.updateAddress);
 // Xóa địa chỉ
 router.delete('/addresses/:addressId', verifyToken, userController.removeAddress);
 
+/**
+ * ── NOTIFICATIONS ──
+ */
+router.get('/notifications/unread-count', verifyToken, userController.getUnreadNotificationCount);
+
 module.exports = router;

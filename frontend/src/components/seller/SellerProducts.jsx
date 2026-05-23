@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerProducts = ({ setActiveTab }) => {
     const [products, setProducts] = useState([]);
@@ -13,8 +14,10 @@ const SellerProducts = ({ setActiveTab }) => {
     // Sorting and Filtering states
     const [sortBy, setSortBy] = useState('newest');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
-    
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, productId: null });
+
     const { user } = useSelector(state => state.auth);
+    const { unreadCount } = useNotifications();
 
     const statusTabs = ['Selling', 'Pending', 'Violated', 'Out of Stock'];
 
@@ -98,7 +101,9 @@ const SellerProducts = ({ setActiveTab }) => {
 
                     <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
                         <span className="material-symbols-outlined text-2xl">notifications</span>
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        )}
                     </button>
 
                     <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
@@ -146,13 +151,12 @@ const SellerProducts = ({ setActiveTab }) => {
                         <div className="flex gap-3">
                             {/* Filter Dropdown */}
                             <div className="relative">
-                                <button 
-                                    onClick={() => setShowSortDropdown(!showSortDropdown)} 
-                                    className={`flex items-center gap-2 px-5 py-2.5 border rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer ${
-                                        sortBy !== 'newest'
-                                        ? 'bg-[#004ac6]/5 border-[#004ac6]/30 text-[#004ac6]' 
-                                        : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                                    }`}
+                                <button
+                                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                                    className={`flex items-center gap-2 px-5 py-2.5 border rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer ${sortBy !== 'newest'
+                                            ? 'bg-[#004ac6]/5 border-[#004ac6]/30 text-[#004ac6]'
+                                            : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                                        }`}
                                 >
                                     <span className="material-symbols-outlined text-[20px]">filter_list</span>
                                     {sortBy === 'newest' && 'Filter'}
@@ -165,26 +169,26 @@ const SellerProducts = ({ setActiveTab }) => {
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)}></div>
                                         <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 p-2 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                                            <button 
-                                                onClick={() => { setSortBy('newest'); setShowSortDropdown(false); setMeta(prev => ({...prev, page: 1})); }}
+                                            <button
+                                                onClick={() => { setSortBy('newest'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'newest' ? 'bg-[#004ac6]/5 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
                                             >
                                                 Lọc theo ngày gần nhất
                                             </button>
-                                            <button 
-                                                onClick={() => { setSortBy('oldest'); setShowSortDropdown(false); setMeta(prev => ({...prev, page: 1})); }}
+                                            <button
+                                                onClick={() => { setSortBy('oldest'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'oldest' ? 'bg-[#004ac6]/5 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
                                             >
                                                 Lọc theo ngày xa nhất
                                             </button>
-                                            <button 
-                                                onClick={() => { setSortBy('priceAsc'); setShowSortDropdown(false); setMeta(prev => ({...prev, page: 1})); }}
+                                            <button
+                                                onClick={() => { setSortBy('priceAsc'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'priceAsc' ? 'bg-[#004ac6]/5 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
                                             >
                                                 Lọc theo giá tăng dần
                                             </button>
-                                            <button 
-                                                onClick={() => { setSortBy('priceDesc'); setShowSortDropdown(false); setMeta(prev => ({...prev, page: 1})); }}
+                                            <button
+                                                onClick={() => { setSortBy('priceDesc'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'priceDesc' ? 'bg-[#004ac6]/5 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
                                             >
                                                 Lọc theo giá giảm dần
@@ -268,10 +272,10 @@ const SellerProducts = ({ setActiveTab }) => {
                             <div className="h-4 w-[1px] bg-slate-300"></div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows per page:</span>
-                                <select 
+                                <select
                                     className="bg-transparent border-none text-xs font-black text-slate-900 focus:ring-0 cursor-pointer outline-none"
                                     value={meta.limit}
-                                    onChange={(e) => setMeta({...meta, limit: Number(e.target.value), page: 1})}
+                                    onChange={(e) => setMeta({ ...meta, limit: Number(e.target.value), page: 1 })}
                                 >
                                     <option value="10">10</option>
                                     <option value="20">20</option>
@@ -279,21 +283,30 @@ const SellerProducts = ({ setActiveTab }) => {
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
-                            <button 
+                            <button
                                 disabled={meta.page <= 1}
-                                onClick={() => setMeta({...meta, page: meta.page - 1})}
+                                onClick={() => setMeta({ ...meta, page: 1 })}
                                 className="w-10 h-10 flex items-center justify-center border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white"
+                                title="First Page"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_left</span>
+                            </button>
+                            <button
+                                disabled={meta.page <= 1}
+                                onClick={() => setMeta({ ...meta, page: meta.page - 1 })}
+                                className="w-10 h-10 flex items-center justify-center border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white"
+                                title="Previous Page"
                             >
                                 <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                             </button>
-                            
+
                             <div className="flex items-center gap-1">
                                 {[...Array(meta.totalPages)].map((_, idx) => (
-                                    <button 
+                                    <button
                                         key={idx}
-                                        onClick={() => setMeta({...meta, page: idx + 1})}
+                                        onClick={() => setMeta({ ...meta, page: idx + 1 })}
                                         className={`w-10 h-10 flex items-center justify-center rounded-xl text-xs font-bold transition-all ${meta.page === idx + 1 ? 'bg-[#004ac6] text-white shadow-lg shadow-[#004ac6]/30' : 'text-slate-600 hover:bg-slate-50 border border-transparent bg-white'}`}
                                     >
                                         {idx + 1}
@@ -301,12 +314,21 @@ const SellerProducts = ({ setActiveTab }) => {
                                 ))}
                             </div>
 
-                            <button 
+                            <button
                                 disabled={meta.page >= meta.totalPages}
-                                onClick={() => setMeta({...meta, page: meta.page + 1})}
+                                onClick={() => setMeta({ ...meta, page: meta.page + 1 })}
                                 className="w-10 h-10 flex items-center justify-center border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white"
+                                title="Next Page"
                             >
                                 <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                            </button>
+                            <button
+                                disabled={meta.page >= meta.totalPages}
+                                onClick={() => setMeta({ ...meta, page: meta.totalPages })}
+                                className="w-10 h-10 flex items-center justify-center border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white"
+                                title="Last Page"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_right</span>
                             </button>
                         </div>
                     </div>

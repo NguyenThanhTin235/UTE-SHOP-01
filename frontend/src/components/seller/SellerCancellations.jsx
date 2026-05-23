@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerCancellations = ({ setActiveTab }) => {
     const { user } = useSelector(state => state.auth);
+    const { unreadCount } = useNotifications();
     const [cancellations, setCancellations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('All');
@@ -32,11 +34,11 @@ const SellerCancellations = ({ setActiveTab }) => {
             });
             if (res.data.success) {
                 setCancellations(res.data.data);
-                
+
                 // Calculate simple stats based on loaded data
                 const pendingCount = res.data.data.filter(c => c.status === 'pending').length;
                 const totalRefund = res.data.data.reduce((acc, c) => acc + (c.order_id?.total_final || 0), 0);
-                
+
                 setStats(prev => ({
                     ...prev,
                     new: pendingCount,
@@ -65,7 +67,7 @@ const SellerCancellations = ({ setActiveTab }) => {
                     Authorization: `Bearer ${sessionStorage.getItem('token')}`
                 }
             });
-            
+
             if (res.data.success) {
                 toast.success(res.data.message);
                 fetchCancellations(); // Reload the list
@@ -86,13 +88,13 @@ const SellerCancellations = ({ setActiveTab }) => {
                 <div className="flex items-center gap-4">
                     <span className="material-symbols-outlined text-[#0052CC] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight">Cancellations</h1>
-                    
+
                     <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-80 group focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                         <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#0052CC]">search</span>
-                        <input 
-                            type="text" 
-                            placeholder="Search cancellations..." 
-                            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 placeholder:font-medium ml-2 outline-none" 
+                        <input
+                            type="text"
+                            placeholder="Search cancellations..."
+                            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 placeholder:font-medium ml-2 outline-none"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -101,11 +103,12 @@ const SellerCancellations = ({ setActiveTab }) => {
 
                 <div className="flex items-center gap-4">
                     <div className="h-8 w-px bg-slate-200 mx-2"></div>
-                    <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative">
+                    <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
                         <span className="material-symbols-outlined text-2xl">notifications</span>
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        )}
                     </button>
-                    
                     <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-100 cursor-pointer hover:bg-slate-200 transition-all group">
                         <div className="w-8 h-8 rounded-full bg-[#0052CC] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
                             {user?.fullName?.charAt(0).toUpperCase() || 'J'}
@@ -163,14 +166,13 @@ const SellerCancellations = ({ setActiveTab }) => {
                     {/* Tabs */}
                     <div className="border-b border-slate-200 flex px-8 overflow-x-auto bg-slate-50/50">
                         {['All', 'Pending', 'Approved', 'Rejected'].map(tab => (
-                            <button 
+                            <button
                                 key={tab}
                                 onClick={() => setActiveFilter(tab)}
-                                className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${
-                                    activeFilter === tab 
-                                    ? 'text-[#0052CC] border-b-[3px] border-[#0052CC]' 
-                                    : 'text-slate-500 hover:text-[#0052CC]'
-                                }`}
+                                className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
+                                        ? 'text-[#0052CC] border-b-[3px] border-[#0052CC]'
+                                        : 'text-slate-500 hover:text-[#0052CC]'
+                                    }`}
                             >
                                 {tab === 'Pending' ? `Pending (${stats.new})` : tab === 'All' ? 'All Requests' : tab}
                             </button>
@@ -204,7 +206,7 @@ const SellerCancellations = ({ setActiveTab }) => {
                                         const productName = firstItem?.product_id?.name || 'Unknown Product';
                                         // Normally would fetch image from firstItem.product_id.media, but we mock it here if absent
                                         const productImage = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200";
-                                        
+
                                         return (
                                             <tr key={cancel._id} className="hover:bg-slate-50 transition-colors group">
                                                 <td className="pl-8 pr-4 py-6">
