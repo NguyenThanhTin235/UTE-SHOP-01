@@ -33,7 +33,7 @@ const VNPayReturn = () => {
 
         const config = {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+            Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
           },
         };
 

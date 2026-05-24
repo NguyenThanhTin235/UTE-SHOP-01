@@ -10,7 +10,8 @@ const productSchema = new mongoose.Schema({
   selling_price: { type: Number, required: true },
   sku: { type: String, unique: true, sparse: true },
   approval_status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-  is_active: { type: Boolean, default: true }
+  is_active: { type: Boolean, default: true },
+  view_count: { type: Number, default: 0 }
 }, {
   timestamps: true
 });

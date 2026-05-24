@@ -388,77 +388,42 @@ const SellerAnalytics = ({ setActiveTab }) => {
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
-            {/* Header */}
-            <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[#004ac6] text-2xl">analytics</span>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight">Business Analytics</h1>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={handleExportReport}
-                        className="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:border-[#004ac6]/30"
-                    >
-                        <span className="material-symbols-outlined text-lg">download</span>
-                        Export Report
-                    </button>
-
-                    <div className="h-8 w-px bg-slate-200 mx-2"></div>
-
-                    <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
-                        <span className="material-symbols-outlined text-2xl">notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        )}
-                    </button>
-
-                    <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
-                        <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
-                            {user?.fullName?.charAt(0).toUpperCase() || 'J'}
-                        </div>
-                        <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>
-                        <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
-                    </div>
-                </div>
-            </header>
+            
 
             {/* Main Container */}
             <div className="p-10 max-w-[1400px] mx-auto w-full space-y-8 flex-1">
                 {/* Analytics Filter Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-4">
                     <div>
-                        <h2 className="text-2xl font-black text-[#131b2e] tracking-tight">Business Performance Overview</h2>
-                        <p className="text-[#434655] text-sm font-medium">Monitor your store's core metrics and growth trends</p>
+                        <h2 className="text-2xl font-black text-on-surface tracking-tight">Performance Overview</h2>
+                        <p className="text-secondary text-sm font-medium">Track your store metrics and growth trends</p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-                        <div className="flex items-center bg-slate-50 rounded-xl p-1">
-                            <button
-                                onClick={() => { setRange('today'); setShowCustomDatePicker(false); }}
-                                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'today' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
-                            >
-                                Today
-                            </button>
-                            <button
-                                onClick={() => { setRange('last7days'); setShowCustomDatePicker(false); }}
-                                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'last7days' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
-                            >
-                                Last 7 Days
-                            </button>
-                            <button
-                                onClick={() => { setRange('last30days'); setShowCustomDatePicker(false); }}
-                                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${range === 'last30days' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'text-slate-500 hover:text-[#004ac6]'}`}
-                            >
-                                Last 30 Days
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                        <button
+                            onClick={() => { setRange('today'); setShowCustomDatePicker(false); }}
+                            className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${range === 'today' ? 'bg-primary text-white rounded-xl shadow-md shadow-primary/20' : 'text-secondary hover:text-primary'}`}
+                        >
+                            Today
+                        </button>
+                        <button
+                            onClick={() => { setRange('last7days'); setShowCustomDatePicker(false); }}
+                            className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${range === 'last7days' ? 'bg-primary text-white rounded-xl shadow-md shadow-primary/20' : 'text-secondary hover:text-primary'}`}
+                        >
+                            Last 7 Days
+                        </button>
+                        <button
+                            onClick={() => { setRange('last30days'); setShowCustomDatePicker(false); }}
+                            className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${range === 'last30days' ? 'bg-primary text-white rounded-xl shadow-md shadow-primary/20' : 'text-secondary hover:text-primary'}`}
+                        >
+                            Last 30 Days
+                        </button>
 
-                        <div className="hidden sm:block h-6 w-px bg-slate-200"></div>
+                        <div className="h-4 w-px bg-slate-200 mx-2"></div>
 
                         <button
                             onClick={() => { setRange('custom'); setShowCustomDatePicker(!showCustomDatePicker); }}
-                            className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 cursor-pointer ${range === 'custom' ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/15' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+                            className={`px-4 py-2 text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer ${range === 'custom' ? 'bg-primary text-white rounded-xl shadow-md shadow-primary/20' : 'text-secondary hover:text-primary'}`}
                         >
                             <span className="material-symbols-outlined text-base">calendar_today</span>
                             Custom
@@ -468,28 +433,28 @@ const SellerAnalytics = ({ setActiveTab }) => {
 
                 {/* Custom Date Picker Form */}
                 {range === 'custom' && showCustomDatePicker && (
-                    <form onSubmit={handleCustomFilterSubmit} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-3 duration-250">
+                    <form onSubmit={handleCustomFilterSubmit} className="p-6 bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-3 duration-250">
                         <div className="flex flex-col gap-2">
-                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">From Date</label>
+                            <label className="text-xs font-black text-secondary uppercase tracking-widest">From Date</label>
                             <input
                                 type="date"
-                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700"
+                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold text-on-surface"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
                         <div className="flex flex-col gap-2">
-                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">To Date</label>
+                            <label className="text-xs font-black text-secondary uppercase tracking-widest">To Date</label>
                             <input
                                 type="date"
-                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#004ac6] outline-none font-bold text-slate-700"
+                                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold text-on-surface"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
                         <button
                             type="submit"
-                            className="bg-[#004ac6] text-white px-6 py-3 rounded-xl font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-md shadow-[#004ac6]/20 cursor-pointer"
+                            className="bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-md shadow-primary/20 cursor-pointer"
                         >
                             Apply Filter
                         </button>
@@ -508,14 +473,14 @@ const SellerAnalytics = ({ setActiveTab }) => {
                         {/* KPI Cards Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {/* Revenue Card */}
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-[#004ac6]/30 transition-all flex flex-col justify-between min-h-[170px]">
-                                <div className="flex justify-between items-start">
-                                    <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#004ac6] group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-primary/30 transition-all flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="size-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">trending_up</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.revenue.growth >= 0
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
-                                            : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
+                                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.revenue.growth >= 0
+                                            ? 'text-success bg-success/10'
+                                            : 'text-error bg-error/10'
                                         }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.revenue.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
@@ -523,23 +488,27 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                         {Math.abs(analyticsData.kpis.revenue.growth)}%
                                     </div>
                                 </div>
-                                <div className="mt-4">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#64748b] mb-1">Sales Revenue</p>
-                                    <h3 className="text-2xl font-black text-[#131b2e] tracking-tight">
-                                        {analyticsData.kpis.revenue.value.toLocaleString('vi-VN')} <span className="text-sm font-medium text-slate-500">₫</span>
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/60 mb-1">Total Sales Revenue</p>
+                                    <h3 className="text-2xl font-black text-on-surface">
+                                        {analyticsData.kpis.revenue.value.toLocaleString('vi-VN')} <span className="text-sm font-medium text-secondary">₫</span>
                                     </h3>
+                                    <p className="text-[10px] font-bold text-secondary mt-4 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">info</span>
+                                        Based on selected period
+                                    </p>
                                 </div>
                             </div>
 
                             {/* Conversion Rate Card */}
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-[#004ac6]/30 transition-all flex flex-col justify-between min-h-[170px]">
-                                <div className="flex justify-between items-start">
-                                    <div className="size-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-primary/30 transition-all flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="size-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">ads_click</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.conversion.growth >= 0
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
-                                            : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
+                                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.conversion.growth >= 0
+                                            ? 'text-success bg-success/10'
+                                            : 'text-error bg-error/10'
                                         }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.conversion.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
@@ -547,23 +516,27 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                         {Math.abs(analyticsData.kpis.conversion.growth)}%
                                     </div>
                                 </div>
-                                <div className="mt-4">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#64748b] mb-1">Conversion Rate</p>
-                                    <h3 className="text-2xl font-black text-[#131b2e] tracking-tight">
-                                        {analyticsData.kpis.conversion.value} <span className="text-sm font-medium text-slate-500">%</span>
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/60 mb-1">Conversion Rate</p>
+                                    <h3 className="text-2xl font-black text-on-surface">
+                                        {analyticsData.kpis.conversion.value} <span className="text-sm font-medium text-secondary">%</span>
                                     </h3>
+                                    <p className="text-[10px] font-bold text-secondary mt-4 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">info</span>
+                                        Orders per visitor
+                                    </p>
                                 </div>
                             </div>
 
                             {/* Visitors Card */}
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-[#004ac6]/30 transition-all flex flex-col justify-between min-h-[170px]">
-                                <div className="flex justify-between items-start">
-                                    <div className="size-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-primary/30 transition-all flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="size-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">group</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.visitors.growth >= 0
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
-                                            : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
+                                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.visitors.growth >= 0
+                                            ? 'text-success bg-success/10'
+                                            : 'text-error bg-error/10'
                                         }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.visitors.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
@@ -571,23 +544,27 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                         {Math.abs(analyticsData.kpis.visitors.growth)}%
                                     </div>
                                 </div>
-                                <div className="mt-4">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#64748b] mb-1">Store Visitors</p>
-                                    <h3 className="text-2xl font-black text-[#131b2e] tracking-tight">
-                                        {analyticsData.kpis.visitors.value.toLocaleString()} <span className="text-sm font-medium text-slate-500">Visitors</span>
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/60 mb-1">Store Visitors</p>
+                                    <h3 className="text-2xl font-black text-on-surface">
+                                        {analyticsData.kpis.visitors.value.toLocaleString()} <span className="text-sm font-medium text-secondary">Users</span>
                                     </h3>
+                                    <p className="text-[10px] font-bold text-secondary mt-4 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">info</span>
+                                        Unique sessions
+                                    </p>
                                 </div>
                             </div>
 
                             {/* Avg Order Value Card */}
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-[#004ac6]/30 transition-all flex flex-col justify-between min-h-[170px]">
-                                <div className="flex justify-between items-start">
-                                    <div className="size-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:border-primary/30 transition-all flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="size-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl">shopping_bag</span>
                                     </div>
-                                    <div className={`flex items-center gap-0.5 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.aov.growth >= 0
-                                            ? 'text-[#2e7d32] bg-[#2e7d32]/10'
-                                            : 'text-[#ba1a1a] bg-[#ba1a1a]/10'
+                                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full ${analyticsData.kpis.aov.growth >= 0
+                                            ? 'text-success bg-success/10'
+                                            : 'text-error bg-error/10'
                                         }`}>
                                         <span className="material-symbols-outlined text-xs">
                                             {analyticsData.kpis.aov.growth >= 0 ? 'arrow_upward' : 'arrow_downward'}
@@ -595,32 +572,36 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                         {Math.abs(analyticsData.kpis.aov.growth)}%
                                     </div>
                                 </div>
-                                <div className="mt-4">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#64748b] mb-1">Average Order Value (AOV)</p>
-                                    <h3 className="text-2xl font-black text-[#131b2e] tracking-tight">
-                                        {analyticsData.kpis.aov.value.toLocaleString('vi-VN')} <span className="text-sm font-medium text-slate-500">₫</span>
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/60 mb-1">Avg. Order Value</p>
+                                    <h3 className="text-2xl font-black text-on-surface">
+                                        {analyticsData.kpis.aov.value.toLocaleString('vi-VN')} <span className="text-sm font-medium text-secondary">₫</span>
                                     </h3>
+                                    <p className="text-[10px] font-bold text-secondary mt-4 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">info</span>
+                                        Revenue per order
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Charts Section */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Revenue & Orders Chart */}
                             <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
-                                <div className="flex justify-between items-center mb-6">
+                                <div className="flex justify-between items-center mb-8">
                                     <div>
-                                        <h3 className="text-lg font-black text-[#131b2e]">Revenue Performance</h3>
-                                        <p className="text-xs text-[#64748b] font-medium">Daily revenue breakdown and comparison with the previous period</p>
+                                        <h3 className="text-lg font-black text-on-surface">Sales Performance</h3>
+                                        <p className="text-xs text-secondary font-medium">Daily revenue vs. previous period</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2">
-                                            <span className="size-3 bg-[#004ac6] rounded-full"></span>
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Current</span>
+                                            <span className="size-3 bg-primary rounded-full"></span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Current</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="size-3 bg-slate-200 rounded-full"></span>
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Previous</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Previous</span>
                                         </div>
                                     </div>
                                 </div>
@@ -630,41 +611,46 @@ const SellerAnalytics = ({ setActiveTab }) => {
                             </div>
 
                             {/* Sales by Category Doughnut */}
-                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
-                                <div>
-                                    <h3 className="text-lg font-black text-[#131b2e]">Category Distribution</h3>
-                                    <p className="text-xs text-[#64748b] font-medium">Revenue contribution share of each category</p>
+                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col">
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-black text-on-surface">Sales by Category</h3>
+                                    <p className="text-xs text-secondary font-medium">Revenue distribution</p>
                                 </div>
-                                <div className="flex-1 flex items-center justify-center h-56 my-4 relative">
+                                <div className="flex-1 flex items-center justify-center h-64 relative">
                                     <canvas ref={categoryCanvasRef}></canvas>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="mt-6 grid grid-cols-2 gap-3">
                                     {analyticsData.charts.categories.slice(0, 4).map((cat, i) => {
                                         const colors = ['#004ac6', '#fb923c', '#8b5cf6', '#10b981', '#64748b'];
                                         return (
-                                            <div key={cat.label} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                            <div key={cat.label} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl">
                                                 <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: colors[i % colors.length] }}></span>
-                                                <span className="text-[10px] font-black text-slate-600 uppercase truncate max-w-[80px]">{cat.label}</span>
-                                                <span className="ml-auto text-[10px] font-black text-[#004ac6]">{cat.percentage}%</span>
+                                                <span className="text-[10px] font-black text-secondary uppercase truncate max-w-[80px]">{cat.label}</span>
+                                                <span className="ml-auto text-[10px] font-black text-primary">{cat.percentage}%</span>
                                             </div>
                                         );
                                     })}
                                     {analyticsData.charts.categories.length === 0 && (
-                                        <p className="text-center col-span-2 text-xs text-slate-400 font-bold py-4">No distribution data available</p>
+                                        <p className="text-center col-span-2 text-xs text-secondary font-bold py-4">No distribution data</p>
                                     )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Lower Grid: Traffic & Products */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Traffic Sources Bar Chart */}
-                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col justify-between">
-                                <div>
-                                    <h3 className="text-lg font-black text-[#131b2e]">Traffic Sources</h3>
-                                    <p className="text-xs text-[#64748b] font-medium">Channels bringing users to your store</p>
+                            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h3 className="text-lg font-black text-on-surface">Traffic Sources</h3>
+                                        <p className="text-xs text-secondary font-medium">Where your customers come from</p>
+                                    </div>
+                                    <button className="p-2 hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
+                                        <span className="material-symbols-outlined text-secondary">more_horiz</span>
+                                    </button>
                                 </div>
-                                <div className="h-64 w-full mt-6 relative">
+                                <div className="h-64 w-full relative">
                                     <canvas ref={trafficCanvasRef}></canvas>
                                 </div>
                             </div>
@@ -672,23 +658,23 @@ const SellerAnalytics = ({ setActiveTab }) => {
                             {/* Top Products detailed */}
                             <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                                 <div className="p-8 pb-4">
-                                    <h3 className="text-lg font-black text-[#131b2e]">Product Performance</h3>
-                                    <p className="text-xs text-[#64748b] font-medium">Top products generating the highest revenue for your shop</p>
+                                    <h3 className="text-lg font-black text-on-surface">Product Performance</h3>
+                                    <p className="text-xs text-secondary font-medium">Top selling items by value</p>
                                 </div>
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-slate-50 border-y border-slate-100">
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Product</th>
-                                                <th className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">Orders</th>
-                                                <th className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">Conversion</th>
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Revenue</th>
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">Product</th>
+                                                <th className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">Orders</th>
+                                                <th className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">Conversion</th>
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-secondary text-right">Revenue</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {analyticsData.products.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan="4" className="text-center py-10 text-xs text-slate-400 font-bold">
+                                                    <td colSpan="4" className="text-center py-10 text-xs text-secondary font-bold">
                                                         No products sold in this period
                                                     </td>
                                                 </tr>
@@ -697,22 +683,22 @@ const SellerAnalytics = ({ setActiveTab }) => {
                                                     <tr key={prod.id} className="hover:bg-slate-50/50 transition-colors">
                                                         <td className="px-8 py-4">
                                                             <div className="flex items-center gap-3">
-                                                                <img src={prod.image} className="size-10 rounded-lg object-cover border border-slate-200/60" alt="" />
-                                                                <span className="text-xs font-black text-[#131b2e] truncate max-w-[150px]" title={prod.name}>
+                                                                <img src={prod.image} className="size-10 rounded-lg object-cover" alt="" />
+                                                                <span className="text-xs font-black text-on-surface truncate max-w-[120px]" title={prod.name}>
                                                                     {prod.name}
                                                                 </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-xs font-bold text-center text-slate-800">{prod.orders}</td>
-                                                        <td className="px-4 py-4 text-center">
-                                                            <div className="flex items-center justify-center gap-2">
-                                                                <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                                    <div className="h-full bg-[#2e7d32]" style={{ width: `${Math.min(100, prod.conversion * 10)}%` }}></div>
+                                                        <td className="px-4 py-4 text-xs font-bold text-on-surface">{prod.orders}</td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, prod.conversion * 10)}%` }}></div>
                                                                 </div>
-                                                                <span className="text-[10px] font-black text-[#2e7d32]">{prod.conversion}%</span>
+                                                                <span className="text-[10px] font-black text-emerald-600">{prod.conversion}%</span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-8 py-4 text-xs font-black text-[#004ac6] text-right">
+                                                        <td className="px-8 py-4 text-xs font-black text-primary text-right">
                                                             {prod.revenue.toLocaleString('vi-VN')}₫
                                                         </td>
                                                     </tr>
@@ -735,76 +721,79 @@ const SellerAnalytics = ({ setActiveTab }) => {
             <div className="fixed bottom-8 right-8 z-[110] flex flex-col gap-4">
                 <button
                     onClick={() => setShowAI(!showAI)}
-                    className="size-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border border-white/20 cursor-pointer"
+                    className="size-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative border border-primary/10 cursor-pointer"
                 >
                     <span className="material-symbols-outlined text-3xl">smart_toy</span>
-                    <div className="absolute -top-1 -right-1 size-7 bg-white text-[#ba1a1a] font-black flex items-center justify-center rounded-full border-2 border-[#ba1a1a] shadow-lg text-[12px]">1</div>
-                    <span className="absolute right-full mr-4 px-3 py-1.5 bg-[#131b2e] text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md">
-                        Ask AI Assistant
+                            <div className="absolute -top-1 -right-1 size-7 bg-white text-error font-black flex items-center justify-center rounded-full border-2 border-error shadow-lg text-[12px]">1</div>
+                    <span className="absolute right-full mr-4 px-3 py-1.5 bg-on-surface text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        AI Assistant
                     </span>
                 </button>
             </div>
 
             {showAI && (
-                <div className="fixed bottom-28 right-8 w-96 h-[550px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col z-[120] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                <div className="fixed bottom-28 right-8 w-96 h-[550px] bg-surface-container-lowest rounded-[2rem] shadow-2xl border border-outline-variant/30 flex flex-col z-[120] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
                     {/* AI Chat Header */}
-                    <div className="p-6 bg-[#004ac6] text-white flex items-center justify-between shrink-0">
+                    <div className="p-6 bg-primary text-white flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="size-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
                                 <span className="material-symbols-outlined">smart_toy</span>
                             </div>
                             <div>
-                                <h3 className="font-black text-sm tracking-tight">UTEShop AI Consultant</h3>
-                                <p className="text-[9px] opacity-75 font-black uppercase tracking-wider">Online</p>
+                                <h3 className="font-black text-sm tracking-tight">AI Assistant</h3>
+                                <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest">Always Online</p>
                             </div>
                         </div>
-                        <button onClick={() => setShowAI(false)} className="w-8 h-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
+                        <button onClick={() => setShowAI(false)} className="size-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
                             <span className="material-symbols-outlined">close</span>
                         </button>
                     </div>
 
-                    {/* AI Chat Messages */}
-                    <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/50 flex flex-col">
+                    {/* Chat Messages */}
+                    <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-surface-container-low/30 flex flex-col">
                         {aiMessages.map((msg, idx) => (
                             <div key={idx} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'user' ? 'bg-[#131b2e] text-white' : 'bg-[#004ac6]/10 text-[#004ac6] border border-[#004ac6]/10'}`}>
-                                    <span className="material-symbols-outlined text-sm">{msg.sender === 'user' ? 'person' : 'smart_toy'}</span>
-                                </div>
-                                <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed max-w-[80%] whitespace-pre-line ${msg.sender === 'user'
-                                        ? 'bg-[#131b2e] text-white rounded-tr-none'
-                                        : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
+                                {msg.sender === 'ai' && (
+                                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                        <span className="material-symbols-outlined text-sm">smart_toy</span>
+                                    </div>
+                                )}
+                                <div className={`p-4 rounded-2xl text-sm font-bold leading-relaxed shadow-sm border ${msg.sender === 'user'
+                                        ? 'bg-primary text-white rounded-tr-none border-primary'
+                                        : 'bg-white text-on-surface rounded-tl-none border-outline-variant/20'
                                     }`}>
-                                    {msg.text}
+                                    {msg.text.split('\n').map((line, i) => <p key={i} className="mb-1 last:mb-0">{line}</p>)}
                                 </div>
                             </div>
                         ))}
                         {aiTyping && (
                             <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#004ac6]/10 text-[#004ac6] border border-[#004ac6]/10">
+                                <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                                     <span className="material-symbols-outlined text-sm">smart_toy</span>
                                 </div>
-                                <div className="p-4 bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1.5 py-3">
-                                    <span className="size-2 bg-slate-400 rounded-full animate-bounce"></span>
-                                    <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                                    <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                                <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-outline-variant/20 flex items-center gap-1">
+                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce"></div>
+                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* AI Chat Input */}
-                    <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-                        <form onSubmit={handleAiSubmit} className="flex gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-200/60">
+                    {/* Input Area */}
+                    <div className="p-4 bg-white border-t border-outline-variant/30 shrink-0">
+                        <form onSubmit={handleAiSubmit} className="flex gap-2 p-2 bg-surface-container-low rounded-2xl border border-outline-variant/20">
                             <input
                                 type="text"
-                                placeholder="Ask me about revenue, visitors..."
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-2 outline-none"
+                                placeholder="Ask AI anything..."
+                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold px-2 outline-none"
                                 value={aiInput}
                                 onChange={(e) => setAiInput(e.target.value)}
                             />
                             <button
                                 type="submit"
-                                className="w-10 h-10 bg-[#004ac6] text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-md shadow-[#004ac6]/20"
+                                className="size-10 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer"
+                                disabled={!aiInput.trim()}
                             >
                                 <span className="material-symbols-outlined">send</span>
                             </button>

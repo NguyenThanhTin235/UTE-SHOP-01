@@ -13,11 +13,18 @@ router.get('/products/export', verifyToken, sellerController.exportProducts);
 // Create new product
 router.post('/products', verifyToken, sellerController.createProduct);
 
+// Update product
+router.put('/products/:id', verifyToken, sellerController.updateProduct);
+
+// Delete product
+router.delete('/products/:id', verifyToken, sellerController.deleteProduct);
+
 // Upload product images
 router.post('/products/upload', verifyToken, uploadProduct.array('images', 10), sellerController.uploadProductImages);
 
 // Orders
 router.get('/orders', verifyToken, sellerController.getOrders);
+router.get('/orders/export', verifyToken, sellerController.exportOrders);
 router.get('/orders/:id', verifyToken, sellerController.getOrderById);
 router.put('/orders/:id/status', verifyToken, sellerController.updateOrderStatus);
 

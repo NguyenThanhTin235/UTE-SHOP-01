@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { useNotifications } from '../hooks/useNotifications';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
@@ -12,7 +11,6 @@ const Header = () => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
   const { unreadCount } = useNotifications();
-  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,40 +21,6 @@ const Header = () => {
     const q = params.get('q');
     setSearchTerm(q || '');
   }, [location.search]);
-
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-        if (!token) {
-          setUnreadCount(0);
-          return;
-        }
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-        const response = await axios.get('http://localhost:5000/api/notifications', config);
-        if (response.data && response.data.success) {
-          const data = response.data.data || [];
-          const unread = data.filter(n => !n.is_read).length;
-          setUnreadCount(unread);
-        }
-      } catch (error) {
-        console.error('Fetch unread notifications error:', error);
-        if (error.response && error.response.status === 401) {
-          dispatch(logout());
-        }
-      }
-    };
-
-    if (!isAuthPage && user) {
-      fetchUnreadCount();
-    } else {
-      setUnreadCount(0);
-    }
-  }, [location.pathname, isAuthPage, user, dispatch]);
 
   const [cartCount, setCartCount] = useState(0);
 
@@ -177,12 +141,6 @@ const Header = () => {
           </Link>
 
           {!isAuthPage && (
-            <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
-              <span className="material-symbols-outlined">notifications</span>
-              {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
-              )}
-            </Link>
             user ? (
               <Link to="/notifications" className="p-2 hover:bg-[#f2f3ff] rounded-full transition-all duration-200 text-[#434655] relative">
                 <span className="material-symbols-outlined">notifications</span>

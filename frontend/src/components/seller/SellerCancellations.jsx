@@ -12,6 +12,12 @@ const SellerCancellations = ({ setActiveTab }) => {
     const [activeFilter, setActiveFilter] = useState('All');
     const [search, setSearch] = useState('');
     const [stats, setStats] = useState({ new: 0, system: 0, seller: 0, refund: 0 });
+    const [actionModal, setActionModal] = useState({
+        isOpen: false,
+        id: null,
+        type: '', // 'approved' or 'rejected'
+        reason: ''
+    });
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -52,17 +58,25 @@ const SellerCancellations = ({ setActiveTab }) => {
         }
     };
 
-    const handleUpdateStatus = async (id, status) => {
-        if (status === 'rejected') {
-            const reason = window.prompt("Please enter a reason for rejecting this cancellation:");
-            if (reason === null) return; // User cancelled prompt
-        } else {
-            const confirm = window.confirm("Are you sure you want to approve this cancellation? This will cancel the order.");
-            if (!confirm) return;
+    const handleUpdateStatus = (id, status) => {
+        setActionModal({
+            isOpen: true,
+            id,
+            type: status,
+            reason: ''
+        });
+    };
+
+    const executeUpdateStatus = async () => {
+        const { id, type, reason } = actionModal;
+        if (type === 'rejected' && !reason.trim()) {
+            toast.error("Please enter a reason for rejection.");
+            return;
         }
 
+        setActionModal({ isOpen: false, id: null, type: '', reason: '' });
         try {
-            const res = await axios.put(`http://localhost:5000/api/seller/cancellations/${id}/status`, { status }, {
+            const res = await axios.put(`http://localhost:5000/api/seller/cancellations/${id}/status`, { status: type }, {
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem('token')}`
                 }
@@ -83,95 +97,61 @@ const SellerCancellations = ({ setActiveTab }) => {
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
-            {/* Header */}
-            <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0">
-                <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[#0052CC] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight">Cancellations</h1>
-
-                    <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-80 group focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                        <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#0052CC]">search</span>
-                        <input
-                            type="text"
-                            placeholder="Search cancellations..."
-                            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 placeholder:font-medium ml-2 outline-none"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="h-8 w-px bg-slate-200 mx-2"></div>
-                    <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100">
-                        <span className="material-symbols-outlined text-2xl">notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        )}
-                    </button>
-                    <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-100 cursor-pointer hover:bg-slate-200 transition-all group">
-                        <div className="w-8 h-8 rounded-full bg-[#0052CC] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
-                            {user?.fullName?.charAt(0).toUpperCase() || 'J'}
-                        </div>
-                        <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>
-                        <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
-                    </div>
-                </div>
-            </header>
+            
 
             <div className="p-10 max-w-[1440px] mx-auto w-full space-y-8">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-[#0052CC]/30 transition-all cursor-pointer">
+                    <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm group hover:border-primary/30 transition-all cursor-pointer">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-[#0052CC]/10 flex items-center justify-center text-[#0052CC]">
+                            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                                 <span className="material-symbols-outlined">pending_actions</span>
                             </div>
                             {stats.new > 0 && <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-2 py-1 rounded-lg">NEW</span>}
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-80">To Respond</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-secondary opacity-60">To Respond</span>
                         <div className="text-2xl font-black mt-1">{stats.new} Requests</div>
                     </div>
-                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-red-500/30 transition-all cursor-pointer">
+                    <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm group hover:border-error/30 transition-all cursor-pointer">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                            <div className="size-12 rounded-2xl bg-error/10 flex items-center justify-center text-error">
                                 <span className="material-symbols-outlined">system_update_alt</span>
                             </div>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-80">System Canceled</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-secondary opacity-60">System Canceled</span>
                         <div className="text-2xl font-black mt-1">0 Orders</div>
                     </div>
-                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-slate-400/30 transition-all cursor-pointer">
+                    <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm group hover:border-secondary/30 transition-all cursor-pointer">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500">
+                            <div className="size-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary">
                                 <span className="material-symbols-outlined">person_cancel</span>
                             </div>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-80">Seller Canceled</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-secondary opacity-60">Seller Canceled</span>
                         <div className="text-2xl font-black mt-1">0 Orders</div>
                     </div>
-                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-[#0052CC]/30 transition-all cursor-pointer">
+                    <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm group hover:border-primary/30 transition-all cursor-pointer">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-[#0052CC]/10 flex items-center justify-center text-[#0052CC]">
+                            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                                 <span className="material-symbols-outlined">account_balance_wallet</span>
                             </div>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-80">Total Refund</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-secondary opacity-60">Total Refund</span>
                         <div className="text-2xl font-black mt-1">{formatCurrency(stats.refund)}</div>
                     </div>
                 </div>
 
                 {/* Table Section */}
-                <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+                <div className="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-outline-variant/30 overflow-hidden">
                     {/* Tabs */}
-                    <div className="border-b border-slate-200 flex px-8 overflow-x-auto bg-slate-50/50">
+                    <div className="border-b border-outline-variant/30 flex px-8 overflow-x-auto custom-scrollbar bg-surface-container-low/20">
                         {['All', 'Pending', 'Approved', 'Rejected'].map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveFilter(tab)}
                                 className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
-                                        ? 'text-[#0052CC] border-b-[3px] border-[#0052CC]'
-                                        : 'text-slate-500 hover:text-[#0052CC]'
+                                        ? 'text-primary border-b-[3px] border-primary'
+                                        : 'text-secondary hover:text-primary'
                                     }`}
                             >
                                 {tab === 'Pending' ? `Pending (${stats.new})` : tab === 'All' ? 'All Requests' : tab}
@@ -179,19 +159,19 @@ const SellerCancellations = ({ setActiveTab }) => {
                         ))}
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="text-left border-b border-slate-200 bg-slate-50/30">
-                                    <th className="pl-8 pr-4 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Order Information</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Reason</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Refund Amount</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                                    <th className="pl-4 pr-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                                <tr className="text-left border-b border-outline-variant/20 bg-surface-container-low/10">
+                                    <th className="pl-8 pr-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Order Information</th>
+                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Customer</th>
+                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Reason</th>
+                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Refund Amount</th>
+                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Status</th>
+                                    <th className="pl-4 pr-8 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-outline-variant/10">
                                 {loading ? (
                                     <tr>
                                         <td colSpan="6" className="py-20 text-center text-slate-500 font-bold">Loading...</td>
@@ -208,33 +188,33 @@ const SellerCancellations = ({ setActiveTab }) => {
                                         const productImage = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200";
 
                                         return (
-                                            <tr key={cancel._id} className="hover:bg-slate-50 transition-colors group">
+                                            <tr key={cancel._id} className="hover:bg-surface-container-low/30 transition-colors group">
                                                 <td className="pl-8 pr-4 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
-                                                            <img src={productImage} alt="Product" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                        <div className="size-16 rounded-2xl bg-surface-container-high overflow-hidden border border-outline-variant/30 shrink-0">
+                                                            <img src={productImage} alt="Product" className="size-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                         </div>
                                                         <div className="flex flex-col gap-1">
-                                                            <span className="text-xs font-black text-[#0052CC] hover:underline cursor-pointer">{cancel.order_id?.order_code || '#UNKNOWN'}</span>
-                                                            <span className="text-sm font-bold truncate max-w-[200px]">{productName}</span>
-                                                            <span className="text-[10px] font-bold text-slate-500">Qty: {firstItem?.quantity || 1}</span>
+                                                            <span className="text-xs font-black text-primary hover:underline cursor-pointer">{cancel.order_id?.order_code || '#UNKNOWN'}</span>
+                                                            <span className="text-sm font-bold truncate max-w-[200px] text-on-surface">{productName}</span>
+                                                            <span className="text-[10px] font-bold text-secondary">Qty: {firstItem?.quantity || 1}</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-6">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="text-sm font-black">{cancel.user_id?.full_name || 'Guest'}</span>
-                                                        <span className="text-[10px] font-bold text-slate-500">{cancel.user_id?.email || ''}</span>
+                                                        <span className="text-sm font-black text-on-surface">{cancel.user_id?.full_name || 'Guest'}</span>
+                                                        <span className="text-[10px] font-bold text-secondary">{cancel.user_id?.email || ''}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-6">
                                                     <div className="flex flex-col gap-1 max-w-[250px]">
-                                                        <span className="text-sm font-bold text-slate-900">{cancel.reason}</span>
-                                                        <span className="text-[10px] font-medium text-slate-500 italic">"Requested on {new Date(cancel.createdAt).toLocaleDateString()}"</span>
+                                                        <span className="text-sm font-bold text-on-surface">{cancel.reason}</span>
+                                                        <span className="text-[10px] font-medium text-secondary italic">"Requested on {new Date(cancel.createdAt).toLocaleDateString()}"</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-6 text-right">
-                                                    <span className="text-sm font-black">{formatCurrency(cancel.order_id?.total_final || 0)}</span>
+                                                    <span className="text-sm font-black text-on-surface">{formatCurrency(cancel.order_id?.total_final || 0)}</span>
                                                 </td>
                                                 <td className="px-4 py-6">
                                                     {cancel.status === 'pending' && (
@@ -244,24 +224,24 @@ const SellerCancellations = ({ setActiveTab }) => {
                                                         <span className="px-3 py-1 bg-green-500/10 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-500/20">Approved</span>
                                                     )}
                                                     {cancel.status === 'rejected' && (
-                                                        <span className="px-3 py-1 bg-red-500/10 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-red-500/20">Rejected</span>
+                                                        <span className="px-3 py-1 bg-error/10 text-error text-[10px] font-black uppercase tracking-widest rounded-full border border-error/20">Rejected</span>
                                                     )}
                                                 </td>
                                                 <td className="pl-4 pr-8 py-6">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {cancel.status === 'pending' ? (
                                                             <>
-                                                                <button onClick={() => handleUpdateStatus(cancel._id, 'approved')} className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Approve">
+                                                                <button onClick={() => handleUpdateStatus(cancel._id, 'approved')} className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all group/btn shadow-sm" title="Approve">
                                                                     <span className="material-symbols-outlined text-[18px] font-bold">check</span>
                                                                 </button>
-                                                                <button onClick={() => handleUpdateStatus(cancel._id, 'rejected')} className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Reject">
+                                                                <button onClick={() => handleUpdateStatus(cancel._id, 'rejected')} className="p-2.5 rounded-xl bg-error/10 text-error hover:bg-error hover:text-white transition-all group/btn shadow-sm" title="Reject">
                                                                     <span className="material-symbols-outlined text-[18px] font-bold">close</span>
                                                                 </button>
                                                             </>
                                                         ) : (
-                                                            <div className="text-[10px] font-bold text-slate-500 mr-2">Processed</div>
+                                                            <div className="text-[10px] font-bold text-secondary italic mr-2">Processed</div>
                                                         )}
-                                                        <button className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-800 hover:text-white transition-all shadow-sm" title="View Detail">
+                                                        <button className="p-2.5 rounded-xl bg-surface-container-high text-secondary hover:bg-on-surface hover:text-white transition-all group/btn shadow-sm flex items-center justify-center" title="View Detail">
                                                             <span className="material-symbols-outlined text-[18px] font-bold">visibility</span>
                                                         </button>
                                                     </div>
@@ -275,6 +255,77 @@ const SellerCancellations = ({ setActiveTab }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Action Modal for Approve/Reject */}
+            {actionModal.isOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                        {actionModal.type === 'approved' ? (
+                            <>
+                                <div className="size-16 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto border border-green-100">
+                                    <span className="material-symbols-outlined text-[32px] font-bold">check_circle</span>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Approve Cancellation?</h3>
+                                    <p className="text-slate-500 font-medium text-sm text-slate-500">
+                                        Are you sure you want to approve this cancellation request? <span className="font-bold text-error">This will cancel the order permanently</span>.
+                                    </p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button 
+                                        onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
+                                        className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onClick={executeUpdateStatus}
+                                        className="flex-1 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 shadow-lg shadow-green-200 cursor-pointer"
+                                    >
+                                        Approve
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="size-16 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto border border-error/10">
+                                    <span className="material-symbols-outlined text-[32px] font-bold">cancel</span>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Reject Cancellation?</h3>
+                                    <p className="text-slate-500 font-medium text-sm text-slate-500">
+                                        Please provide a reason for rejecting this cancellation request.
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <textarea 
+                                        rows="3"
+                                        placeholder="Reason for rejection..."
+                                        value={actionModal.reason}
+                                        onChange={(e) => setActionModal(prev => ({ ...prev, reason: e.target.value }))}
+                                        className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent transition-all placeholder:text-secondary/50 placeholder:font-bold"
+                                    />
+                                </div>
+                                <div className="flex gap-4">
+                                    <button 
+                                        onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
+                                        className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onClick={executeUpdateStatus}
+                                        className="flex-1 py-4 bg-error text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-error/20 cursor-pointer"
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

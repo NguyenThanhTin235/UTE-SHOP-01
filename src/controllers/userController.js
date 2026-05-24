@@ -238,6 +238,8 @@ class UserController {
       return res.status(200).json({ success: true, count });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 
   /**
    * Quản lý Wishlist: Lấy danh sách yêu thích

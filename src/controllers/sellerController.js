@@ -808,7 +808,7 @@ const createProduct = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        const { name, category_id, description, mrp_price, selling_price, variants, media } = req.body;
+        const { name, category_id, description, mrp_price, selling_price, sku, variants, media } = req.body;
 
         // Create base product
         const newProduct = new Product({
@@ -819,6 +819,7 @@ const createProduct = async (req, res, next) => {
             description,
             mrp_price: mrp_price || selling_price,
             selling_price,
+            sku,
             approval_status: 'pending' // requires admin approval
         });
 
@@ -1263,6 +1264,143 @@ const exportWithdrawals = async (req, res, next) => {
     }
 };
 
+const exportOrders = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
+
+        const orders = await Order.find({ shop_id: shop._id })
+            .populate('customer_id', 'full_name phone')
+            .populate('payment_order_id', 'payment_method')
+            .sort({ createdAt: -1 });
+
+        const workbook = new excelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Orders');
+
+        worksheet.columns = [
+            { header: 'Order Code', key: 'code', width: 20 },
+            { header: 'Date', key: 'date', width: 20 },
+            { header: 'Customer', key: 'customer', width: 25 },
+            { header: 'Phone', key: 'phone', width: 15 },
+            { header: 'Total Amount', key: 'total', width: 15 },
+            { header: 'Payment Method', key: 'payment', width: 20 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        orders.forEach(o => {
+            worksheet.addRow({
+                code: o.order_code,
+                date: o.createdAt.toLocaleString(),
+                customer: o.customer_id ? o.customer_id.full_name : 'N/A',
+                phone: o.customer_id ? o.customer_id.phone : 'N/A',
+                total: o.total_final,
+                payment: o.payment_order_id ? o.payment_order_id.payment_method : 'N/A',
+                status: o.status
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + 'orders.xlsx');
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteProduct = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+        const product = await Product.findOne({ _id: id, shop_id: shop._id });
+        if (!product) {
+            return res.status(404).json({ success: false, code: 404, message: 'Product not found' });
+        }
+        await Product.findByIdAndDelete(id);
+        await ProductVariant.deleteMany({ product_id: id });
+        await ProductMedia.deleteMany({ product_id: id });
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateProduct = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+        const product = await Product.findOne({ _id: id, shop_id: shop._id });
+        if (!product) {
+            return res.status(404).json({ success: false, code: 404, message: 'Product not found' });
+        }
+        const { name, category_id, description, mrp_price, selling_price, sku, variants, media } = req.body;
+
+        if (name !== undefined) {
+            product.name = name;
+            product.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
+        }
+        if (category_id !== undefined) product.category_id = category_id;
+        if (description !== undefined) product.description = description;
+        if (mrp_price !== undefined) product.mrp_price = mrp_price;
+        if (selling_price !== undefined) product.selling_price = selling_price;
+        if (sku !== undefined) product.sku = sku;
+
+        await product.save();
+
+        // Update variants
+        if (variants !== undefined) {
+            await ProductVariant.deleteMany({ product_id: id });
+            if (variants.length > 0) {
+                const variantDocs = variants.map(v => ({
+                    product_id: id,
+                    attributes: v.attributes,
+                    additional_price: v.additional_price || 0,
+                    stock_quantity: v.stock_quantity || 0,
+                    sku: v.sku
+                }));
+                await ProductVariant.insertMany(variantDocs);
+            }
+        }
+
+        // Update media
+        if (media !== undefined) {
+            await ProductMedia.deleteMany({ product_id: id });
+            if (media.length > 0) {
+                const mediaDocs = media.map((url, index) => ({
+                    product_id: id,
+                    media_type: url.match(/\.(mp4|mov)$/i) ? 'video' : 'image',
+                    media_url: url,
+                    sort_order: index
+                }));
+                await ProductMedia.insertMany(mediaDocs);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Product updated successfully',
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAnalytics,
     exportAnalytics,
@@ -1284,5 +1422,8 @@ module.exports = {
     requestWithdrawal,
     getWithdrawalRequests,
     exportTransactions,
-    exportWithdrawals
+    exportWithdrawals,
+    exportOrders,
+    deleteProduct,
+    updateProduct
 };

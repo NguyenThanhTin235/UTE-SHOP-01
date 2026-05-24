@@ -43,6 +43,7 @@ router.delete('/addresses/:addressId', verifyToken, userController.removeAddress
  * ── NOTIFICATIONS ──
  */
 router.get('/notifications/unread-count', verifyToken, userController.getUnreadNotificationCount);
+/**
  * ── WISHLIST MANAGEMENT ──
  */
 router.get('/wishlist', verifyToken, userController.getWishlist);

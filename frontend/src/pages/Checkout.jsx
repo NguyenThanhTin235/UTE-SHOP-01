@@ -68,7 +68,7 @@ const Checkout = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const response = await axios.get('http://localhost:5000/api/users/addresses', config);
@@ -102,7 +102,7 @@ const Checkout = () => {
       setLoadingPreview(true);
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const response = await axios.post(
@@ -170,7 +170,7 @@ const Checkout = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const response = await axios.post(
@@ -208,7 +208,7 @@ const Checkout = () => {
       setSubmitting(true);
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const response = await axios.post(

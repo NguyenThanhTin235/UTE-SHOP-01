@@ -537,7 +537,14 @@ const Search = () => {
                         </div>
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-[#c3c6d7]/30 mt-auto">
-                        <span className="font-bold text-base text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
+                        {product.mrpPrice > product.sellingPrice ? (
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-base text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
+                            <span className="text-xs text-[#505f76] line-through">{product.mrpPrice.toLocaleString()}₫</span>
+                          </span>
+                        ) : (
+                          <span className="font-bold text-base text-[#004ac6]">{product.sellingPrice.toLocaleString()}₫</span>
+                        )}
                         <button 
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(product.id || product._id); }}
                           className="w-8 h-8 bg-[#eaedff] text-[#004ac6] rounded-xl flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"

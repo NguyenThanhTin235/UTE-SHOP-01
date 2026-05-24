@@ -1286,6 +1286,8 @@ class OrderController {
     try {
       const sellerId = req.user.id;
       const status = req.query.status || 'all';
+      const dateFrom = req.query.dateFrom || null;
+      const dateTo = req.query.dateTo || null;
       let page = parseInt(req.query.page) || 1;
       if (page < 1) page = 1;
       let limit = parseInt(req.query.limit) || 5;
@@ -1315,6 +1317,20 @@ class OrderController {
       const query = { shop_id: { $in: shopIds } };
       if (status !== 'all') {
         query.status = status;
+      }
+
+      // Date range filter
+      if (dateFrom || dateTo) {
+        query.createdAt = {};
+        if (dateFrom) {
+          query.createdAt.$gte = new Date(dateFrom);
+        }
+        if (dateTo) {
+          // Include the entire dateTo day
+          const end = new Date(dateTo);
+          end.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = end;
+        }
       }
 
       // Count total matches

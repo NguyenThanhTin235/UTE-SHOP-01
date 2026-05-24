@@ -45,7 +45,7 @@ const SecuritySettings = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const res = await axios.get('http://localhost:5000/api/users/security/settings', config);
@@ -65,7 +65,7 @@ const SecuritySettings = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const newStatus = !settings.twoFactorEnabled;
@@ -85,7 +85,7 @@ const SecuritySettings = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const updatedAlerts = {
@@ -131,7 +131,7 @@ const SecuritySettings = () => {
       setLoading(true);
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
 
