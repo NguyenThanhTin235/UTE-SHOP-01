@@ -27,7 +27,7 @@ const OrderHistory = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token') || '';
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
       const response = await axios.get('http://localhost:5000/api/orders', {
         headers: {
           Authorization: `Bearer ${token}`
@@ -83,7 +83,7 @@ const OrderHistory = () => {
       return;
     }
     try {
-      const token = localStorage.getItem('token') || '';
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
       const response = await axios.post(
         'http://localhost:5000/api/checkout/repay-vnpay',
         { paymentCode },

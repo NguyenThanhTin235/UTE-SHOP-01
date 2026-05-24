@@ -244,7 +244,7 @@ const ProductDetail = () => {
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
           {category?.breadcrumbs?.map((bc, i) => (
              <React.Fragment key={i}>
-                <Link to={`/category/${bc.slug}`} className="hover:text-primary">{bc.name}</Link>
+                <Link to={`/search?category=${bc.slug}`} className="hover:text-primary">{bc.name}</Link>
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
              </React.Fragment>
           ))}
@@ -274,16 +274,29 @@ const ProductDetail = () => {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
-              {media?.length > 0 ? media.map((m, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() => setSelectedImage(m.mediaUrl)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === m.mediaUrl ? 'border-primary opacity-100 scale-105 shadow-md' : 'border-outline-variant opacity-60 hover:opacity-100 hover:border-primary'}`}
-                >
-                  <img src={m.mediaUrl} className="w-full h-full object-cover" alt="" />
-                </button>
-              )) : null}
+            <div className="overflow-hidden relative w-full border border-outline-variant/30 rounded-3xl p-3 bg-white flex items-center">
+              <div className="animate-marquee flex">
+                {/* First set */}
+                {media?.length > 0 ? media.map((m, idx) => (
+                  <button 
+                    key={`set1-${idx}`} 
+                    onClick={() => setSelectedImage(m.mediaUrl)}
+                    className={`flex-shrink-0 w-24 h-24 mr-3 rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === m.mediaUrl ? 'border-primary opacity-100 scale-105 shadow-md' : 'border-outline-variant opacity-60 hover:opacity-100 hover:border-primary'}`}
+                  >
+                    <img src={m.mediaUrl} className="w-full h-full object-cover" alt="" />
+                  </button>
+                )) : null}
+                {/* Duplicate set for seamless looping */}
+                {media?.length > 0 ? media.map((m, idx) => (
+                  <button 
+                    key={`set2-${idx}`} 
+                    onClick={() => setSelectedImage(m.mediaUrl)}
+                    className={`flex-shrink-0 w-24 h-24 mr-3 rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === m.mediaUrl ? 'border-primary opacity-100 scale-105 shadow-md' : 'border-outline-variant opacity-60 hover:opacity-100 hover:border-primary'}`}
+                  >
+                    <img src={m.mediaUrl} className="w-full h-full object-cover" alt="" />
+                  </button>
+                )) : null}
+              </div>
             </div>
           </div>
 
@@ -746,7 +759,14 @@ const ProductDetail = () => {
                                 <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{p.category?.name || 'Category'}</p>
                                 <h4 className="font-bold text-sm mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">{p.name}</h4>
                                 <div className="mt-auto flex items-center justify-between">
-                                    <p className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</p>
+                                    {p.mrpPrice > p.sellingPrice ? (
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</span>
+                                        <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
+                                      </div>
+                                    ) : (
+                                      <p className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</p>
+                                    )}
                                     <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all">
                                         <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
                                     </button>

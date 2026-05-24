@@ -22,7 +22,7 @@ const CancelOrder = () => {
   useEffect(() => {
     const fetchOrderBrief = async () => {
       try {
-        const token = localStorage.getItem('token') || '';
+        const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
         const response = await axios.get(`http://localhost:5000/api/orders/${orderId}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -71,7 +71,7 @@ const CancelOrder = () => {
     }
 
     try {
-      const token = localStorage.getItem('token') || '';
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
       const response = await axios.post(
         `http://localhost:5000/api/orders/${orderId}/cancel`,
         { reason: finalReason },

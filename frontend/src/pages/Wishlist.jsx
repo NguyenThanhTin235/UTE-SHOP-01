@@ -287,7 +287,14 @@ const Wishlist = () => {
                         <Link to={`/product/${p.slug}`}>
                           <h3 className="font-bold text-sm leading-5 text-[#131b2e] line-clamp-2 h-10 overflow-hidden group-hover:text-[#004ac6] transition-colors">{p.name}</h3>
                         </Link>
-                        <p className="text-base font-extrabold text-[#004ac6] mt-1">{p.sellingPrice?.toLocaleString()} VND</p>
+                        {p.mrpPrice > p.sellingPrice ? (
+                          <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                            <span className="text-base font-extrabold text-[#004ac6]">{p.sellingPrice?.toLocaleString()}₫</span>
+                            <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
+                          </div>
+                        ) : (
+                          <p className="text-base font-extrabold text-[#004ac6] mt-1">{p.sellingPrice?.toLocaleString()}₫</p>
+                        )}
                       </div>
 
                       <button 

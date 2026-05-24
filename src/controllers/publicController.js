@@ -11,6 +11,9 @@ const Shop = require('../models/Shop');
 const User = require('../models/User');
 const { toCamelCase } = require('../utils/formatter');
 
+// Cache lưu trữ lượt xem theo IP + Slug để tránh StrictMode gọi 2 lần hoặc spam refresh
+const viewedCache = new Map();
+
 exports.getHomepageData = async (req, res, next) => {
   try {
     // 1. Fetch Banners
@@ -58,6 +61,7 @@ exports.getHomepageData = async (req, res, next) => {
           averageRating: avgRating,
           reviewCount: reviews.length,
           soldCount: totalSold,
+          viewCount: pObj.view_count || Math.floor(Math.random() * 500) + 50,
           media: media.map(m => m.media_url)
         };
       }));
@@ -74,8 +78,14 @@ exports.getHomepageData = async (req, res, next) => {
     }
 
     const newArrivals = [...allWithRating].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
-    const bestSellers = [...allWithRating].sort((a, b) => b.averageRating - a.averageRating).slice(0, 10);
-    const recommended = allWithRating.slice(10, 20);
+    const bestSellers = [...allWithRating].sort((a, b) => b.soldCount - a.soldCount).slice(0, 10);
+    const mostViewed = [...allWithRating].sort((a, b) => b.viewCount - a.viewCount).slice(0, 10);
+    const biggestDiscounts = [...allWithRating].sort((a, b) => {
+      const discA = 1 - (a.sellingPrice / (a.mrpPrice || a.sellingPrice));
+      const discB = 1 - (b.sellingPrice / (b.mrpPrice || b.sellingPrice));
+      return discB - discA;
+    }).slice(0, 10);
+    const recommended = allWithRating.slice(0, 10);
 
     res.status(200).json({
       success: true,
@@ -88,6 +98,8 @@ exports.getHomepageData = async (req, res, next) => {
         recommended,
         newArrivals,
         bestSellers,
+        mostViewed,
+        biggestDiscounts,
         campaign: activeCampaigns[0] || null
       }),
       timestamp: Math.floor(Date.now() / 1000)
@@ -100,6 +112,16 @@ exports.getHomepageData = async (req, res, next) => {
 exports.getProductDetail = async (req, res, next) => {
   try {
     const { slug } = req.params;
+
+    // Kiểm tra cache chống StrictMode gọi 2 lần hoặc spam refresh (cooldown 3 giây)
+    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+    const cacheKey = `${clientIp}_${slug}`;
+    const now = Date.now();
+
+    if (!viewedCache.has(cacheKey) || (now - viewedCache.get(cacheKey) > 3000)) {
+      await Product.findOneAndUpdate({ slug }, { $inc: { view_count: 1 } });
+      viewedCache.set(cacheKey, now);
+    }
 
     // 1. Fetch Product
     const product = await Product.findOne({ slug, approval_status: 'approved', is_active: true });
@@ -387,6 +409,16 @@ exports.searchProducts = async (req, res, next) => {
       results.sort((a, b) => b.selling_price - a.selling_price);
     } else if (sort === 'top_rated') {
       results.sort((a, b) => b.averageRating - a.averageRating);
+    } else if (sort === 'best_sellers') {
+      results.sort((a, b) => b.soldCount - a.soldCount);
+    } else if (sort === 'most_viewed') {
+      results.sort((a, b) => b.viewCount - a.viewCount);
+    } else if (sort === 'biggest_discount') {
+      results.sort((a, b) => {
+        const discA = 1 - (a.selling_price / (a.mrp_price || a.selling_price));
+        const discB = 1 - (b.selling_price / (b.mrp_price || b.selling_price));
+        return discB - discA;
+      });
     } else if (sort === 'oldest') {
       results.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     } else {

@@ -42,7 +42,7 @@ const OrderDetail = () => {
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
-        const token = localStorage.getItem('token') || '';
+        const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
         const response = await axios.get(`http://localhost:5000/api/orders/${orderId}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -78,7 +78,7 @@ const OrderDetail = () => {
       return;
     }
     try {
-      const token = localStorage.getItem('token') || '';
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '') || '';
       const response = await axios.post(
         'http://localhost:5000/api/checkout/repay-vnpay',
         { paymentCode },

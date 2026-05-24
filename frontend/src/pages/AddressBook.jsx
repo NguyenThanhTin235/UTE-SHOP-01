@@ -41,7 +41,7 @@ const AddressBook = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       const response = await axios.get('http://localhost:5000/api/users/addresses', config);
@@ -112,7 +112,7 @@ const AddressBook = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       await axios.delete(`http://localhost:5000/api/users/addresses/${deleteConfirmId}`, config);
@@ -129,7 +129,7 @@ const AddressBook = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
       await axios.put(`http://localhost:5000/api/users/addresses/${addressId}`, { is_default: true }, config);
@@ -185,7 +185,7 @@ const AddressBook = () => {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '') || ''}`,
         },
       };
 
