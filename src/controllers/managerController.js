@@ -1,0 +1,169 @@
+const SellerProfile = require('../models/SellerProfile');
+const Product = require('../models/Product');
+const Shop = require('../models/Shop');
+const AuditLog = require('../models/AuditLog');
+const ProductApproval = require('../models/ProductApproval');
+const response = require('../utils/response');
+
+/**
+ * GET /api/manager/dashboard
+ * Returns all stats needed for the Manager Dashboard Overview.
+ */
+const getDashboard = async (req, res) => {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // --- Stat Cards ---
+    const [pendingShops, pendingProducts] = await Promise.all([
+      SellerProfile.countDocuments({ status: 'pending' }),
+      Product.countDocuments({ approval_status: 'pending' }),
+    ]);
+
+    // "Resolved Today" = shop approvals + product approvals made today
+    const [shopsResolvedToday, productsResolvedToday] = await Promise.all([
+      SellerProfile.countDocuments({
+        status: { $in: ['active', 'rejected'] },
+        approved_at: { $gte: todayStart, $lte: todayEnd },
+      }),
+      ProductApproval.countDocuments({
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      }),
+    ]);
+    const resolvedToday = shopsResolvedToday + productsResolvedToday;
+
+    // --- Approval Trends (last 7 days) ---
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const productTrends = await ProductApproval.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const shopTrends = await SellerProfile.aggregate([
+      {
+        $match: {
+          status: { $in: ['active', 'rejected'] },
+          approved_at: { $gte: sevenDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$approved_at' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Build a map for the last 7 days
+    const trendMap = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      trendMap[key] = { date: key, count: 0, dayLabel: d.toLocaleDateString('en-US', { weekday: 'short' }) };
+    }
+    productTrends.forEach(({ _id, count }) => {
+      if (trendMap[_id]) trendMap[_id].count += count;
+    });
+    shopTrends.forEach(({ _id, count }) => {
+      if (trendMap[_id]) trendMap[_id].count += count;
+    });
+    const approvalTrends = Object.values(trendMap);
+
+    // --- Pending Tasks (5 most recent: mix shops + products) ---
+    const [pendingShopProfiles, pendingProductList] = await Promise.all([
+      SellerProfile.find({ status: 'pending' })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate('user_id', 'full_name email'),
+      Product.find({ approval_status: 'pending' })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate('shop_id', 'name'),
+    ]);
+
+    const pendingTasks = [
+      ...pendingShopProfiles.map((sp) => ({
+        id: sp._id,
+        type: 'shop',
+        title: sp.user_id?.full_name || 'Unknown Seller',
+        subtitle: `Shop Registration • ${timeAgo(sp.createdAt)}`,
+        icon: 'store',
+      })),
+      ...pendingProductList.map((p) => ({
+        id: p._id,
+        type: 'product',
+        title: p.name,
+        subtitle: `Product Approval • ${timeAgo(p.createdAt)}`,
+        icon: 'inventory_2',
+      })),
+    ]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+
+    // --- Recent Activity (last 8 audit logs) ---
+    const recentLogs = await AuditLog.find()
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .populate('actor_id', 'full_name');
+
+    const recentActivity = recentLogs.map((log) => ({
+      id: log._id,
+      action: log.action,
+      entityType: log.entity_type,
+      entityId: log.entity_id,
+      metadata: log.metadata,
+      actorName: log.actor_id?.full_name || 'System',
+      createdAt: log.createdAt,
+      timeAgo: timeAgo(log.createdAt),
+    }));
+
+    return response.success(res, {
+      message: 'Manager dashboard data retrieved successfully',
+      data: {
+        stats: {
+          pendingShops,
+          pendingProducts,
+          resolvedToday,
+        },
+        approvalTrends,
+        pendingTasks,
+        recentActivity,
+      },
+    });
+  } catch (err) {
+    console.error('Manager getDashboard error:', err);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Failed to load manager dashboard',
+    });
+  }
+};
+
+// Helper: human-readable time ago
+function timeAgo(date) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+module.exports = { getDashboard };
