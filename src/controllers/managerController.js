@@ -166,4 +166,107 @@ function timeAgo(date) {
   return `${days}d ago`;
 }
 
-module.exports = { getDashboard };
+// ─── SHOP APPROVAL ─────────────────────────────────────────────────────────────
+
+const getPendingShops = async (req, res) => {
+  try {
+    const pendingProfiles = await SellerProfile.find({ status: 'pending' })
+      .populate('user_id', 'full_name email')
+      .sort({ createdAt: -1 });
+
+    const ownerIds = pendingProfiles.map(p => p.user_id?._id).filter(Boolean);
+    const shops = await Shop.find({ owner_user_id: { $in: ownerIds } });
+    
+    // Map shop data to profile
+    const results = pendingProfiles.map(profile => {
+      const shop = shops.find(s => s.owner_user_id.toString() === profile.user_id?._id?.toString());
+      return {
+        id: profile._id,
+        shopName: shop?.name || 'Unknown Shop',
+        taxId: profile.gst_number || 'N/A',
+        legalRep: profile.user_id?.full_name || 'Unknown',
+        appliedAt: profile.createdAt,
+        timeAgo: timeAgo(profile.createdAt),
+      };
+    });
+
+    return response.success(res, {
+      message: 'Pending shops retrieved',
+      data: results
+    });
+  } catch (err) {
+    console.error('getPendingShops error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const approveShop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await SellerProfile.findById(id);
+    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+
+    profile.status = 'active';
+    profile.approved_by = req.user._id;
+    profile.approved_at = new Date();
+    await profile.save();
+
+    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
+    if (shop) {
+      shop.status = 'active';
+      await shop.save();
+    }
+
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'APPROVE_SHOP',
+      entity_type: 'Shop',
+      entity_id: shop ? shop._id : profile._id,
+      metadata: { name: shop?.name || 'A shop' }
+    });
+
+    return response.success(res, { message: 'Shop approved successfully', data: {} });
+  } catch (err) {
+    console.error('approveShop error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const rejectShop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const profile = await SellerProfile.findById(id);
+    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+
+    profile.status = 'rejected';
+    profile.rejection_reason = reason || 'No reason provided';
+    await profile.save();
+
+    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
+    if (shop) {
+      shop.status = 'suspended';
+      await shop.save();
+    }
+
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'REJECT_SHOP',
+      entity_type: 'Shop',
+      entity_id: shop ? shop._id : profile._id,
+      metadata: { name: shop?.name || 'A shop', reason }
+    });
+
+    return response.success(res, { message: 'Shop rejected successfully', data: {} });
+  } catch (err) {
+    console.error('rejectShop error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+module.exports = { 
+  getDashboard,
+  getPendingShops,
+  approveShop,
+  rejectShop
+};

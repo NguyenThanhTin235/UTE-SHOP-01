@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getDashboard } = require('../controllers/managerController');
+const { 
+  getDashboard, 
+  getPendingShops, 
+  approveShop, 
+  rejectShop 
+} = require('../controllers/managerController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
 // Middleware to ensure only manager or admin can access
@@ -20,5 +25,10 @@ const requireManagerOrAdmin = (req, res, next) => {
 
 // GET /api/manager/dashboard
 router.get('/dashboard', verifyToken, requireManagerOrAdmin, getDashboard);
+
+// ─── SHOP APPROVAL ──────────────────────────────────────────────────────────
+router.get('/shops/pending', verifyToken, requireManagerOrAdmin, getPendingShops);
+router.post('/shops/:id/approve', verifyToken, requireManagerOrAdmin, approveShop);
+router.post('/shops/:id/reject', verifyToken, requireManagerOrAdmin, rejectShop);
 
 module.exports = router;

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-
+import ShopApprovalTab from '../components/manager/ShopApprovalTab';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -43,8 +43,27 @@ const ManagerDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Extract tab from URL (e.g. /manager/shop_approval -> shop_approval)
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const currentTabFromUrl = pathParts.length > 1 ? pathParts[1] : 'dashboard';
+
+  const [activeTab, setActiveTabState] = useState(currentTabFromUrl);
+  
+  // Sync state with URL when user navigates manually or back/forward
+  useEffect(() => {
+    setActiveTabState(currentTabFromUrl);
+  }, [currentTabFromUrl]);
+
+  // Navigate to update URL instead of just local state
+  const setActiveTab = (tabId) => {
+    if (tabId === 'dashboard') {
+      navigate('/manager/');
+    } else {
+      navigate(`/manager/${tabId}`);
+    }
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
@@ -487,8 +506,11 @@ const ManagerDashboard = () => {
             </>
           )}
 
+          {/* Shop Approval Tab */}
+          {activeTab === 'shop_approval' && <ShopApprovalTab />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}
