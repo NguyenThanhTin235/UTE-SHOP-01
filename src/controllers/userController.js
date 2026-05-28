@@ -430,9 +430,23 @@ class UserController {
       const CoinTransaction = require('../models/CoinTransaction');
       const User = require('../models/User');
 
-      const transactions = await CoinTransaction.find({ user_id: userId })
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 5;
+      const skip = (page - 1) * limit;
+
+      const filter = { user_id: userId };
+      if (req.query.type && req.query.type !== 'all') {
+        filter.type = req.query.type;
+      }
+
+      const total = await CoinTransaction.countDocuments(filter);
+      const totalPages = Math.ceil(total / limit);
+
+      const transactions = await CoinTransaction.find(filter)
         .sort({ createdAt: -1 })
-        .populate('order_id', 'order_code total_final');
+        .populate('order_id', 'order_code total_final')
+        .skip(skip)
+        .limit(limit);
 
       const user = await User.findById(userId).select('coin_balance');
 
@@ -443,6 +457,12 @@ class UserController {
         data: {
           coinBalance: user ? user.coin_balance : 0,
           transactions: toCamelCase(transactions)
+        },
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          total
         },
         timestamp: Math.floor(Date.now() / 1000)
       });

@@ -206,7 +206,7 @@ const OrderHistory = () => {
         </aside>
 
         {/* Main Content Area */}
-        <section className="flex-1 w-full text-left">
+        <section className="flex-1 w-full text-left max-w-4xl">
           <div className="bg-white rounded-3xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30 overflow-hidden">
             {/* Tabs Trạng thái */}
             <div className="flex border-b border-[#c3c6d7]/30 overflow-x-auto no-scrollbar bg-[#f2f3ff]/30">

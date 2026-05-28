@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const OrderCancellation = require('../models/OrderCancellation');
 const PaymentOrder = require('../models/PaymentOrder');
+const Payment = require('../models/Payment');
 const Product = require('../models/Product');
 const ProductVariant = require('../models/ProductVariant');
 const ProductMedia = require('../models/ProductMedia');
@@ -613,6 +614,30 @@ const updateOrderStatus = async (req, res, next) => {
         }
 
         order.status = status;
+
+        if (status === 'delivered') {
+            const paymentOrder = await PaymentOrder.findById(order.payment_order_id);
+            if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
+                order.payment_status = 'success';
+
+                // Update pending payments to success
+                await Payment.updateMany(
+                    { payment_order_id: order.payment_order_id, status: 'pending' },
+                    { status: 'success', payment_date: new Date() }
+                );
+
+                // Update parent PaymentOrder if all sub-orders are success/delivered
+                const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id });
+                const allSiblingSuccess = siblingOrders.every(so =>
+                    so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+                );
+                if (allSiblingSuccess) {
+                    paymentOrder.payment_status = 'success';
+                    await paymentOrder.save();
+                }
+            }
+        }
+
         await order.save();
 
         res.status(200).json({

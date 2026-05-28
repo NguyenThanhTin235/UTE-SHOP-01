@@ -26,8 +26,19 @@ const productStorage = new CloudinaryStorage({
   },
 });
 
+const reviewStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uteshop/reviews',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }],
+  },
+});
+
 const upload = multer({ storage: storage });
 const uploadProduct = multer({ storage: productStorage });
+const uploadReview = multer({ storage: reviewStorage });
 
-module.exports = { cloudinary, upload, uploadProduct };
+module.exports = { cloudinary, upload, uploadProduct, uploadReview };
+
 

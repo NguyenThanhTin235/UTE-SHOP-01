@@ -1505,25 +1505,26 @@ class OrderController {
 
       // Adjust payment status and trigger stock/coin refunds if status transitioned to canceled or refunded
       if (newStatus === 'delivered') {
-        order.payment_status = 'success';
-        
-        // Update pending payments to success
-        await Payment.updateMany(
-          { payment_order_id: order.payment_order_id, status: 'pending' },
-          { status: 'success', payment_date: new Date() },
-          { session }
-        );
-
-        // Update parent PaymentOrder if all sub-orders are success/delivered
         const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
-        if (paymentOrder) {
-          const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
-          const allSiblingSuccess = siblingOrders.every(so => 
-            so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+        if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
+          order.payment_status = 'success';
+          
+          // Update pending payments to success
+          await Payment.updateMany(
+            { payment_order_id: order.payment_order_id, status: 'pending' },
+            { status: 'success', payment_date: new Date() },
+            { session }
           );
-          if (allSiblingSuccess) {
-            paymentOrder.payment_status = 'success';
-            await paymentOrder.save({ session });
+
+          if (paymentOrder) {
+            const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
+            const allSiblingSuccess = siblingOrders.every(so => 
+              so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+            );
+            if (allSiblingSuccess) {
+              paymentOrder.payment_status = 'success';
+              await paymentOrder.save({ session });
+            }
           }
         }
       } else if ((newStatus === 'canceled' || newStatus === 'refunded') && !['canceled', 'refunded'].includes(oldStatus)) {

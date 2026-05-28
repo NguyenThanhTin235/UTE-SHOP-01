@@ -1,6 +1,7 @@
 const Banner = require('../models/Banner');
 const Product = require('../models/Product');
 const ProductMedia = require('../models/ProductMedia');
+const ProductReviewMedia = require('../models/ProductReviewMedia');
 const Category = require('../models/Category');
 const Campaign = require('../models/Campaign');
 const CampaignTarget = require('../models/CampaignTarget');
@@ -180,7 +181,7 @@ exports.getProductDetail = async (req, res, next) => {
     ]);
     const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
 
-    // 7. Fetch Reviews with better details
+    // 7. Fetch Reviews with media
     const reviews = await ProductReview.find({ product_id: product._id })
       .populate('user_id', 'full_name avatar_url')
       .sort({ createdAt: -1 });
@@ -188,6 +189,22 @@ exports.getProductDetail = async (req, res, next) => {
     const avgRating = reviews.length > 0 
       ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
       : 5.0;
+
+    // Đính kèm media (ảnh) của từng review
+    const reviewsWithMedia = await Promise.all(reviews.map(async (r) => {
+      const reviewMedia = await ProductReviewMedia.find({ product_review_id: r._id });
+      return {
+        id: r._id,
+        rating: r.rating,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: r.user_id ? {
+          fullName: r.user_id.full_name,
+          avatarUrl: r.user_id.avatar_url
+        } : { fullName: 'Ẩn danh' },
+        media: reviewMedia.map(m => ({ url: m.media_url, type: m.media_type }))
+      };
+    }));
 
     // 8. Fetch Related Products (Same category, approved, not current)
     const relatedProductsRaw = await Product.find({ 
@@ -242,16 +259,7 @@ exports.getProductDetail = async (req, res, next) => {
         variants,
         stock: totalStock,
         sold: totalSold,
-        reviews: reviews.map(r => ({
-          id: r._id,
-          rating: r.rating,
-          comment: r.comment,
-          createdAt: r.createdAt,
-          user: r.user_id ? {
-            fullName: r.user_id.full_name,
-            avatarUrl: r.user_id.avatar_url
-          } : { fullName: 'Anonymous' }
-        })),
+        reviews: reviewsWithMedia,
         relatedProducts
       }),
       timestamp: Math.floor(Date.now() / 1000)

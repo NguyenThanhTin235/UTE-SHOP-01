@@ -649,14 +649,14 @@ const ProductDetail = () => {
                                   <div className="flex justify-between items-start">
                                       <div className="flex gap-4">
                                           {r.user?.avatarUrl && r.user.avatarUrl !== "https://ui-avatars.com/api/?name=User&background=random" ? (
-                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" />
+                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" referrerPolicy="no-referrer" />
                                           ) : (
                                               <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">
                                                   {r.user?.fullName ? r.user.fullName.substring(0, 2).toUpperCase() : 'JD'}
                                               </div>
                                           )}
                                           <div>
-                                              <h4 className="font-bold text-on-surface">{r.user?.fullName || 'John Doe'}</h4>
+                                              <h4 className="font-bold text-on-surface">{r.user?.fullName || 'Anonymous'}</h4>
                                               <div className="flex text-primary text-[14px]">
                                                   {[...Array(5)].map((_, i) => (
                                                       <span key={i} className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: i < r.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
@@ -664,20 +664,35 @@ const ProductDetail = () => {
                                               </div>
                                           </div>
                                       </div>
-                                      <span className="text-xs text-on-surface-variant">{new Date(r.createdAt).toLocaleDateString()}</span>
+                                      <span className="text-xs text-on-surface-variant">{new Date(r.createdAt).toLocaleDateString('en-US')}</span>
                                   </div>
-                                  <p className="text-sm text-on-surface-variant leading-relaxed">
-                                      {r.comment}
-                                  </p>
+                                  {r.comment && (
+                                    <p className="text-sm text-on-surface-variant leading-relaxed">{r.comment}</p>
+                                  )}
+                                  {/* Ảnh đính kèm review */}
+                                  {r.media && r.media.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {r.media.map((m, mi) => (
+                                        <a key={mi} href={m.url} target="_blank" rel="noopener noreferrer">
+                                          <img
+                                            src={m.url}
+                                            alt={`review-media-${mi}`}
+                                            className="w-16 h-16 rounded-xl object-cover border border-outline-variant/30 hover:opacity-90 hover:scale-105 transition-all cursor-pointer"
+                                          />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
                               </div>
                           )) : (
                               <div className="text-sm text-on-surface-variant italic py-8 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-                                  No reviews available for this product yet.
+                                  No reviews for this product yet.
                               </div>
                           )}
                       </div>
                   </div>
               </section>
+
 
               {/* Section 3: Shipping & Returns */}
               <section id="shipping" className="space-y-12 scroll-mt-32">
