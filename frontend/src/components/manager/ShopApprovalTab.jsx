@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const API = 'http://localhost:5000/api';
 
@@ -43,6 +44,7 @@ const ShopApprovalTab = () => {
   const [shops, setShops] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const navigate = useNavigate();
 
   const fetchPendingShops = async () => {
     setLoading(true);
@@ -95,9 +97,6 @@ const ShopApprovalTab = () => {
     }
   };
 
-  const handleBulkAction = () => {
-    toast.success('Bulk actions coming soon!');
-  };
 
   const handleExportCSV = () => {
     if (shops.length === 0) {
@@ -139,12 +138,7 @@ const ShopApprovalTab = () => {
           >
             Export CSV
           </button>
-          <button
-            onClick={handleBulkAction}
-            className="px-4 py-2 bg-[#004ac6] text-white rounded-xl text-xs font-black shadow-lg shadow-blue-100 hover:scale-105 transition-all cursor-pointer"
-          >
-            Bulk Action
-          </button>
+
         </div>
       </div>
 
@@ -175,7 +169,7 @@ const ShopApprovalTab = () => {
               </tr>
             ) : (
               paginatedShops.map((shop) => (
-                <tr key={shop.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={shop.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => navigate(`/manager/shop_detail/${shop.id}`)}>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
@@ -199,21 +193,21 @@ const ShopApprovalTab = () => {
                   <td className="px-8 py-6">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => handleApprove(shop.id, shop.shopName)}
+                        onClick={(e) => { e.stopPropagation(); handleApprove(shop.id, shop.shopName); }}
                         className="w-9 h-9 rounded-xl bg-green-50 text-[#16a34a] flex items-center justify-center hover:bg-[#16a34a] hover:text-white transition-all cursor-pointer"
                         title="Approve"
                       >
                         <span className="material-symbols-outlined text-xl">check</span>
                       </button>
                       <button
-                        onClick={() => handleReject(shop.id, shop.shopName)}
+                        onClick={(e) => { e.stopPropagation(); handleReject(shop.id, shop.shopName); }}
                         className="w-9 h-9 rounded-xl bg-red-50 text-[#dc2626] flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all cursor-pointer"
                         title="Reject"
                       >
                         <span className="material-symbols-outlined text-xl">close</span>
                       </button>
                       <button
-                        onClick={() => toast.success('Viewing document details...')}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/manager/shop_detail/${shop.id}`); }}
                         className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
                         title="View Documents"
                       >

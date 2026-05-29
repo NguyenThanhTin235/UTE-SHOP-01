@@ -168,6 +168,63 @@ function timeAgo(date) {
 
 // ─── SHOP APPROVAL ─────────────────────────────────────────────────────────────
 
+const getShopDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await SellerProfile.findById(id).populate('user_id', 'full_name email phone');
+    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+
+    const shop = await Shop.findOne({ owner_user_id: profile.user_id?._id });
+    if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
+
+    // Build approval history from AuditLog
+    const auditLogs = await AuditLog.find({
+      entity_type: 'Shop',
+      entity_id: { $in: [shop._id, profile._id] }
+    })
+      .sort({ createdAt: -1 })
+      .populate('actor_id', 'full_name');
+
+    const history = auditLogs.map(log => ({
+      id: log._id,
+      action: log.action === 'APPROVE_SHOP' ? 'Approved Registration' : 
+              log.action === 'REJECT_SHOP' ? 'Rejected Registration' : log.action,
+      note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Application reviewed and approved.' : 'No additional note'),
+      actorName: log.actor_id?.full_name || 'System',
+      date: log.createdAt
+    }));
+
+    history.push({
+      id: 'init_' + profile._id,
+      action: 'Documents Submitted',
+      note: 'Initial registration documents received from applicant.',
+      actorName: profile.user_id?.full_name || 'Applicant',
+      date: profile.createdAt
+    });
+
+    return response.success(res, {
+      message: 'Shop detail retrieved',
+      data: {
+        id: profile._id,
+        shopName: shop.name,
+        taxId: profile.gst_number || 'N/A',
+        legalRep: profile.user_id?.full_name || 'Unknown',
+        email: profile.user_id?.email || shop.email || 'N/A',
+        phone: shop.phone || 'N/A',
+        address: shop.address || profile.pickup_address || 'N/A',
+        identity_card_url: profile.identity_card_url,
+        business_license_url: profile.business_license_url,
+        status: profile.status,
+        appliedAt: profile.createdAt,
+        history
+      }
+    });
+  } catch (err) {
+    console.error('getShopDetail error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 const getPendingShops = async (req, res) => {
   try {
     const pendingProfiles = await SellerProfile.find({ status: 'pending' })
@@ -264,9 +321,35 @@ const rejectShop = async (req, res) => {
   }
 };
 
+const requestShopInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+    const profile = await SellerProfile.findById(id);
+    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+
+    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
+
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'Information Requested',
+      entity_type: 'Shop',
+      entity_id: shop ? shop._id : profile._id,
+      metadata: { note: note || 'Please provide additional information for your shop registration.' }
+    });
+
+    return response.success(res, { message: 'Information request sent successfully', data: {} });
+  } catch (err) {
+    console.error('requestShopInfo error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 module.exports = { 
   getDashboard,
   getPendingShops,
+  getShopDetail,
   approveShop,
-  rejectShop
+  rejectShop,
+  requestShopInfo
 };

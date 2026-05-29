@@ -3,8 +3,10 @@ const router = express.Router();
 const { 
   getDashboard, 
   getPendingShops, 
+  getShopDetail,
   approveShop, 
-  rejectShop 
+  rejectShop,
+  requestShopInfo
 } = require('../controllers/managerController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
@@ -28,7 +30,9 @@ router.get('/dashboard', verifyToken, requireManagerOrAdmin, getDashboard);
 
 // ─── SHOP APPROVAL ──────────────────────────────────────────────────────────
 router.get('/shops/pending', verifyToken, requireManagerOrAdmin, getPendingShops);
+router.get('/shops/:id', verifyToken, requireManagerOrAdmin, getShopDetail);
 router.post('/shops/:id/approve', verifyToken, requireManagerOrAdmin, approveShop);
 router.post('/shops/:id/reject', verifyToken, requireManagerOrAdmin, rejectShop);
+router.post('/shops/:id/request-info', verifyToken, requireManagerOrAdmin, requestShopInfo);
 
 module.exports = router;
