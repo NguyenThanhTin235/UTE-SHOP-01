@@ -47,10 +47,16 @@ const Checkout = () => {
   const [useCoins, setUseCoins] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
 
+  // Voucher selector states
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+
   // Preview data state
   const [previewData, setPreviewData] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
 
   // Redirect to login if user is not authenticated, or to cart if no items selected
   useEffect(() => {
@@ -152,6 +158,24 @@ const Checkout = () => {
     setCouponCodeInput('');
     toast.success('Coupon removed');
   };
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      setLoadingCoupons(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const response = await axios.get('http://localhost:5000/api/public/coupons', config);
+      if (response.data && response.data.success) {
+        setAvailableCoupons(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching coupons:', error);
+      toast.error('Failed to load available vouchers');
+    } finally {
+      setLoadingCoupons(false);
+    }
+  };
+
 
   // Add Address Action
   const handleAddAddress = async (e) => {
@@ -433,19 +457,31 @@ const Checkout = () => {
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2 mb-6">
-                  <input 
-                    type="text" 
-                    placeholder="Enter coupon code..."
-                    value={couponCodeInput}
-                    onChange={(e) => setCouponCodeInput(e.target.value)}
-                    className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 py-2.5 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e]"
-                  />
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Enter coupon code..."
+                      value={couponCodeInput}
+                      onChange={(e) => setCouponCodeInput(e.target.value)}
+                      className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 py-2.5 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e]"
+                    />
+                    <button 
+                      onClick={handleApplyCoupon}
+                      className="bg-[#004ac6] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#003ea8] transition-all cursor-pointer"
+                    >
+                      Apply
+                    </button>
+                  </div>
                   <button 
-                    onClick={handleApplyCoupon}
-                    className="bg-[#004ac6] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#003ea8] transition-all cursor-pointer"
+                    onClick={() => {
+                      fetchAvailableCoupons();
+                      setShowVoucherModal(true);
+                    }}
+                    className="text-[#004ac6] text-xs font-bold hover:underline flex items-center gap-1 cursor-pointer w-full justify-start mt-1.5"
                   >
-                    Apply
+                    <span className="material-symbols-outlined text-[16px]">local_activity</span>
+                    Select available vouchers
                   </button>
                 </div>
               )}
@@ -721,6 +757,156 @@ const Checkout = () => {
                 </div>
               )}
 
+            </div>
+          </div>
+        </div>
+      )}
+      {showVoucherModal && (
+
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border border-[#c3c6d7]/30">
+            
+            {/* Modal Header */}
+            <div className="p-6 border-b border-[#c3c6d7]/30 flex justify-between items-center text-left">
+              <h3 className="text-lg font-bold text-[#131b2e] flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#004ac6]">local_activity</span>
+                Select Voucher
+              </h3>
+              <button 
+                onClick={() => setShowVoucherModal(false)}
+                className="text-[#505f76] hover:text-[#ba1a1a] transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto flex-grow space-y-6 text-left">
+              {loadingCoupons ? (
+                <div className="py-12 flex flex-col justify-center items-center gap-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#004ac6]"></div>
+                  <p className="text-xs text-[#737686]">Loading vouchers...</p>
+                </div>
+              ) : availableCoupons.length === 0 ? (
+                <div className="py-12 text-center text-sm text-[#737686] italic">
+                  No coupons available at the moment.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(() => {
+                    const subtotal = previewData?.subtotalAmount || 0;
+                    
+                    // Filter out expired coupons first
+                    const activeCoupons = availableCoupons.filter(c => {
+                      if (!c.endAt) return true;
+                      return new Date(c.endAt) >= new Date();
+                    });
+
+                    const eligible = activeCoupons.filter(c => !c.isUsed && subtotal >= (c.minOrderTotal || 0));
+                    const ineligible = activeCoupons.filter(c => c.isUsed || subtotal < (c.minOrderTotal || 0));
+
+                    const renderCouponCard = (c, isAllowed) => {
+                      const isPercent = c.type === 'percent';
+                      const isFreeship = c.code === 'FREESHIP';
+                      return (
+                        <div 
+                          key={c.id} 
+                          className={`rounded-xl border flex overflow-hidden min-h-[100px] transition-all ${
+                            isAllowed 
+                              ? 'bg-white border-[#c3c6d7]/40 hover:border-[#004ac6]/40 shadow-sm' 
+                              : 'bg-slate-50 border-slate-200 opacity-65'
+                          }`}
+                        >
+                          {/* Left icon part */}
+                          <div className={`w-24 flex flex-col items-center justify-center text-white p-2 text-center relative ${
+                            !isAllowed ? 'bg-slate-400' : (isFreeship ? 'bg-emerald-600' : (isPercent ? 'bg-[#004ac6]' : 'bg-purple-600'))
+                          }`}>
+                            <span className="material-symbols-outlined text-2xl mb-1">
+                              {isFreeship ? 'local_shipping' : (isPercent ? 'percent' : 'payments')}
+                            </span>
+                            <span className="text-[8px] font-extrabold uppercase tracking-widest">
+                              {isFreeship ? 'Ship' : (isPercent ? 'Voucher' : 'Voucher')}
+                            </span>
+                          </div>
+
+                          {/* Right info part */}
+                          <div className="flex-1 p-3 flex flex-col justify-between items-start pl-4 min-w-0">
+                            <div className="w-full">
+                              <h4 className="font-bold text-xs text-[#131b2e] leading-snug line-clamp-1">
+                                {isPercent ? `Save ${c.value}% on order` : `Save ${c.value?.toLocaleString()}₫`}
+                              </h4>
+                              <p className="text-[10px] text-[#505f76] mt-0.5">
+                                Min Spend: <span className="font-bold text-[#131b2e]">{c.minOrderTotal?.toLocaleString()}₫</span>
+                              </p>
+                              {c.maxDiscount && isPercent && (
+                                <p className="text-[10px] text-[#505f76]">
+                                  Max Discount: <span className="font-bold text-[#131b2e]">{c.maxDiscount?.toLocaleString()}₫</span>
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="w-full flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+                              <span className="text-[10px] font-bold text-[#004ac6] bg-[#f2f3ff] px-2 py-0.5 rounded uppercase">
+                                {c.code}
+                              </span>
+
+                              {isAllowed ? (
+                                <button
+                                  onClick={() => {
+                                    setCouponCodeInput(c.code);
+                                    setCouponAppliedCode(c.code);
+                                    setShowVoucherModal(false);
+                                    toast.success(`Applied voucher: ${c.code}`);
+                                  }}
+                                  className="bg-[#004ac6] text-white px-3 py-1 rounded text-[10px] font-bold hover:opacity-90 transition-all cursor-pointer shadow-sm"
+                                >
+                                  Apply
+                                </button>
+                              ) : (
+                                <span className="text-[9px] text-red-500 font-bold max-w-[120px] text-right">
+                                  {c.isUsed ? 'Already Used' : `Spend ${((c.minOrderTotal || 0) - subtotal).toLocaleString()}₫ more to apply`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    };
+
+                    return (
+                      <div className="space-y-6">
+                        {eligible.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-bold text-[#505f76] uppercase tracking-wider">Eligible Vouchers</h4>
+                            <div className="flex flex-col gap-3">
+                              {eligible.map(c => renderCouponCard(c, true))}
+                            </div>
+                          </div>
+                        )}
+
+                        {ineligible.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-bold text-[#505f76] uppercase tracking-wider">Ineligible Vouchers</h4>
+                            <div className="flex flex-col gap-3">
+                              {ineligible.map(c => renderCouponCard(c, false))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#c3c6d7]/30 flex justify-end">
+              <button
+                onClick={() => setShowVoucherModal(false)}
+                className="bg-slate-100 hover:bg-slate-200 text-[#131b2e] px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -233,7 +233,12 @@ class UserController {
   async getUnreadNotificationCount(req, res) {
     try {
       const Notification = require('../models/Notification');
+      const { ensurePromotionNotifications } = require('./notificationController');
       const userId = req.user.id;
+      
+      // Ensure promotion notifications exist before counting
+      await ensurePromotionNotifications(userId);
+      
       const count = await Notification.countDocuments({ user_id: userId, is_read: false });
       return res.status(200).json({ success: true, count });
     } catch (error) {
@@ -473,6 +478,175 @@ class UserController {
         code: 500,
         message: 'Lỗi hệ thống khi lấy lịch sử giao dịch xu',
         timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+  }
+
+  /**
+   * Ghi nhận sản phẩm vừa xem
+   */
+  async recordRecentlyViewed(req, res) {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.body;
+      const RecentlyViewed = require('../models/RecentlyViewed');
+      const Product = require('../models/Product');
+
+      if (!productId) {
+        return res.status(422).json({
+          success: false,
+          code: 422,
+          message: 'Vui lòng cung cấp ID sản phẩm'
+        });
+      }
+
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          code: 404,
+          message: 'Không tìm thấy sản phẩm'
+        });
+      }
+
+      // Upsert để cập nhật thời gian xem gần nhất (updatedAt)
+      await RecentlyViewed.findOneAndUpdate(
+        { user_id: userId, product_id: productId },
+        { user_id: userId, product_id: productId },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Đã ghi nhận sản phẩm đã xem'
+      });
+    } catch (error) {
+      console.error('Record Recently Viewed Error:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: 'Lỗi hệ thống khi ghi nhận sản phẩm đã xem'
+      });
+    }
+  }
+
+  /**
+   * Lấy danh sách sản phẩm đã xem của User (phân trang)
+   */
+  async getRecentlyViewed(req, res) {
+    try {
+      const userId = req.user.id;
+      const RecentlyViewed = require('../models/RecentlyViewed');
+      const Product = require('../models/Product');
+      const ProductMedia = require('../models/ProductMedia');
+      const Category = require('../models/Category');
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      const total = await RecentlyViewed.countDocuments({ user_id: userId });
+      const totalPages = Math.ceil(total / limit);
+
+      const items = await RecentlyViewed.find({ user_id: userId })
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const itemsWithDetails = await Promise.all(items.map(async (item) => {
+        const product = await Product.findById(item.product_id).lean();
+        if (!product) return null;
+
+        const media = await ProductMedia.find({ product_id: product._id }).sort({ sort_order: 1 });
+        const category = await Category.findById(product.category_id);
+
+        return {
+          id: item._id.toString(),
+          productId: product._id.toString(),
+          name: product.name,
+          slug: product.slug,
+          mrpPrice: product.mrp_price,
+          sellingPrice: product.selling_price,
+          categoryName: category ? category.name : 'General',
+          media: media.map(m => m.media_url),
+          viewedAt: item.updatedAt
+        };
+      }));
+
+      const filteredItems = itemsWithDetails.filter(item => item !== null);
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Lấy danh sách sản phẩm đã xem thành công',
+        data: filteredItems,
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          total
+        },
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    } catch (error) {
+      console.error('Get Recently Viewed Error:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: 'Lỗi hệ thống khi lấy danh sách sản phẩm đã xem',
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
+  }
+
+  /**
+   * Xóa một sản phẩm khỏi danh sách đã xem
+   */
+  async removeFromRecentlyViewed(req, res) {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.params;
+      const RecentlyViewed = require('../models/RecentlyViewed');
+
+      await RecentlyViewed.findOneAndDelete({ user_id: userId, product_id: productId });
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Đã xóa sản phẩm khỏi danh sách đã xem'
+      });
+    } catch (error) {
+      console.error('Remove Recently Viewed Error:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: 'Lỗi hệ thống khi xóa sản phẩm khỏi danh sách đã xem'
+      });
+    }
+  }
+
+  /**
+   * Xóa toàn bộ danh sách đã xem
+   */
+  async clearRecentlyViewed(req, res) {
+    try {
+      const userId = req.user.id;
+      const RecentlyViewed = require('../models/RecentlyViewed');
+
+      await RecentlyViewed.deleteMany({ user_id: userId });
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Đã xóa toàn bộ danh sách sản phẩm đã xem'
+      });
+    } catch (error) {
+      console.error('Clear Recently Viewed Error:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: 'Lỗi hệ thống khi xóa danh sách sản phẩm đã xem'
       });
     }
   }

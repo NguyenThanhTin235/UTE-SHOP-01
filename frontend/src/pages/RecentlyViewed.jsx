@@ -6,59 +6,89 @@ import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import { logout } from '../redux/authSlice';
 
-const Wishlist = () => {
+const RecentlyViewed = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [wishlistItems, setWishlistItems] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('latest'); // latest, price-asc, price-desc
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 1,
+    limit: 8
+  });
+
+  const fetchRecentlyViewed = async () => {
+    setLoading(true);
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
+        },
+        params: {
+          page: currentPage,
+          limit: 8
+        }
+      };
+      const response = await axios.get('http://localhost:5000/api/users/recently-viewed', config);
+      if (response.data && response.data.success) {
+        setItems(response.data.data || []);
+        if (response.data.pagination) {
+          setPagination(response.data.pagination);
+        }
+      }
+    } catch (error) {
+      console.error('Fetch recently viewed error:', error);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
+    fetchRecentlyViewed();
+  }, [user, navigate, currentPage]);
 
-    const fetchWishlist = async () => {
-      try {
-        const config = {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
-          },
-        };
-        const response = await axios.get('http://localhost:5000/api/users/wishlist', config);
-        if (response.data && response.data.success) {
-          setWishlistItems(response.data.data || []);
-        } else {
-          setWishlistItems([]);
-        }
-      } catch (error) {
-        setWishlistItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWishlist();
-  }, [user, navigate]);
-
-  const handleRemoveWishlist = async (productId) => {
+  const handleRemoveItem = async (productId) => {
     try {
       const config = {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
         },
       };
-      const response = await axios.delete(`http://localhost:5000/api/users/wishlist/${productId}`, config);
+      const response = await axios.delete(`http://localhost:5000/api/users/recently-viewed/${productId}`, config);
       if (response.data && response.data.success) {
-        setWishlistItems(prev => prev.filter(item => item.productId !== productId));
-        toast.success('Removed from wishlist');
+        toast.success('Removed from recently viewed');
+        fetchRecentlyViewed();
       }
     } catch (error) {
       toast.error('Failed to remove item');
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!window.confirm('Are you sure you want to clear your entire recently viewed history?')) return;
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
+        },
+      };
+      const response = await axios.delete('http://localhost:5000/api/users/recently-viewed', config);
+      if (response.data && response.data.success) {
+        toast.success('Recently viewed history cleared');
+        setCurrentPage(1);
+        setItems([]);
+        setPagination({ total: 0, totalPages: 1, limit: 8 });
+      }
+    } catch (error) {
+      toast.error('Failed to clear history');
     }
   };
 
@@ -95,24 +125,9 @@ const Wishlist = () => {
     toast.success('Logged out successfully');
   };
 
-  // Sort logic
-  const sortedItems = [...wishlistItems].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.sellingPrice - b.sellingPrice;
-    if (sortBy === 'price-desc') return b.sellingPrice - a.sellingPrice;
-    return new Date(b.addedAt) - new Date(a.addedAt);
-  });
-
-  // Pagination logic (8 items per page)
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
-  const paginatedItems = sortedItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortBy, wishlistItems.length]);
-
-  const avatarSrc = user?.avatarUrl ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
+  const avatarSrc = user?.avatarUrl 
+    ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) 
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
 
   return (
     <Layout>
@@ -145,13 +160,13 @@ const Wishlist = () => {
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            {/* Active Item: Wishlist */}
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">history</span>
+            {/* Active Item: Recently Viewed */}
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
               <span>Recently Viewed</span>
             </Link>
             <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
@@ -185,54 +200,21 @@ const Wishlist = () => {
           {/* Header Section */}
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div className="text-left">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-[#131b2e] tracking-tight mb-1">My Wishlist</h1>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#131b2e] tracking-tight mb-1">Recently Viewed</h1>
               <p className="text-base text-[#434655]">
-                {loading ? 'Loading your wishlist...' : `You have ${wishlistItems.length} items saved for later.`}
+                {loading ? 'Loading history...' : `You have viewed ${pagination.total} products recently.`}
               </p>
             </div>
 
-            {/* Sort Dropdown */}
-            {!loading && wishlistItems.length > 0 && (
-              <div className="relative self-end sm:self-auto">
-                <button 
-                  onClick={() => setShowSortMenu(!showSortMenu)}
-                  className="px-5 py-2.5 bg-[#eaedff] border border-[#c3c6d7]/50 rounded-xl flex items-center gap-2 text-[#131b2e] hover:bg-[#dae2fd] transition-all font-bold text-sm shadow-sm cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">sort</span>
-                  <span>
-                    {sortBy === 'latest' && 'Sort by: Latest'}
-                    {sortBy === 'price-asc' && 'Price: Low to High'}
-                    {sortBy === 'price-desc' && 'Price: High to Low'}
-                  </span>
-                  <span className="material-symbols-outlined text-base ml-1">expand_more</span>
-                </button>
-
-                {showSortMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#c3c6d7]/30 py-2 z-30 animate-fadeIn pl-0 pr-0">
-                    <button 
-                      onClick={() => { setSortBy('latest'); setShowSortMenu(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-between ${sortBy === 'latest' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#131b2e] hover:bg-[#f2f3ff]'}`}
-                    >
-                      <span>Latest Added</span>
-                      {sortBy === 'latest' && <span className="material-symbols-outlined text-base">check</span>}
-                    </button>
-                    <button 
-                      onClick={() => { setSortBy('price-asc'); setShowSortMenu(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-between ${sortBy === 'price-asc' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#131b2e] hover:bg-[#f2f3ff]'}`}
-                    >
-                      <span>Price: Low to High</span>
-                      {sortBy === 'price-asc' && <span className="material-symbols-outlined text-base">check</span>}
-                    </button>
-                    <button 
-                      onClick={() => { setSortBy('price-desc'); setShowSortMenu(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-between ${sortBy === 'price-desc' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#131b2e] hover:bg-[#f2f3ff]'}`}
-                    >
-                      <span>Price: High to Low</span>
-                      {sortBy === 'price-desc' && <span className="material-symbols-outlined text-base">check</span>}
-                    </button>
-                  </div>
-                )}
-              </div>
+            {/* Clear All Button */}
+            {!loading && items.length > 0 && (
+              <button 
+                onClick={handleClearAll}
+                className="px-5 py-2.5 bg-[#ffdad6] hover:bg-[#ffb4ab] border border-rose-200 rounded-xl flex items-center gap-2 text-[#ba1a1a] transition-all font-extrabold text-sm shadow-sm cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                <span>Clear All</span>
+              </button>
             )}
           </div>
 
@@ -240,15 +222,15 @@ const Wishlist = () => {
             <div className="flex justify-center items-center py-24">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
             </div>
-          ) : wishlistItems.length === 0 ? (
-            /* Standardized Data-Driven Empty State */
+          ) : items.length === 0 ? (
+            /* Empty State */
             <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-sm text-center max-w-2xl mx-auto my-8 space-y-6">
               <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="material-symbols-outlined text-[#004ac6] text-[48px]">favorite_border</span>
+                <span className="material-symbols-outlined text-[#004ac6] text-[48px]">history</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">Your Wishlist is Empty</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">No Viewed Products</h2>
               <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
-                You haven't saved any academic collections or products to your wishlist yet. Save items you like to review or purchase them later.
+                You haven't viewed any products recently. Start browsing the store catalogs to find items you love!
               </p>
               <div className="pt-4">
                 <Link 
@@ -261,19 +243,19 @@ const Wishlist = () => {
               </div>
             </div>
           ) : (
-            /* Bento Grid of Saved Products */
+            /* Grid of Viewed Products */
             <div className="space-y-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-left">
-                {paginatedItems.map((p) => (
+                {items.map((p) => (
                   <div key={p.id} className="group bg-white rounded-2xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] overflow-hidden border border-transparent hover:border-[#004ac6]/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full relative">
-                    {/* Remove / Heart Button */}
+                    {/* Delete Item Button */}
                     <div className="absolute top-3 right-3 z-10">
                       <button 
-                        onClick={() => handleRemoveWishlist(p.productId)}
-                        className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-[#004ac6] shadow-sm hover:bg-white hover:scale-110 transition-all cursor-pointer"
-                        title="Remove from wishlist"
+                        onClick={() => handleRemoveItem(p.productId)}
+                        className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-rose-500 shadow-sm hover:bg-rose-50 hover:scale-110 transition-all cursor-pointer"
+                        title="Remove from history"
                       >
-                        <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                       </button>
                     </div>
 
@@ -287,7 +269,7 @@ const Wishlist = () => {
 
                     <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
                       <div>
-                        <p className="text-[10px] font-bold text-[#505f76] uppercase tracking-wider mb-1">{p.categoryName || 'Apparel'}</p>
+                        <p className="text-[10px] font-bold text-[#505f76] uppercase tracking-wider mb-1">{p.categoryName || 'General'}</p>
                         <Link to={`/product/${p.slug}`}>
                           <h3 className="font-bold text-sm leading-5 text-[#131b2e] line-clamp-2 h-10 overflow-hidden group-hover:text-[#004ac6] transition-colors">{p.name}</h3>
                         </Link>
@@ -299,6 +281,9 @@ const Wishlist = () => {
                         ) : (
                           <p className="text-base font-extrabold text-[#004ac6] mt-1">{p.sellingPrice?.toLocaleString()}₫</p>
                         )}
+                        <span className="text-[10px] text-gray-400 font-semibold mt-2 block">
+                          Viewed {new Date(p.viewedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
 
                       <button 
@@ -314,17 +299,17 @@ const Wishlist = () => {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {pagination.totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 pt-4">
                   <button 
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(c => c - 1)}
+                    onClick={() => setCurrentPage(c => Math.max(1, c - 1))}
                     className="w-10 h-10 rounded-xl border border-[#c3c6d7] flex items-center justify-center hover:bg-[#f2f3ff] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
                   
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
                     <button 
                       key={p}
                       onClick={() => setCurrentPage(p)}
@@ -335,8 +320,8 @@ const Wishlist = () => {
                   ))}
 
                   <button 
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(c => c + 1)}
+                    disabled={currentPage === pagination.totalPages}
+                    onClick={() => setCurrentPage(c => Math.min(pagination.totalPages, c + 1))}
                     className="w-10 h-10 rounded-xl border border-[#c3c6d7] flex items-center justify-center hover:bg-[#f2f3ff] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
@@ -351,4 +336,4 @@ const Wishlist = () => {
   );
 };
 
-export default Wishlist;
+export default RecentlyViewed;

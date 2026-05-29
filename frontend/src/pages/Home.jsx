@@ -57,9 +57,12 @@ const Home = () => {
   const navigate = useNavigate();
 
   const [data, setData] = useState(null);
+  const { banners, categories, flashDeals, campaign } = data || {};
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('recommended');
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
 
   // Tab-specific product lists and pagination
   const [recommendedList, setRecommendedList] = useState([]);
@@ -125,6 +128,16 @@ const Home = () => {
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
   }, [data?.campaign]);
+
+  // Auto-scroll hero banner every 5 seconds
+  useEffect(() => {
+    if (!banners || banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners]);
+
 
   const handleLoadMore = async () => {
     if (loadingMore) return;
@@ -219,8 +232,6 @@ const Home = () => {
     );
   }
 
-  const { banners, categories, flashDeals, campaign } = data || {};
-
   const currentList = activeTab === 'recommended' 
     ? recommendedList 
     : activeTab === 'best-sellers' 
@@ -257,22 +268,77 @@ const Home = () => {
             </nav>
           </aside>
 
-          <div className="lg:col-span-3 relative h-[450px] rounded-3xl overflow-hidden group shadow-md border border-[#c3c6d7]">
-            <img src={banners?.[0]?.imageUrl || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1280"} alt="Hero Banner" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#131b2e]/60 to-transparent"></div>
-            <div className="relative h-full flex flex-col justify-center px-12 max-w-xl space-y-6">
-              <div className="inline-flex items-center gap-2 bg-[#004ac6] px-3 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest">
-                CURATED FOR SCHOLARS
+          <div className="lg:col-span-3 relative h-[450px] rounded-3xl overflow-hidden group shadow-md border border-[#c3c6d7] bg-slate-900">
+            {/* Banner Slideshow */}
+            {banners && banners.length > 0 ? (
+              banners.map((slide, idx) => (
+                <div 
+                  key={slide.id || idx}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentBannerIndex === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <img 
+                    src={slide.imageUrl || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1280"} 
+                    alt={slide.title || "Hero Banner"} 
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[7000ms]" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#131b2e]/70 via-[#131b2e]/45 to-transparent"></div>
+                  <div className="relative h-full flex flex-col justify-center px-12 max-w-xl space-y-6">
+                    <span className="inline-flex items-center gap-2 bg-[#004ac6] px-3.5 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-widest self-start shadow-md shadow-blue-500/10">
+                      {slide.title?.includes('Summer') ? 'SUMMER PROMOTION' : slide.title?.includes('Black') ? 'BLACK FRIDAY' : 'CURATED FOR YOU'}
+                    </span>
+                    <h1 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                      {slide.title || "The Precision Autumn Semester Edit"}
+                    </h1>
+                    <p className="text-white/80 text-sm md:text-base leading-relaxed drop-shadow">
+                      {slide.title?.includes('Summer') 
+                        ? 'Grab the hottest deals of summer 2026 with our active and stylish fashion collection.' 
+                        : slide.title?.includes('Black') 
+                        ? 'The biggest shopping event of the year! Enjoy ground-breaking discounts up to 50% on top brands.' 
+                        : 'Engineered for focus. Curated for performance. Discover the intersection of sophisticated design and academic utility.'}
+                    </p>
+                    <div className="flex gap-4 pt-2">
+                      <Link 
+                        to={slide.link || "/search"} 
+                        className="bg-[#004ac6] text-white px-8 py-3.5 rounded-2xl font-black text-sm hover:bg-blue-700 hover:shadow-lg transition-all active:scale-95 shadow-md shadow-[#004ac6]/20"
+                      >
+                        Shop Now
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1280" alt="Hero Banner" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#131b2e]/60 to-transparent"></div>
+                <div className="relative h-full flex flex-col justify-center px-12 max-w-xl space-y-6 z-10">
+                  <div className="inline-flex items-center gap-2 bg-[#004ac6] px-3 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest">
+                    CURATED FOR SCHOLARS
+                  </div>
+                  <h1 className="text-5xl font-extrabold text-white leading-tight">
+                    The Precision Autumn Semester Edit
+                  </h1>
+                  <p className="text-white/80 text-lg">Engineered for focus. Curated for performance. Discover the intersection of sophisticated design and academic utility.</p>
+                  <div className="flex gap-4 pt-4">
+                    <Link to="/search" className="bg-[#004ac6] text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-[#004ac6]/20">Explore the Collection</Link>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Banner Indicators / Navigation Dots */}
+            {banners && banners.length > 1 && (
+              <div className="absolute bottom-6 right-12 z-20 flex gap-2">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentBannerIndex(idx)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${currentBannerIndex === idx ? 'bg-[#004ac6] w-6' : 'bg-white/40 hover:bg-white/70'}`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  ></button>
+                ))}
               </div>
-              <h1 className="text-5xl font-extrabold text-white leading-tight">
-                {banners?.[0]?.title || "The Precision Autumn Semester Edit"}
-              </h1>
-              <p className="text-white/80 text-lg">Engineered for focus. Curated for performance. Discover the intersection of sophisticated design and academic utility.</p>
-              <div className="flex gap-4 pt-4">
-                <Link to="/search" className="bg-[#004ac6] text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-[#004ac6]/20">Explore the Collection</Link>
-                <Link to="#" className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-3 rounded-full font-bold hover:bg-white/20 transition-colors">View Lookbook</Link>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 

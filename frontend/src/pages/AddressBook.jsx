@@ -241,6 +241,10 @@ const AddressBook = () => {
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">history</span>
+              <span>Recently Viewed</span>
+            </Link>
             {/* Active Item: Address Book */}
             <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>

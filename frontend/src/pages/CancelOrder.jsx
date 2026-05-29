@@ -155,6 +155,10 @@ const CancelOrder = () => {
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">history</span>
+              <span>Recently Viewed</span>
+            </Link>
             <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>

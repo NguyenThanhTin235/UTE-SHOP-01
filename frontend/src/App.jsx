@@ -27,6 +27,8 @@ import VNPayMock from './pages/VNPayMock';
 import VNPayReturn from './pages/VNPayReturn';
 import Coins from './pages/Coins';
 import ShopDetail from './pages/ShopDetail';
+import RecentlyViewed from './pages/RecentlyViewed';
+import Promotions from './pages/Promotions';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -85,6 +87,7 @@ function App() {
         <Route path="/order-history/:orderId/cancel" element={user ? <CancelOrder /> : <Navigate to="/login" />} />
         <Route path="/reviews" element={user ? <Reviews /> : <Navigate to="/login" />} />
         <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
+        <Route path="/recently-viewed" element={user ? <RecentlyViewed /> : <Navigate to="/login" />} />
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
         <Route path="/security" element={user ? <SecuritySettings /> : <Navigate to="/login" />} />
         <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
@@ -97,6 +100,7 @@ function App() {
         <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/promotions" element={<Promotions />} />
         <Route path="/shop/:slug" element={<ShopDetail />} />
         
         {/* Protected Dashboard Routes */}
