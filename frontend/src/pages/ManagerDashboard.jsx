@@ -5,7 +5,8 @@ import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import ShopApprovalTab from '../components/manager/ShopApprovalTab';
-import ManagerShopDetail from './ManagerShopDetail';
+import ManagerShopDetail from '../components/manager/ManagerShopDetail';
+import ProductApprovalTab from '../components/manager/ProductApprovalTab';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -231,14 +232,14 @@ const ManagerDashboard = () => {
                 <button
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
-                    activeTab === item.id
+                    activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval')
                       ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm'
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <span
                     className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform"
-                    style={{ fontVariationSettings: activeTab === item.id ? "'FILL' 1" : "'FILL' 0" }}
+                    style={{ fontVariationSettings: activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') ? "'FILL' 1" : "'FILL' 0" }}
                   >
                     {item.icon}
                   </span>
@@ -435,7 +436,7 @@ const ManagerDashboard = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-4 overflow-y-auto h-[250px] pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
                     {loading
                       ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-16" />)
                       : pendingTasks.length === 0
@@ -483,7 +484,7 @@ const ManagerDashboard = () => {
                     <span className="w-2 h-2 bg-[#16a34a] rounded-full animate-pulse" />
                   </div>
 
-                  <div className="space-y-7 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100 flex-1 overflow-y-auto max-h-96">
+                  <div className="space-y-7 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100 overflow-y-auto h-[250px] pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
                     {loading
                       ? Array(3).fill(0).map((_, i) => (
                           <div key={i} className="relative pl-12 flex gap-3">
@@ -528,11 +529,14 @@ const ManagerDashboard = () => {
           {/* Shop Approval Tab */}
           {activeTab === 'shop_approval' && <ShopApprovalTab />}
 
+          {/* Product Approval Tab */}
+          {activeTab === 'product_approval' && <ProductApprovalTab />}
+
           {/* Shop Detail Tab */}
           {activeTab === 'shop_detail' && <ManagerShopDetail shopId={pathParts[2]} />}
 
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}

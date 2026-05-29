@@ -115,7 +115,7 @@ const SellerAddProduct = ({ setActiveTab }) => {
                 if (res.data.success) {
                     const allCats = res.data.data;
                     setCategories(allCats);
-                    
+
                     // Filter parent categories (parentId is null/undefined)
                     const parents = allCats.filter(c => !c.parentId);
                     setParentCategories(parents);
@@ -172,7 +172,7 @@ const SellerAddProduct = ({ setActiveTab }) => {
     const handleParentCategoryChange = (e) => {
         const parentId = e.target.value;
         setSelectedParentId(parentId);
-        
+
         const children = categories.filter(c => c.parentId === parentId);
         if (children.length > 0) {
             setFormData(prev => ({ ...prev, category_id: children[0].id }));
@@ -255,12 +255,12 @@ const SellerAddProduct = ({ setActiveTab }) => {
                     headers: {
                         Authorization: `Bearer ${sessionStorage.getItem('token')}`
                     }
-                  })
+                })
                 : await axios.post('http://localhost:5000/api/seller/products', payload, {
                     headers: {
                         Authorization: `Bearer ${sessionStorage.getItem('token')}`
                     }
-                  });
+                });
 
             if (res.data.success) {
                 toast.success(editProduct ? 'Product updated successfully' : 'Product created successfully');
@@ -447,11 +447,10 @@ const SellerAddProduct = ({ setActiveTab }) => {
                                 onDragOver={handleDrag}
                                 onDragLeave={handleDrag}
                                 onDrop={handleDrop}
-                                className={`col-span-2 md:col-span-4 border-4 border-dashed rounded-[2.5rem] p-12 flex flex-col items-center justify-center transition-all cursor-pointer group ${
-                                    dragActive
+                                className={`col-span-2 md:col-span-4 border-4 border-dashed rounded-[2.5rem] p-12 flex flex-col items-center justify-center transition-all cursor-pointer group ${dragActive
                                         ? 'border-primary bg-primary/5'
                                         : 'border-outline-variant/30 bg-surface-container-low/20 hover:bg-surface-container-low/50'
-                                }`}
+                                    }`}
                             >
                                 <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                     {uploading ? (
@@ -480,7 +479,7 @@ const SellerAddProduct = ({ setActiveTab }) => {
                             {formData.media.map((url, idx) => (
                                 <div key={idx} className="aspect-square rounded-2xl overflow-hidden border border-outline-variant/30 relative group shadow-sm">
                                     <img src={url} className="w-full h-full object-cover" alt={`preview-${idx}`} />
-                                    
+
                                     {/* Thumbnail and Detail Badges */}
                                     {idx === 0 ? (
                                         <span className="absolute top-3 left-3 bg-primary text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md z-10 select-none">

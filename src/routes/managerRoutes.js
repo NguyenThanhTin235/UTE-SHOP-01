@@ -6,7 +6,10 @@ const {
   getShopDetail,
   approveShop, 
   rejectShop,
-  requestShopInfo
+  requestShopInfo,
+  getProductsList,
+  approveProduct,
+  rejectProduct
 } = require('../controllers/managerController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
@@ -34,5 +37,10 @@ router.get('/shops/:id', verifyToken, requireManagerOrAdmin, getShopDetail);
 router.post('/shops/:id/approve', verifyToken, requireManagerOrAdmin, approveShop);
 router.post('/shops/:id/reject', verifyToken, requireManagerOrAdmin, rejectShop);
 router.post('/shops/:id/request-info', verifyToken, requireManagerOrAdmin, requestShopInfo);
+
+// ─── PRODUCT APPROVAL ────────────────────────────────────────────────────────
+router.get('/products', verifyToken, requireManagerOrAdmin, getProductsList);
+router.post('/products/:id/approve', verifyToken, requireManagerOrAdmin, approveProduct);
+router.post('/products/:id/reject', verifyToken, requireManagerOrAdmin, rejectProduct);
 
 module.exports = router;

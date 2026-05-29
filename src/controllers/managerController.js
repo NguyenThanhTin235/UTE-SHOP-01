@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const Shop = require('../models/Shop');
 const AuditLog = require('../models/AuditLog');
 const ProductApproval = require('../models/ProductApproval');
+const ProductMedia = require('../models/ProductMedia');
 const response = require('../utils/response');
 
 /**
@@ -345,11 +346,97 @@ const requestShopInfo = async (req, res) => {
   }
 };
 
+// ─── PRODUCT APPROVAL ────────────────────────────────────────────────────────
+const getProductsList = async (req, res) => {
+  try {
+    const status = req.query.status || 'pending';
+    const products = await Product.find({ approval_status: status })
+      .populate('shop_id', 'name owner_user_id')
+      .populate('category_id', 'name');
+
+    const productIds = products.map(p => p._id);
+    const media = await ProductMedia.find({ product_id: { $in: productIds }, media_type: 'image' }).sort({ sort_order: 1 });
+    
+    const mediaMap = {};
+    media.forEach(m => {
+      if (!mediaMap[m.product_id.toString()]) {
+        mediaMap[m.product_id.toString()] = m.media_url;
+      }
+    });
+
+    const data = products.map(p => {
+      return {
+        id: p._id,
+        name: p.name,
+        price: p.selling_price,
+        sku: p.sku || p.slug || p._id.toString().substring(0, 8),
+        shopName: p.shop_id?.name || 'Unknown Shop',
+        category: p.category_id?.name || 'Uncategorized',
+        image_url: mediaMap[p._id.toString()] || 'https://via.placeholder.com/200',
+        submittedAt: p.createdAt,
+        sellerStatus: p.shop_id ? 'Pro Seller' : 'New Seller'
+      };
+    });
+    console.log("MANAGER IMAGE URL DATA:", JSON.stringify(data, null, 2));
+
+    return response.success(res, { data });
+  } catch (err) {
+    console.error('getPendingProducts error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const approveProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndUpdate(id, { approval_status: 'approved' }, { new: true });
+    if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
+    
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'Approve Product',
+      entity_type: 'Product',
+      entity_id: product._id,
+      metadata: { name: product.name }
+    });
+
+    return response.success(res, { message: 'Product approved' });
+  } catch (err) {
+    console.error('approveProduct error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const rejectProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const product = await Product.findByIdAndUpdate(id, { approval_status: 'rejected' }, { new: true });
+    if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
+    
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'Reject Product',
+      entity_type: 'Product',
+      entity_id: product._id,
+      metadata: { name: product.name, reason }
+    });
+
+    return response.success(res, { message: 'Product rejected' });
+  } catch (err) {
+    console.error('rejectProduct error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 module.exports = { 
   getDashboard,
   getPendingShops,
   getShopDetail,
   approveShop,
   rejectShop,
-  requestShopInfo
+  requestShopInfo,
+  getProductsList,
+  approveProduct,
+  rejectProduct
 };
