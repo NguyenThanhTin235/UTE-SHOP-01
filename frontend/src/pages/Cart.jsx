@@ -15,6 +15,8 @@ const Cart = () => {
   const [selectedItemIds, setSelectedItemIds] = useState(new Set());
   const [localNotes, setLocalNotes] = useState({});
   const [loading, setLoading] = useState(true);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -332,11 +334,26 @@ const Cart = () => {
     }
   };
 
+  // Apply Coupon
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+    // Hardcode coupon validation matching the template style
+    if (couponCode.toUpperCase() === 'UTESHOP200K') {
+      setCouponApplied(true);
+      toast.success('Applied discount code UTESHOP200K successfully!');
+    } else {
+      toast.error('Invalid or expired coupon code');
+    }
+  };
+
   // Calculations based on selected items
   const selectedItems = cartItems.filter(item => selectedItemIds.has(item.id));
   const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const discount = 0;
-  const total = subtotal;
+  const discount = couponApplied && subtotal > 200000 ? 200000 : 0;
+  const total = Math.max(0, subtotal - discount);
 
   // If user is not logged in, render Login Prompts
   if (!user) {
@@ -649,6 +666,24 @@ const Cart = () => {
                   </div>
 
                   <div className="flex flex-col gap-3">
+                    <div className="flex gap-2">
+                      <input 
+                        type="text"
+                        placeholder="Enter promo code (e.g. UTESHOP200K)"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        disabled={couponApplied}
+                        className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e] disabled:opacity-50 text-left py-2"
+                      />
+                      <button 
+                        onClick={handleApplyCoupon}
+                        disabled={couponApplied}
+                        className="bg-[#eaedff] text-[#004ac6] hover:bg-[#004ac6] hover:text-white disabled:bg-emerald-100 disabled:text-emerald-700 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {couponApplied ? 'Applied' : 'Apply'}
+                      </button>
+                    </div>
+
                     <button 
                       onClick={() => {
                         if (selectedItemIds.size === 0) {

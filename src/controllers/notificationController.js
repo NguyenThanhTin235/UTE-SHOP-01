@@ -1,49 +1,10 @@
 const Notification = require('../models/Notification');
-const Campaign = require('../models/Campaign');
 const response = require('../utils/response');
-
-exports.ensurePromotionNotifications = async (userId) => {
-  try {
-    const now = new Date();
-    // 1. Fetch active campaigns
-    const activeCampaigns = await Campaign.find({
-      status: 'active',
-      start_at: { $lte: now },
-      end_at: { $gte: now }
-    });
-
-    // 2. Check and auto-create notifications for active campaigns
-    for (const campaign of activeCampaigns) {
-      const uniqueLink = `/promotions#${campaign.slug}`;
-      const exists = await Notification.findOne({
-        user_id: userId,
-        link: uniqueLink
-      });
-
-      if (!exists) {
-        const dateStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-        await Notification.create({
-          user_id: userId,
-          title: `${campaign.name} is LIVE!`,
-          content: campaign.description || `Enjoy savings up to ${campaign.value}% on selected products.`,
-          detailContent: `Great news! Our promotional campaign "${campaign.name}" is now active.\n\nEnjoy savings up to ${campaign.value}% on selected products.\n\nVisit our Promotions page to copy your coupons and shop now!`,
-          category: 'Promotions',
-          type: 'promotion',
-          date: dateStr,
-          link: uniqueLink
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Error ensuring promotion notifications:', error);
-  }
-};
 
 exports.getNotifications = async (req, res) => {
   try {
     let notifications = [];
     if (req.user) {
-      await exports.ensurePromotionNotifications(req.user._id);
       notifications = await Notification.find({ user_id: req.user._id }).sort({ createdAt: -1 }).lean();
       notifications = notifications.map(n => ({ ...n, id: n._id.toString() }));
     }

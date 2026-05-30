@@ -233,12 +233,7 @@ class UserController {
   async getUnreadNotificationCount(req, res) {
     try {
       const Notification = require('../models/Notification');
-      const { ensurePromotionNotifications } = require('./notificationController');
       const userId = req.user.id;
-      
-      // Ensure promotion notifications exist before counting
-      await ensurePromotionNotifications(userId);
-      
       const count = await Notification.countDocuments({ user_id: userId, is_read: false });
       return res.status(200).json({ success: true, count });
     } catch (error) {
