@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const API = 'http://localhost:5000/api';
 
@@ -42,9 +42,37 @@ const SkeletonRow = () => (
 const ShopApprovalTab = () => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setRowsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = parseInt(searchParams.get('page')) || 1;
+  const limit = parseInt(searchParams.get('limit')) || 10;
+
+  const setPage = (newPage) => {
+      const params = new URLSearchParams(searchParams);
+      params.set('page', newPage);
+      setSearchParams(params);
+  };
+
+  const setLimit = (newLimit) => {
+      const params = new URLSearchParams(searchParams);
+      params.set('limit', newLimit);
+      params.set('page', 1);
+      setSearchParams(params);
+  };
 
   const fetchPendingShops = async () => {
     setLoading(true);
@@ -119,8 +147,8 @@ const ShopApprovalTab = () => {
   };
 
   // Pagination logic
-  const totalPages = Math.ceil(shops.length / itemsPerPage);
-  const paginatedShops = shops.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(shops.length / limit);
+  const paginatedShops = shops.slice((page - 1) * limit, page * limit);
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
@@ -223,28 +251,108 @@ const ShopApprovalTab = () => {
       </div>
 
       {!loading && shops.length > 0 && (
-        <div className="p-8 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Showing {paginatedShops.length} of {shops.length} pending applications
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button className="w-10 h-10 rounded-xl bg-[#004ac6] text-white flex items-center justify-center font-black shadow-lg shadow-blue-100">
-              {currentPage}
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
+        <div className="p-6 bg-white border-t border-slate-100 flex flex-col md:flex-row items-center justify-between rounded-b-3xl relative z-20">
+          <div className="flex items-center gap-4 mb-4 md:mb-0">
+            <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, shops.length)}</span> of <span className="text-slate-800">{shops.length}</span> shops
+            </p>
+            <div className="w-px h-4 bg-slate-200"></div>
+            <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rows per page:</span>
+                <div className="relative" ref={dropdownRef} onMouseDown={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => setRowsDropdownOpen(!rowsDropdownOpen)}
+                    className="flex items-center gap-0.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none select-none"
+                  >
+                    <span>{limit}</span>
+                    <span className="material-symbols-outlined text-sm font-bold text-slate-500">
+                      keyboard_arrow_down
+                    </span>
+                  </button>
+                  {rowsDropdownOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 w-14 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden py-1 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      {[10, 20, 50].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => {
+                            setLimit(val);
+                            setRowsDropdownOpen(false);
+                          }}
+                          className={`w-full text-center py-2 text-xs font-bold transition-colors block ${
+                            limit === val
+                              ? 'bg-[#004ac6] text-white'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+              <button
+                  disabled={page <= 1}
+                  onClick={() => setPage(1)}
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                  <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
+              </button>
+              <button
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                  <span className="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              
+              <div className="flex items-center gap-1 mx-2">
+                  {(() => {
+                      const pages = [];
+                      let startPage = Math.max(1, page - 2);
+                      let endPage = Math.min(totalPages, page + 2);
+                      if (endPage - startPage < 4) {
+                          if (startPage === 1) endPage = Math.min(totalPages, 5);
+                          if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+                      }
+                      for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                              <button
+                                  key={i}
+                                  onClick={() => setPage(i)}
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                                      page === i
+                                          ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                          : 'text-slate-600 hover:bg-slate-100'
+                                  }`}
+                              >
+                                  {i}
+                              </button>
+                          );
+                      }
+                      return pages;
+                  })()}
+              </div>
+
+              <button
+                  disabled={page >= totalPages || totalPages === 0}
+                  onClick={() => setPage(page + 1)}
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                  <span className="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+              <button
+                  disabled={page >= totalPages || totalPages === 0}
+                  onClick={() => setPage(totalPages)}
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                  <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
+              </button>
           </div>
         </div>
       )}

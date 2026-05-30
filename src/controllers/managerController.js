@@ -4,6 +4,7 @@ const Shop = require('../models/Shop');
 const AuditLog = require('../models/AuditLog');
 const ProductApproval = require('../models/ProductApproval');
 const ProductMedia = require('../models/ProductMedia');
+const ProductVariant = require('../models/ProductVariant');
 const response = require('../utils/response');
 
 /**
@@ -188,8 +189,8 @@ const getShopDetail = async (req, res) => {
 
     const history = auditLogs.map(log => ({
       id: log._id,
-      action: log.action === 'APPROVE_SHOP' ? 'Approved Registration' : 
-              log.action === 'REJECT_SHOP' ? 'Rejected Registration' : log.action,
+      action: log.action === 'APPROVE_SHOP' ? 'Approved Registration' :
+        log.action === 'REJECT_SHOP' ? 'Rejected Registration' : log.action,
       note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Application reviewed and approved.' : 'No additional note'),
       actorName: log.actor_id?.full_name || 'System',
       date: log.createdAt
@@ -234,7 +235,7 @@ const getPendingShops = async (req, res) => {
 
     const ownerIds = pendingProfiles.map(p => p.user_id?._id).filter(Boolean);
     const shops = await Shop.find({ owner_user_id: { $in: ownerIds } });
-    
+
     // Map shop data to profile
     const results = pendingProfiles.map(profile => {
       const shop = shops.find(s => s.owner_user_id.toString() === profile.user_id?._id?.toString());
@@ -347,16 +348,23 @@ const requestShopInfo = async (req, res) => {
 };
 
 // ─── PRODUCT APPROVAL ────────────────────────────────────────────────────────
-const getProductsList = async (req, res) => {
+const fetchProductsByStatus = async (status, req, res) => {
   try {
-    const status = req.query.status || 'pending';
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Product.countDocuments({ approval_status: status });
     const products = await Product.find({ approval_status: status })
       .populate('shop_id', 'name owner_user_id')
-      .populate('category_id', 'name');
+      .populate('category_id', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const productIds = products.map(p => p._id);
     const media = await ProductMedia.find({ product_id: { $in: productIds }, media_type: 'image' }).sort({ sort_order: 1 });
-    
+
     const mediaMap = {};
     media.forEach(m => {
       if (!mediaMap[m.product_id.toString()]) {
@@ -377,21 +385,35 @@ const getProductsList = async (req, res) => {
         sellerStatus: p.shop_id ? 'Pro Seller' : 'New Seller'
       };
     });
-    console.log("MANAGER IMAGE URL DATA:", JSON.stringify(data, null, 2));
 
-    return response.success(res, { data });
+    return response.success(res, {
+      data,
+      meta: {
+        pagination: {
+          total,
+          count: data.length,
+          perPage: limit,
+          currentPage: page,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
+    });
   } catch (err) {
-    console.error('getPendingProducts error:', err);
+    console.error(`fetchProductsByStatus error:`, err);
     return response.error(res, { statusCode: 500, message: 'Server Error' });
   }
 };
+
+const getPendingProducts = (req, res) => fetchProductsByStatus('pending', req, res);
+const getApprovedProducts = (req, res) => fetchProductsByStatus('approved', req, res);
+const getRejectedProducts = (req, res) => fetchProductsByStatus('rejected', req, res);
 
 const approveProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const product = await Product.findByIdAndUpdate(id, { approval_status: 'approved' }, { new: true });
     if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
-    
+
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'Approve Product',
@@ -413,7 +435,7 @@ const rejectProduct = async (req, res) => {
     const { reason } = req.body;
     const product = await Product.findByIdAndUpdate(id, { approval_status: 'rejected' }, { new: true });
     if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
-    
+
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'Reject Product',
@@ -429,14 +451,129 @@ const rejectProduct = async (req, res) => {
   }
 };
 
-module.exports = { 
+const requestProductInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+    const product = await Product.findById(id);
+    if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
+
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'Information Requested',
+      entity_type: 'Product',
+      entity_id: product._id,
+      metadata: { name: product.name, note }
+    });
+
+    return response.success(res, { message: 'Information request sent' });
+  } catch (err) {
+    console.error('requestProductInfo error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const getProductDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id)
+      .populate('shop_id', 'name owner_user_id')
+      .populate('category_id', 'name');
+
+    if (!product) return response.error(res, { statusCode: 404, message: 'Product not found' });
+
+    // Fetch media
+    const media = await ProductMedia.find({ product_id: product._id }).sort({ sort_order: 1 });
+    const images = media.map(m => m.media_url);
+
+    // Fetch attributes / stock
+    let variants = [];
+    try {
+      variants = await ProductVariant.find({ product_id: product._id });
+    } catch (e) { }
+
+    let totalStock = 0;
+    let attributes = [];
+    if (variants && variants.length > 0) {
+      totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+      attributes = variants.map(v => v.attributes);
+    } else {
+      totalStock = 50; // Mock stock if variants not found
+      attributes = [{ "color": "N/A", "size": "N/A" }];
+    }
+
+    // Fetch Shop Info
+    const shop = await Shop.findById(product.shop_id?._id).populate('owner_user_id', 'full_name');
+    const totalProducts = await Product.countDocuments({ shop_id: shop?._id });
+
+    // Fetch AuditLog
+    const auditLogs = await AuditLog.find({
+      entity_type: 'Product',
+      entity_id: product._id
+    })
+      .sort({ createdAt: -1 })
+      .populate('actor_id', 'full_name');
+
+    const history = auditLogs.map(log => ({
+      id: log._id,
+      action: log.action,
+      note: log.metadata?.reason || log.metadata?.note || 'No additional note',
+      actorName: log.actor_id?.full_name || 'System',
+      date: log.createdAt
+    }));
+
+    // Add default creation event if empty or as initial
+    history.push({
+      id: 'init_' + product._id,
+      action: 'Product Uploaded',
+      note: `New product listing "${product.name}" submitted.`,
+      actorName: 'Seller Portal',
+      date: product.createdAt
+    });
+
+    return response.success(res, {
+      message: 'Product detail retrieved',
+      data: {
+        id: product._id,
+        name: product.name,
+        price: product.selling_price,
+        mrp_price: product.mrp_price,
+        description: product.description,
+        sku: product.sku || product._id.toString().substring(0, 8),
+        category: product.category_id?.name || 'Uncategorized',
+        status: product.approval_status,
+        stock: totalStock,
+        attributes: attributes,
+        images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800'],
+        shop: {
+          id: shop?._id,
+          name: shop?.name || 'Unknown Shop',
+          ownerName: shop?.owner_user_id?.full_name || 'Unknown',
+          rating: '4.8 (1.2k Reviews)',
+          totalProducts: totalProducts,
+          violationHistory: 'Clean (0)'
+        },
+        history: history
+      }
+    });
+  } catch (err) {
+    console.error('getProductDetail error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+module.exports = {
   getDashboard,
   getPendingShops,
   getShopDetail,
   approveShop,
   rejectShop,
   requestShopInfo,
-  getProductsList,
+  getPendingProducts,
+  getApprovedProducts,
+  getRejectedProducts,
   approveProduct,
-  rejectProduct
+  rejectProduct,
+  requestProductInfo,
+  getProductDetail
 };

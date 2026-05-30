@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const API = 'http://localhost:5000/api';
 
@@ -13,17 +13,48 @@ function getAuthHeader() {
 const ProductApprovalTab = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState('pending');
+  const [meta, setMeta] = useState(null);
+  const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setRowsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filterStatus = searchParams.get('tab') || 'pending';
+  const page = parseInt(searchParams.get('page')) || 1;
+  const limit = parseInt(searchParams.get('limit')) || 10;
+
+  const setFilterStatus = (newTab) => {
+    setSearchParams({ tab: newTab, page: 1, limit });
+  };
+
+  const setPage = (newPage) => {
+    setSearchParams({ tab: filterStatus, page: newPage, limit });
+  };
+
+  const setLimit = (newLimit) => {
+    setSearchParams({ tab: filterStatus, page: 1, limit: newLimit });
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/manager/products?status=${filterStatus}`, {
+      const { data } = await axios.get(`${API}/manager/products/${filterStatus}?page=${page}&limit=${limit}`, {
         headers: getAuthHeader(),
       });
       if (data.success) {
         setProducts(data.data || []);
+        setMeta(data.meta || null);
       }
     } catch (err) {
       console.error('Fetch pending products error:', err);
@@ -35,7 +66,7 @@ const ProductApprovalTab = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [filterStatus]);
+  }, [filterStatus, page, limit]);
 
   const handleApprove = async (id) => {
     try {
@@ -79,20 +110,20 @@ const ProductApprovalTab = () => {
           </div>
           <div className="flex gap-4">
             <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button 
+              <button
                 onClick={() => setFilterStatus('pending')}
                 className={`px-4 py-2 text-xs font-black rounded-lg transition-all ${filterStatus === 'pending' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-                Pending {filterStatus === 'pending' && `(${products.length})`}
+                Pending
               </button>
-              <button 
+              <button
                 onClick={() => setFilterStatus('approved')}
                 className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'approved' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-                Approved {filterStatus === 'approved' && `(${products.length})`}
+                Approved
               </button>
-              <button 
+              <button
                 onClick={() => setFilterStatus('rejected')}
                 className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'rejected' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-                Rejected {filterStatus === 'rejected' && `(${products.length})`}
+                Rejected
               </button>
             </div>
           </div>
@@ -123,10 +154,10 @@ const ProductApprovalTab = () => {
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-                          <img 
+                          <img
                             key={p.imageUrl}
-                            src={p.imageUrl} 
-                            alt={p.name} 
+                            src={p.imageUrl}
+                            alt={p.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.target.onerror = null;
@@ -145,10 +176,9 @@ const ProductApprovalTab = () => {
                       <p className="text-[10px] text-[#16a34a] font-bold uppercase">{p.sellerStatus}</p>
                     </td>
                     <td className="px-8 py-6">
-                      <span className={`px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${
-                        filterStatus === 'pending' ? 'bg-blue-50 text-[#004ac6]' : 
+                      <span className={`px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${filterStatus === 'pending' ? 'bg-blue-50 text-[#004ac6]' :
                         filterStatus === 'approved' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                      }`}>
+                        }`}>
                         {p.category}
                       </span>
                     </td>
@@ -173,7 +203,7 @@ const ProductApprovalTab = () => {
                           </>
                         )}
                         <button
-                          onClick={() => toast.success('View details coming soon!')}
+                          onClick={() => navigate('/manager/product_detail/' + p.id)}
                           className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
                           title="View Detail"
                         >
@@ -188,19 +218,111 @@ const ProductApprovalTab = () => {
           </table>
         </div>
 
-        {/* Pagination placeholder */}
-        {!loading && products.length > 0 && (
-          <div className="p-8 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Showing {products.length} products
-            </p>
-            <div className="flex gap-2">
-              <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm">
-                <span className="material-symbols-outlined">chevron_left</span>
+        {/* Pagination */}
+        {products.length > 0 && (
+          <div className={`p-6 bg-white border-t border-slate-100 flex items-center justify-between relative z-20 transition-opacity duration-200 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+            <div className="flex items-center gap-4">
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, meta?.pagination?.total || products.length)}</span> of <span className="text-slate-800">{meta?.pagination?.total || products.length}</span> products
+              </p>
+              <div className="w-px h-4 bg-slate-200"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rows per page:</span>
+                <div className="relative" ref={dropdownRef} onMouseDown={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setRowsDropdownOpen(!rowsDropdownOpen)}
+                    className="flex items-center gap-0.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none select-none disabled:opacity-50"
+                  >
+                    <span>{limit}</span>
+                    <span className="material-symbols-outlined text-sm font-bold text-slate-500">
+                      keyboard_arrow_down
+                    </span>
+                  </button>
+                  {rowsDropdownOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 w-14 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden py-1 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      {[10, 20, 50].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => {
+                            setLimit(val);
+                            setRowsDropdownOpen(false);
+                          }}
+                          className={`w-full text-center py-2 text-xs font-bold transition-colors block ${
+                            limit === val
+                              ? 'bg-[#004ac6] text-white'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={loading || page <= 1}
+                onClick={() => setPage(1)}
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
               </button>
-              <button className="w-10 h-10 rounded-xl bg-[#004ac6] text-white flex items-center justify-center font-black shadow-lg shadow-blue-100">1</button>
-              <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm">
-                <span className="material-symbols-outlined">chevron_right</span>
+              <button
+                disabled={loading || page <= 1}
+                onClick={() => setPage(page - 1)}
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              
+              <div className="flex items-center gap-1 mx-2">
+                {(() => {
+                  const totalPages = meta?.pagination?.totalPages || 1;
+                  const pages = [];
+                  let startPage = Math.max(1, page - 2);
+                  let endPage = Math.min(totalPages, page + 2);
+                  if (endPage - startPage < 4) {
+                    if (startPage === 1) endPage = Math.min(totalPages, 5);
+                    if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+                  }
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        disabled={loading}
+                        onClick={() => setPage(i)}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${page === i
+                            ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                            : 'text-slate-600 hover:bg-slate-100'
+                          }`}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+                  return pages;
+                })()}
+              </div>
+
+              <button
+                disabled={loading || page >= (meta?.pagination?.totalPages || 1)}
+                onClick={() => setPage(page + 1)}
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+              <button
+                disabled={loading || page >= (meta?.pagination?.totalPages || 1)}
+                onClick={() => setPage(meta?.pagination?.totalPages || 1)}
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
               </button>
             </div>
           </div>

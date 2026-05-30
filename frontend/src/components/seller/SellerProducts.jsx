@@ -2,15 +2,38 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerProducts = ({ setActiveTab }) => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
-    const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+    const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
+
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 10;
+
+    const setPage = (newPage) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('page', newPage);
+        setSearchParams(params);
+    };
+
+    const setLimit = (newLimit) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('limit', newLimit);
+        params.set('page', 1);
+        setSearchParams(params);
+    };
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState('Selling');
+    const statusFilter = searchParams.get('status') || 'Selling';
+    const setStatusFilter = (newStatus) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('status', newStatus);
+        params.set('page', 1);
+        setSearchParams(params);
+    };
     const [loading, setLoading] = useState(false);
 
     // Sorting and Filtering states
@@ -28,8 +51,8 @@ const SellerProducts = ({ setActiveTab }) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/seller/products`, {
                 params: {
-                    page: meta.page,
-                    limit: meta.limit,
+                    page,
+                    limit,
                     search,
                     status: statusFilter,
                     sortBy
@@ -40,7 +63,7 @@ const SellerProducts = ({ setActiveTab }) => {
             });
             if (res.data.success) {
                 setProducts(res.data.data);
-                setMeta(res.data.meta);
+                setMetaData({ total: res.data.meta.total, totalPages: res.data.meta.totalPages });
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to fetch products');
@@ -68,7 +91,7 @@ const SellerProducts = ({ setActiveTab }) => {
 
     useEffect(() => {
         fetchProducts();
-    }, [meta.page, meta.limit, search, statusFilter, sortBy]);
+    }, [page, limit, search, statusFilter, sortBy]);
 
     const handleExport = async () => {
         try {
@@ -102,7 +125,7 @@ const SellerProducts = ({ setActiveTab }) => {
                         {statusTabs.map(tab => (
                             <button
                                 key={tab}
-                                onClick={() => { setStatusFilter(tab); setMeta({ ...meta, page: 1 }); }}
+                                onClick={() => setStatusFilter(tab)}
                                 className={`px-6 py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${statusFilter === tab ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
                             >
                                 {tab}
@@ -120,7 +143,7 @@ const SellerProducts = ({ setActiveTab }) => {
                                 placeholder="Search product name, SKU, or category..."
                                 className="w-full pl-12 pr-4 py-3 bg-surface-container-low border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/60 outline-none"
                                 value={search}
-                                onChange={(e) => { setSearch(e.target.value); setMeta({ ...meta, page: 1 }); }}
+                                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                             />
                         </div>
                         <div className="flex gap-3">
@@ -145,25 +168,25 @@ const SellerProducts = ({ setActiveTab }) => {
                                         <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)}></div>
                                         <div className="absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-level-1 z-50 p-2 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
                                             <button
-                                                onClick={() => { setSortBy('newest'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
+                                                onClick={() => { setSortBy('newest'); setShowSortDropdown(false); setPage(1); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'newest' ? 'bg-primary/5 text-primary' : 'text-secondary hover:bg-surface-container-low'}`}
                                             >
                                                 Newest First
                                             </button>
                                             <button
-                                                onClick={() => { setSortBy('oldest'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
+                                                onClick={() => { setSortBy('oldest'); setShowSortDropdown(false); setPage(1); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'oldest' ? 'bg-primary/5 text-primary' : 'text-secondary hover:bg-surface-container-low'}`}
                                             >
                                                 Oldest First
                                             </button>
                                             <button
-                                                onClick={() => { setSortBy('priceAsc'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
+                                                onClick={() => { setSortBy('priceAsc'); setShowSortDropdown(false); setPage(1); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'priceAsc' ? 'bg-primary/5 text-primary' : 'text-secondary hover:bg-surface-container-low'}`}
                                             >
                                                 Price: Low to High
                                             </button>
                                             <button
-                                                onClick={() => { setSortBy('priceDesc'); setShowSortDropdown(false); setMeta(prev => ({ ...prev, page: 1 })); }}
+                                                onClick={() => { setSortBy('priceDesc'); setShowSortDropdown(false); setPage(1); }}
                                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${sortBy === 'priceDesc' ? 'bg-primary/5 text-primary' : 'text-secondary hover:bg-surface-container-low'}`}
                                             >
                                                 Price: High to Low
@@ -249,72 +272,89 @@ const SellerProducts = ({ setActiveTab }) => {
                     </div>
 
                     {/* Pagination */}
-                    <div className="p-8 pr-40 border-t border-outline-variant/30 flex items-center justify-between bg-surface-container-low/20">
-                        <div className="flex items-center gap-4">
-                            <p className="text-[11px] font-black text-secondary uppercase tracking-widest">Showing <span className="text-primary font-black">{(meta.page - 1) * meta.limit + 1} - {Math.min(meta.page * meta.limit, meta.total)}</span> of <span className="text-on-surface font-black">{meta.total}</span> products</p>
-                            <div className="h-4 w-[1px] bg-outline-variant/50"></div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-secondary/60 uppercase tracking-widest">Rows per page:</span>
-                                <select
-                                    className="bg-transparent border-none text-[11px] font-black text-on-surface focus:ring-0 cursor-pointer outline-none"
-                                    value={meta.limit}
-                                    onChange={(e) => setMeta({ ...meta, limit: Number(e.target.value), page: 1 })}
-                                >
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="50">50</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                disabled={meta.page <= 1}
-                                onClick={() => setMeta({ ...meta, page: 1 })}
-                                className="size-10 flex items-center justify-center border border-outline-variant rounded-xl text-secondary hover:bg-surface-container-low transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                                title="First Page"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_left</span>
-                            </button>
-                            <button
-                                disabled={meta.page <= 1}
-                                onClick={() => setMeta({ ...meta, page: meta.page - 1 })}
-                                className="size-10 flex items-center justify-center border border-outline-variant rounded-xl text-secondary hover:bg-surface-container-low transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                                title="Previous Page"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                            </button>
-
-                            <div className="flex items-center gap-1">
-                                {[...Array(meta.totalPages)].map((_, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setMeta({ ...meta, page: idx + 1 })}
-                                        className={`size-10 flex items-center justify-center rounded-xl text-xs font-bold transition-all ${meta.page === idx + 1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-secondary hover:bg-surface-container-low'}`}
+                    {metaData.totalPages > 0 && (
+                        <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-2xl">
+                            <div className="flex items-center gap-4">
+                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                                    Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, metaData.total)}</span> of <span className="text-slate-800">{metaData.total}</span> products
+                                </p>
+                                <div className="w-px h-4 bg-slate-200"></div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rows per page:</span>
+                                    <select
+                                        value={limit}
+                                        onChange={(e) => setLimit(Number(e.target.value))}
+                                        className="text-xs font-bold text-slate-800 border-none bg-transparent focus:ring-0 cursor-pointer p-0 pr-6"
                                     >
-                                        {idx + 1}
-                                    </button>
-                                ))}
+                                        <option value={10}>10</option>
+                                        <option value={20}>20</option>
+                                        <option value={50}>50</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <button
-                                disabled={meta.page >= meta.totalPages}
-                                onClick={() => setMeta({ ...meta, page: meta.page + 1 })}
-                                className="size-10 flex items-center justify-center border border-outline-variant rounded-xl text-secondary hover:bg-surface-container-low transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                                title="Next Page"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                            </button>
-                            <button
-                                disabled={meta.page >= meta.totalPages}
-                                onClick={() => setMeta({ ...meta, page: meta.totalPages })}
-                                className="size-10 flex items-center justify-center border border-outline-variant rounded-xl text-secondary hover:bg-surface-container-low transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                                title="Last Page"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_right</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    disabled={page <= 1}
+                                    onClick={() => setPage(1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
+                                </button>
+                                <button
+                                    disabled={page <= 1}
+                                    onClick={() => setPage(page - 1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                </button>
+                                
+                                <div className="flex items-center gap-1 mx-2">
+                                    {(() => {
+                                        const { totalPages } = metaData;
+                                        const pages = [];
+                                        let startPage = Math.max(1, page - 2);
+                                        let endPage = Math.min(totalPages, page + 2);
+                                        if (endPage - startPage < 4) {
+                                            if (startPage === 1) endPage = Math.min(totalPages, 5);
+                                            if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+                                        }
+                                        for (let i = startPage; i <= endPage; i++) {
+                                            pages.push(
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setPage(i)}
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                                                        page === i
+                                                            ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                                            : 'text-slate-600 hover:bg-slate-100'
+                                                    }`}
+                                                >
+                                                    {i}
+                                                </button>
+                                            );
+                                        }
+                                        return pages;
+                                    })()}
+                                </div>
+
+                                <button
+                                    disabled={page >= metaData.totalPages}
+                                    onClick={() => setPage(page + 1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                                </button>
+                                <button
+                                    disabled={page >= metaData.totalPages}
+                                    onClick={() => setPage(metaData.totalPages)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

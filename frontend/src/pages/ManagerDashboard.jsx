@@ -7,6 +7,7 @@ import axios from 'axios';
 import ShopApprovalTab from '../components/manager/ShopApprovalTab';
 import ManagerShopDetail from '../components/manager/ManagerShopDetail';
 import ProductApprovalTab from '../components/manager/ProductApprovalTab';
+import ManagerProductDetail from '../components/manager/ManagerProductDetail';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -232,14 +233,14 @@ const ManagerDashboard = () => {
                 <button
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
-                    activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval')
+                    activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') || (activeTab === 'product_detail' && item.id === 'product_approval')
                       ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm'
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <span
                     className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform"
-                    style={{ fontVariationSettings: activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') ? "'FILL' 1" : "'FILL' 0" }}
+                    style={{ fontVariationSettings: activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') || (activeTab === 'product_detail' && item.id === 'product_approval') ? "'FILL' 1" : "'FILL' 0" }}
                   >
                     {item.icon}
                   </span>
@@ -280,8 +281,8 @@ const ManagerDashboard = () => {
         {/* Header */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
           <div className="flex items-center gap-4">
-            {activeTab === 'shop_detail' ? (
-              <button onClick={() => setActiveTab('shop_approval')} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-[#004ac6] hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
+            {activeTab === 'shop_detail' || activeTab === 'product_detail' ? (
+              <button onClick={() => setActiveTab(activeTab === 'shop_detail' ? 'shop_approval' : 'product_approval')} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-[#004ac6] hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
                 <span className="material-symbols-outlined text-2xl">arrow_back</span>
               </button>
             ) : (
@@ -294,9 +295,9 @@ const ManagerDashboard = () => {
               </span>
             )}
             <h1 className="text-xl font-black text-slate-900 tracking-tighter">
-              {activeTab === 'shop_detail' ? 'Registration Review' : 'Operations Intelligence'}
+              {activeTab === 'shop_detail' ? 'Registration Review' : activeTab === 'product_detail' ? 'Product Review' : 'Operations Intelligence'}
             </h1>
-            {activeTab !== 'shop_detail' && (
+            {activeTab !== 'shop_detail' && activeTab !== 'product_detail' && (
               <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-96 group focus-within:ring-2 focus-within:ring-[#004ac6]/20 transition-all border border-slate-200/60">
                 <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#004ac6]">search</span>
                 <input
@@ -311,7 +312,7 @@ const ManagerDashboard = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {activeTab !== 'shop_detail' && (
+            {activeTab !== 'shop_detail' && activeTab !== 'product_detail' && (
               <button
                 onClick={() => navigate('/notifications')}
                 className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100"
@@ -535,8 +536,11 @@ const ManagerDashboard = () => {
           {/* Shop Detail Tab */}
           {activeTab === 'shop_detail' && <ManagerShopDetail shopId={pathParts[2]} />}
 
+          {/* Product Detail Tab */}
+          {activeTab === 'product_detail' && <ManagerProductDetail productId={pathParts[2]} />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}
