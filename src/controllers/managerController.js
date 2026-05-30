@@ -5,6 +5,7 @@ const AuditLog = require('../models/AuditLog');
 const ProductApproval = require('../models/ProductApproval');
 const ProductMedia = require('../models/ProductMedia');
 const ProductVariant = require('../models/ProductVariant');
+const Violation = require('../models/Violation');
 const response = require('../utils/response');
 
 /**
@@ -19,9 +20,10 @@ const getDashboard = async (req, res) => {
     todayEnd.setHours(23, 59, 59, 999);
 
     // --- Stat Cards ---
-    const [pendingShops, pendingProducts] = await Promise.all([
+    const [pendingShops, pendingProducts, activeReports] = await Promise.all([
       SellerProfile.countDocuments({ status: 'pending' }),
       Product.countDocuments({ approval_status: 'pending' }),
+      Violation.countDocuments({ status: 'pending' }),
     ]);
 
     // "Resolved Today" = shop approvals + product approvals made today
@@ -140,6 +142,7 @@ const getDashboard = async (req, res) => {
         stats: {
           pendingShops,
           pendingProducts,
+          activeReports,
           resolvedToday,
         },
         approvalTrends,
@@ -562,6 +565,150 @@ const getProductDetail = async (req, res) => {
   }
 };
 
+const getViolations = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const severity = req.query.severity || 'all';
+    const querySearch = req.query.search || '';
+
+    const filter = { status: 'pending' };
+
+    if (severity !== 'all') {
+      filter.severity = severity.toLowerCase();
+    }
+
+    if (querySearch) {
+      filter.$or = [
+        { title: { $regex: querySearch, $options: 'i' } },
+        { description: { $regex: querySearch, $options: 'i' } }
+      ];
+    }
+
+    const total = await Violation.countDocuments(filter);
+    const violations = await Violation.find(filter)
+      .populate({
+        path: 'shop_id',
+        select: 'name slug owner_user_id email phone address'
+      })
+      .populate({
+        path: 'product_id',
+        select: 'name slug mrp_price selling_price'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const data = violations.map(v => {
+      return {
+        id: v._id,
+        _id: v._id,
+        shop_id: v.shop_id,
+        product_id: v.product_id,
+        title: v.title,
+        description: v.description,
+        severity: v.severity,
+        status: v.status,
+        reportedByCount: v.reportedByCount,
+        reporterInfo: v.reporterInfo,
+        type: v.type,
+        actionTaken: v.actionTaken,
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt
+      };
+    });
+
+    return response.success(res, {
+      message: 'Violations retrieved successfully',
+      data,
+      meta: {
+        pagination: {
+          total,
+          count: data.length,
+          perPage: limit,
+          currentPage: page,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (err) {
+    console.error('getViolations error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const takeViolationAction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, reason } = req.body; // 'lock_shop', 'hide_products', 'issue_warning', 'suspend_chat', 'dismiss'
+
+    const violation = await Violation.findById(id).populate('shop_id');
+    if (!violation) {
+      return response.error(res, { statusCode: 404, message: 'Violation report not found' });
+    }
+
+    let message = '';
+    if (action === 'lock_shop') {
+      if (violation.shop_id) {
+        await Shop.findByIdAndUpdate(violation.shop_id._id, { status: 'suspended' });
+        message = `Shop "${violation.shop_id.name}" has been successfully suspended.`;
+      } else {
+        return response.error(res, { statusCode: 400, message: 'No shop associated with this violation' });
+      }
+      violation.actionTaken = 'locked_shop';
+      violation.status = 'resolved';
+    } else if (action === 'hide_products') {
+      if (violation.shop_id) {
+        await Product.updateMany({ shop_id: violation.shop_id._id }, { is_active: false });
+        message = `All products for shop "${violation.shop_id.name}" have been hidden.`;
+      } else {
+        return response.error(res, { statusCode: 400, message: 'No shop associated with this violation' });
+      }
+      violation.actionTaken = 'hidden_products';
+      violation.status = 'resolved';
+    } else if (action === 'issue_warning') {
+      message = 'Warning has been issued to the seller profile.';
+      violation.actionTaken = 'warning_issued';
+      violation.status = 'resolved';
+    } else if (action === 'suspend_chat') {
+      message = 'Chat privileges for this seller have been suspended.';
+      violation.actionTaken = 'chat_suspended';
+      violation.status = 'resolved';
+    } else if (action === 'dismiss') {
+      message = 'Violation incident has been dismissed.';
+      violation.actionTaken = 'dismissed';
+      violation.status = 'dismissed';
+    } else {
+      return response.error(res, { statusCode: 400, message: 'Invalid violation action' });
+    }
+
+    await violation.save();
+
+    // Log this action to AuditLog
+    await AuditLog.create({
+      actor_id: req.user._id,
+      action: 'VIOLATION_ACTION_' + action.toUpperCase(),
+      entity_type: 'Violation',
+      entity_id: violation._id,
+      metadata: {
+        violationTitle: violation.title,
+        shopName: violation.shop_id?.name || 'N/A',
+        action,
+        reason
+      }
+    });
+
+    return response.success(res, {
+      message,
+      data: violation
+    });
+  } catch (err) {
+    console.error('takeViolationAction error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getPendingShops,
@@ -575,5 +722,7 @@ module.exports = {
   approveProduct,
   rejectProduct,
   requestProductInfo,
-  getProductDetail
+  getProductDetail,
+  getViolations,
+  takeViolationAction
 };

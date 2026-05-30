@@ -61,6 +61,15 @@ const ShopApprovalTab = () => {
   const page = parseInt(searchParams.get('page')) || 1;
   const limit = parseInt(searchParams.get('limit')) || 10;
 
+  useEffect(() => {
+    if (!searchParams.has('page') || !searchParams.has('limit')) {
+      const newParams = new URLSearchParams(searchParams);
+      if (!newParams.has('page')) newParams.set('page', '1');
+      if (!newParams.has('limit')) newParams.set('limit', '10');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const setPage = (newPage) => {
       const params = new URLSearchParams(searchParams);
       params.set('page', newPage);

@@ -13,7 +13,9 @@ const {
   approveProduct,
   rejectProduct,
   requestProductInfo,
-  getProductDetail
+  getProductDetail,
+  getViolations,
+  takeViolationAction
 } = require('../controllers/managerController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
@@ -50,5 +52,9 @@ router.get('/products/:id', verifyToken, requireManagerOrAdmin, getProductDetail
 router.post('/products/:id/approve', verifyToken, requireManagerOrAdmin, approveProduct);
 router.post('/products/:id/reject', verifyToken, requireManagerOrAdmin, rejectProduct);
 router.post('/products/:id/request-info', verifyToken, requireManagerOrAdmin, requestProductInfo);
+
+// ─── VIOLATIONS ─────────────────────────────────────────────────────────────
+router.get('/violations', verifyToken, requireManagerOrAdmin, getViolations);
+router.post('/violations/:id/action', verifyToken, requireManagerOrAdmin, takeViolationAction);
 
 module.exports = router;

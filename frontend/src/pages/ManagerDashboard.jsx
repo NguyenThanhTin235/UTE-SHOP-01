@@ -8,6 +8,7 @@ import ShopApprovalTab from '../components/manager/ShopApprovalTab';
 import ManagerShopDetail from '../components/manager/ManagerShopDetail';
 import ProductApprovalTab from '../components/manager/ProductApprovalTab';
 import ManagerProductDetail from '../components/manager/ManagerProductDetail';
+import ViolationsTab from '../components/manager/ViolationsTab';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -50,14 +51,7 @@ const ManagerDashboard = () => {
 
   // Extract tab from URL (e.g. /manager/shop_approval -> shop_approval)
   const pathParts = location.pathname.split('/').filter(Boolean);
-  const currentTabFromUrl = pathParts.length > 1 ? pathParts[1] : 'dashboard';
-
-  const [activeTab, setActiveTabState] = useState(currentTabFromUrl);
-  
-  // Sync state with URL when user navigates manually or back/forward
-  useEffect(() => {
-    setActiveTabState(currentTabFromUrl);
-  }, [currentTabFromUrl]);
+  const activeTab = pathParts.length > 1 ? pathParts[1] : 'dashboard';
 
   // Navigate to update URL instead of just local state
   const setActiveTab = (tabId) => {
@@ -533,6 +527,9 @@ const ManagerDashboard = () => {
           {/* Product Approval Tab */}
           {activeTab === 'product_approval' && <ProductApprovalTab />}
 
+          {/* Violations Tab */}
+          {activeTab === 'violations' && <ViolationsTab />}
+
           {/* Shop Detail Tab */}
           {activeTab === 'shop_detail' && <ManagerShopDetail shopId={pathParts[2]} />}
 
@@ -540,7 +537,7 @@ const ManagerDashboard = () => {
           {activeTab === 'product_detail' && <ManagerProductDetail productId={pathParts[2]} />}
 
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}

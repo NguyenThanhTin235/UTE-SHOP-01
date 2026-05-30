@@ -39,6 +39,16 @@ const SellerOrders = ({ onViewDetails }) => {
 
     const [search, setSearch] = useState('');
     const statusFilter = searchParams.get('status') || 'All Orders';
+
+    useEffect(() => {
+        if (!searchParams.has('page') || !searchParams.has('limit') || !searchParams.has('status')) {
+            const newParams = new URLSearchParams(searchParams);
+            if (!newParams.has('page')) newParams.set('page', '1');
+            if (!newParams.has('limit')) newParams.set('limit', '10');
+            if (!newParams.has('status')) newParams.set('status', 'All Orders');
+            setSearchParams(newParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
     const setStatusFilter = (newStatus) => {
         const params = new URLSearchParams(searchParams);
         params.set('status', newStatus);
