@@ -13,6 +13,7 @@ import ManagerViolationDetail from '../components/manager/ManagerViolationDetail
 import ManagerSidebar from '../components/manager/ManagerSidebar';
 import ManagerHeader from '../components/manager/ManagerHeader';
 import ManagerAiAssistant from '../components/manager/ManagerAiAssistant';
+import ManagerStatistics from '../components/manager/ManagerStatistics';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -76,10 +77,13 @@ const ManagerDashboard = () => {
         return 'Search products, sellers, categories...';
       case 'violations':
         return 'Search reports, shop IDs...';
+      case 'statistics':
+        return 'Search metrics, reports, date ranges...';
       default:
         return 'Search tasks, shops, or products...';
     }
   };
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -233,17 +237,16 @@ const ManagerDashboard = () => {
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
 
         {/* Header */}
-        <ManagerHeader
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          headerData={headerData}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          getSearchPlaceholder={getSearchPlaceholder}
-          unreadCount={unreadCount}
-          user={user}
-          navigate={navigate}
-        />
+          <ManagerHeader 
+            activeTab={activeTab} 
+            setActiveTab={(tab) => navigate(`/manager/${tab}`)} 
+            headerData={headerData}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            getSearchPlaceholder={getSearchPlaceholder}
+            user={user}
+            navigate={navigate}
+          />
 
         {/* ── Dashboard Tab ─────────────────────────────────────────────────── */}
         <div className="p-10 max-w-[1280px] mx-auto w-full space-y-10">
@@ -356,7 +359,13 @@ const ManagerDashboard = () => {
                             <p className="text-sm font-bold text-slate-400">All caught up! No pending tasks.</p>
                           </div>
                         )
-                      : pendingTasks.map((task) => {
+                      : pendingTasks
+                          .filter(task => !searchTerm || 
+                            task.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            task.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            task.timeAgo.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((task) => {
                           const isShop = task.type === 'shop';
                           return (
                             <div
@@ -420,7 +429,13 @@ const ManagerDashboard = () => {
                             <p className="text-sm font-bold text-slate-400">No recent activity found.</p>
                           </div>
                         )
-                      : recentActivity.map((log) => {
+                        : recentActivity
+                            .filter(log => !searchTerm || 
+                              log.actorName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              log.action.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              log.targetId?.toLowerCase().includes(searchTerm.toLowerCase())
+                            )
+                            .map((log) => {
                           const { icon, color } = getActivityIcon(log.action);
                           const { title, desc } = getActivityLabel(log);
                           return (
@@ -445,13 +460,13 @@ const ManagerDashboard = () => {
           )}
 
           {/* Shop Approval Tab */}
-          {activeTab === 'shop_approval' && <ShopApprovalTab />}
+          {activeTab === 'shop_approval' && <ShopApprovalTab searchTerm={searchTerm} />}
 
           {/* Product Approval Tab */}
-          {activeTab === 'product_approval' && <ProductApprovalTab />}
+          {activeTab === 'product_approval' && <ProductApprovalTab searchTerm={searchTerm} />}
 
           {/* Violations Tab */}
-          {activeTab === 'violations' && <ViolationsTab />}
+          {activeTab === 'violations' && <ViolationsTab searchTerm={searchTerm} />}
 
           {/* Shop Detail Tab */}
           {activeTab === 'shop_detail' && <ManagerShopDetail shopId={pathParts[2]} />}
@@ -462,8 +477,11 @@ const ManagerDashboard = () => {
           {/* Violation Detail Tab */}
           {activeTab === 'violation_detail' && <ManagerViolationDetail violationId={pathParts[2]} setHeaderData={setHeaderData} />}
 
+          {/* Statistics Tab */}
+          {activeTab === 'statistics' && <ManagerStatistics searchTerm={searchTerm} />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}

@@ -16,7 +16,11 @@ const {
   getProductDetail,
   getViolations,
   getViolationDetail,
-  takeViolationAction
+  takeViolationAction,
+  getStatistics,
+  getStatisticsCategories,
+  getStatisticsDateRanges,
+  getStatisticsStatuses
 } = require('../controllers/managerController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
@@ -58,5 +62,11 @@ router.post('/products/:id/request-info', verifyToken, requireManagerOrAdmin, re
 router.get('/violations', verifyToken, requireManagerOrAdmin, getViolations);
 router.get('/violations/:id', verifyToken, requireManagerOrAdmin, getViolationDetail);
 router.post('/violations/:id/action', verifyToken, requireManagerOrAdmin, takeViolationAction);
+
+// ─── STATISTICS & FILTERS ─────────────────────────────────────────────────────────────
+router.get('/statistics/filters/categories', verifyToken, requireManagerOrAdmin, getStatisticsCategories);
+router.get('/statistics/filters/date-ranges', verifyToken, requireManagerOrAdmin, getStatisticsDateRanges);
+router.get('/statistics/filters/statuses', verifyToken, requireManagerOrAdmin, getStatisticsStatuses);
+router.get('/statistics', verifyToken, requireManagerOrAdmin, getStatistics);
 
 module.exports = router;

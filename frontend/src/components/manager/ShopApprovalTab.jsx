@@ -39,7 +39,7 @@ const SkeletonRow = () => (
   </tr>
 );
 
-const ShopApprovalTab = () => {
+const ShopApprovalTab = ({ searchTerm = '' }) => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState([]);
   const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
@@ -155,9 +155,16 @@ const ShopApprovalTab = () => {
     toast.success('Exported to CSV');
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(shops.length / limit);
-  const paginatedShops = shops.slice((page - 1) * limit, page * limit);
+  // Pagination and Filtering logic
+  const filteredShops = shops.filter(shop => 
+    !searchTerm || 
+    (shop.shopName && shop.shopName.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    (shop.taxId && shop.taxId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (shop.legalRep && shop.legalRep.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const totalPages = Math.ceil(filteredShops.length / limit);
+  const paginatedShops = filteredShops.slice((page - 1) * limit, page * limit);
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
@@ -263,7 +270,7 @@ const ShopApprovalTab = () => {
         <div className="p-6 bg-white border-t border-slate-100 flex flex-col md:flex-row items-center justify-between rounded-b-3xl relative z-20">
           <div className="flex items-center gap-4 mb-4 md:mb-0">
             <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, shops.length)}</span> of <span className="text-slate-800">{shops.length}</span> shops
+                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, filteredShops.length)}</span> of <span className="text-slate-800">{filteredShops.length}</span> shops
             </p>
             <div className="w-px h-4 bg-slate-200"></div>
             <div className="flex items-center gap-2">

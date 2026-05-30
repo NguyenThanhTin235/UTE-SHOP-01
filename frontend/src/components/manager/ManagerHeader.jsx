@@ -1,4 +1,5 @@
 import React from 'react';
+import NotificationDropdown from '../NotificationDropdown';
 
 const ManagerHeader = ({
   activeTab,
@@ -7,7 +8,6 @@ const ManagerHeader = ({
   searchTerm,
   setSearchTerm,
   getSearchPlaceholder,
-  unreadCount,
   user,
   navigate
 }) => {
@@ -51,17 +51,7 @@ const ManagerHeader = ({
       <div className="flex items-center gap-4">
         {headerData && headerData.extra}
         {activeTab !== 'shop_detail' && activeTab !== 'product_detail' && activeTab !== 'violation_detail' && (
-          <button
-            onClick={() => navigate('/notifications')}
-            className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100"
-          >
-            <span className="material-symbols-outlined text-2xl">notifications</span>
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-[#dc2626] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <NotificationDropdown />
         )}
         <div className="h-8 w-px bg-slate-200 mx-2" />
         <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">

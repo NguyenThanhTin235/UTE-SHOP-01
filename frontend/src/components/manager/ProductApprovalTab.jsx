@@ -10,7 +10,7 @@ function getAuthHeader() {
   return { Authorization: `Bearer ${token}` };
 }
 
-const ProductApprovalTab = () => {
+const ProductApprovalTab = ({ searchTerm = '' }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState(null);
@@ -159,7 +159,11 @@ const ProductApprovalTab = () => {
                   <td colSpan="4" className="px-8 py-12 text-center text-slate-400">No pending products found.</td>
                 </tr>
               ) : (
-                products.map((p) => (
+                products.filter(p => !searchTerm || 
+                  p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  p.shopName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  p.category.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">

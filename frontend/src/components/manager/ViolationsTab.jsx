@@ -28,7 +28,7 @@ const SkeletonReport = () => (
   </div>
 );
 
-const ViolationsTab = () => {
+const ViolationsTab = ({ searchTerm = '' }) => {
   const [loading, setLoading] = useState(true);
   const [violations, setViolations] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -173,7 +173,12 @@ const ViolationsTab = () => {
               <p className="text-sm text-slate-500 mt-1">There are no pending violations matching your filter.</p>
             </div>
           ) : (
-            violations.map((violation) => {
+            violations.filter(violation => !searchTerm || 
+              violation.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+              (violation.shopId?.name && violation.shopId.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+              (violation.productId?.name && violation.productId.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+              (violation.description && violation.description.toLowerCase().includes(searchTerm.toLowerCase()))
+            ).map((violation) => {
               const isHigh = violation.severity === 'high';
               const isMedium = violation.severity === 'medium';
 

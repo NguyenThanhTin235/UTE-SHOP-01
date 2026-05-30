@@ -28,6 +28,30 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
+exports.getUnreadCount = async (req, res) => {
+  try {
+    let count = 0;
+    if (req.user) {
+      count = await Notification.countDocuments({ user_id: req.user._id, is_read: false });
+    }
+
+    return res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Successfully fetched unread count',
+      data: { count }
+    });
+  } catch (error) {
+    console.error('Get Unread Count Error:', error);
+    return res.status(500).json({
+      success: false,
+      code: 500,
+      message: 'Server error while fetching unread count',
+      data: { count: 0 }
+    });
+  }
+};
+
 exports.markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
