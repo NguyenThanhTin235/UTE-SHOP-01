@@ -9,6 +9,10 @@ import ManagerShopDetail from '../components/manager/ManagerShopDetail';
 import ProductApprovalTab from '../components/manager/ProductApprovalTab';
 import ManagerProductDetail from '../components/manager/ManagerProductDetail';
 import ViolationsTab from '../components/manager/ViolationsTab';
+import ManagerViolationDetail from '../components/manager/ManagerViolationDetail';
+import ManagerSidebar from '../components/manager/ManagerSidebar';
+import ManagerHeader from '../components/manager/ManagerHeader';
+import ManagerAiAssistant from '../components/manager/ManagerAiAssistant';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -62,6 +66,20 @@ const ManagerDashboard = () => {
     }
   };
   const [searchTerm, setSearchTerm] = useState('');
+  const getSearchPlaceholder = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return 'Search tasks, shops, or products...';
+      case 'shop_approval':
+        return 'Search applications, MST...';
+      case 'product_approval':
+        return 'Search products, sellers, categories...';
+      case 'violations':
+        return 'Search reports, shop IDs...';
+      default:
+        return 'Search tasks, shops, or products...';
+    }
+  };
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -69,6 +87,12 @@ const ManagerDashboard = () => {
     { sender: 'ai', text: "Hello Manager! I'm your Operations Assistant. How can I help you streamline store approvals and violations today?" },
   ]);
   const aiEndRef = useRef(null);
+
+  const [headerData, setHeaderData] = useState(null);
+
+  useEffect(() => {
+    setHeaderData(null);
+  }, [activeTab]);
 
   // Dashboard data state
   const [loading, setLoading] = useState(true);
@@ -197,138 +221,29 @@ const ManagerDashboard = () => {
     <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
-      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shrink-0 z-50 shadow-sm">
-        {/* Brand */}
-        <div className="p-8 border-b border-slate-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#004ac6] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">
-              UM
-            </div>
-            <div>
-              <h2 className="font-black text-slate-900 text-lg leading-tight tracking-tighter">Manager</h2>
-              <p className="text-[10px] text-[#004ac6] font-black uppercase tracking-widest">Operations Hub</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item, index) => {
-            const showCategory = index === 0 || navItems[index - 1].category !== item.category;
-            return (
-              <React.Fragment key={item.id}>
-                {showCategory && (
-                  <div className="pt-5 pb-2 px-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {item.category}
-                    </p>
-                  </div>
-                )}
-                <button
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
-                    activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') || (activeTab === 'product_detail' && item.id === 'product_approval')
-                      ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span
-                    className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform"
-                    style={{ fontVariationSettings: activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') || (activeTab === 'product_detail' && item.id === 'product_approval') ? "'FILL' 1" : "'FILL' 0" }}
-                  >
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </button>
-              </React.Fragment>
-            );
-          })}
-        </nav>
-
-        {/* System Health */}
-        <div className="p-6 border-t border-slate-100">
-          <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Operational Health</span>
-              <span className="w-2 h-2 bg-[#16a34a] rounded-full animate-pulse" />
-            </div>
-            <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-[#16a34a]" style={{ width: '98%' }} />
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium">
-              Uptime: 99.9% | Pending: {(stats.pendingShops ?? 0) + (stats.pendingProducts ?? 0)}
-            </p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full mt-4 flex items-center justify-center gap-3 px-4 py-3 bg-red-50 text-[#dc2626] hover:bg-red-100 transition-all rounded-xl text-sm font-bold cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-lg">logout</span>
-            <span>Exit Manager</span>
-          </button>
-        </div>
-      </aside>
+      <ManagerSidebar 
+        navItems={navItems}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        stats={stats}
+        handleLogout={handleLogout}
+      />
 
       {/* ── Main ────────────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
 
         {/* Header */}
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            {activeTab === 'shop_detail' || activeTab === 'product_detail' ? (
-              <button onClick={() => setActiveTab(activeTab === 'shop_detail' ? 'shop_approval' : 'product_approval')} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-[#004ac6] hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
-                <span className="material-symbols-outlined text-2xl">arrow_back</span>
-              </button>
-            ) : (
-              <span className="material-symbols-outlined text-[#004ac6] text-[28px]">
-                {activeTab === 'dashboard' ? 'engineering' : 
-                 activeTab === 'shop_approval' ? 'verified' : 
-                 activeTab === 'product_approval' ? 'fact_check' : 
-                 activeTab === 'violations' ? 'gavel' : 
-                 activeTab === 'statistics' ? 'monitoring' : 'engineering'}
-              </span>
-            )}
-            <h1 className="text-xl font-black text-slate-900 tracking-tighter">
-              {activeTab === 'shop_detail' ? 'Registration Review' : activeTab === 'product_detail' ? 'Product Review' : 'Operations Intelligence'}
-            </h1>
-            {activeTab !== 'shop_detail' && activeTab !== 'product_detail' && (
-              <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-96 group focus-within:ring-2 focus-within:ring-[#004ac6]/20 transition-all border border-slate-200/60">
-                <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#004ac6]">search</span>
-                <input
-                  type="text"
-                  placeholder="Search tasks, shops, or products..."
-                  className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 font-medium ml-2 outline-none"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4">
-            {activeTab !== 'shop_detail' && activeTab !== 'product_detail' && (
-              <button
-                onClick={() => navigate('/notifications')}
-                className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100"
-              >
-                <span className="material-symbols-outlined text-2xl">notifications</span>
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-[#dc2626] text-[10px] text-white flex items-center justify-center rounded-full font-bold shadow-sm">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
-            )}
-            <div className="h-8 w-px bg-slate-200 mx-2" />
-            <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
-              <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-black shadow-md shadow-blue-200">
-                {user?.fullName?.slice(0, 2).toUpperCase() || 'NB'}
-              </div>
-              <span className="text-sm font-bold text-slate-700">{user?.fullName || 'Operations Manager'}</span>
-              <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
-            </div>
-          </div>
-        </header>
+        <ManagerHeader
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          headerData={headerData}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          getSearchPlaceholder={getSearchPlaceholder}
+          unreadCount={unreadCount}
+          user={user}
+          navigate={navigate}
+        />
 
         {/* ── Dashboard Tab ─────────────────────────────────────────────────── */}
         <div className="p-10 max-w-[1280px] mx-auto w-full space-y-10">
@@ -446,11 +361,19 @@ const ManagerDashboard = () => {
                           return (
                             <div
                               key={task.id}
-                              onClick={() => setActiveTab(isShop ? `shop_detail/${task.id}` : 'product_approval')}
+                              onClick={() => {
+                                if (task.type === 'shop') setActiveTab(`shop_detail/${task.id}`);
+                                else if (task.type === 'product') setActiveTab(`product_detail/${task.id}`);
+                                else if (task.type === 'violation') setActiveTab(`violation_detail/${task.id}`);
+                              }}
                               className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[#004ac6]/30 hover:bg-blue-50/30 transition-all cursor-pointer group"
                             >
                               <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isShop ? 'bg-blue-100 text-[#004ac6]' : 'bg-orange-100 text-[#f59e0b]'}`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                  task.type === 'shop' ? 'bg-blue-100 text-[#004ac6]' : 
+                                  task.type === 'violation' ? 'bg-red-100 text-[#dc2626]' : 
+                                  'bg-orange-100 text-[#f59e0b]'
+                                }`}>
                                   <span className="material-symbols-outlined text-xl">{task.icon}</span>
                                 </div>
                                 <div>
@@ -536,8 +459,11 @@ const ManagerDashboard = () => {
           {/* Product Detail Tab */}
           {activeTab === 'product_detail' && <ManagerProductDetail productId={pathParts[2]} />}
 
+          {/* Violation Detail Tab */}
+          {activeTab === 'violation_detail' && <ManagerViolationDetail violationId={pathParts[2]} setHeaderData={setHeaderData} />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}
@@ -567,84 +493,16 @@ const ManagerDashboard = () => {
         </div>
 
         {/* ── FAB: AI Assistant ────────────────────────────────────────────── */}
-        <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
-          <button
-            onClick={() => setShowAI(!showAI)}
-            className="w-16 h-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative border border-white/20 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-3xl">smart_toy</span>
-            {unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-white text-[#dc2626] font-black flex items-center justify-center rounded-full border-2 border-[#dc2626] shadow-lg text-[11px]">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </div>
-            )}
-            <span className="absolute right-full mr-4 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              AI Assistant
-            </span>
-          </button>
-        </div>
-
-        {/* ── AI Chat Window ───────────────────────────────────────────────── */}
-        {showAI && (
-          <div className="fixed bottom-28 right-8 w-96 h-[560px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col z-[60] overflow-hidden">
-            {/* Header */}
-            <div className="p-6 bg-[#004ac6] text-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined">smart_toy</span>
-                </div>
-                <div>
-                  <h3 className="font-black text-sm tracking-tight">Manager AI Assistant</h3>
-                  <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest">Operations Expert</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAI(false)}
-                className="w-8 h-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50 flex flex-col">
-              {aiMessages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-900 text-white' : 'bg-[#004ac6]/10 text-[#004ac6]'}`}>
-                    <span className="material-symbols-outlined text-sm">{msg.sender === 'user' ? 'person' : 'smart_toy'}</span>
-                  </div>
-                  <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed max-w-[80%] ${
-                    msg.sender === 'user'
-                      ? 'bg-slate-900 text-white rounded-tr-none'
-                      : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={aiEndRef} />
-            </div>
-
-            {/* Input */}
-            <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-              <form onSubmit={handleAiSubmit} className="flex gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-200/60">
-                <input
-                  type="text"
-                  placeholder="Ask AI anything..."
-                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-2 outline-none"
-                  value={aiInput}
-                  onChange={(e) => setAiInput(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="w-10 h-10 bg-[#004ac6] text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer shadow-md shadow-[#004ac6]/20"
-                >
-                  <span className="material-symbols-outlined">send</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+        <ManagerAiAssistant
+          showAI={showAI}
+          setShowAI={setShowAI}
+          aiInput={aiInput}
+          setAiInput={setAiInput}
+          aiMessages={aiMessages}
+          handleAiSubmit={handleAiSubmit}
+          unreadCount={unreadCount}
+          aiEndRef={aiEndRef}
+        />
       </main>
     </div>
   );

@@ -5,6 +5,7 @@ const violationSchema = new mongoose.Schema({
   product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   title: { type: String, required: true },
   description: { type: String, required: true },
+  evidence_urls: [{ type: String }],
   severity: { type: String, enum: ['high', 'medium', 'low'], default: 'medium' },
   status: { type: String, enum: ['pending', 'resolved', 'dismissed'], default: 'pending' },
   reportedByCount: { type: Number, default: 1 },

@@ -190,13 +190,14 @@ const ViolationsTab = () => {
                 iconBg = 'bg-blue-100 text-[#004ac6]';
               }
 
-              const targetShopId = violation.shop_id?._id || violation.shop_id;
-              const targetProductId = violation.product_id?._id || violation.product_id;
+              const targetShopId = violation.shopId?.id || violation.shopId;
+              const targetProductId = violation.productId?.id || violation.productId;
 
               return (
                 <div
-                  key={violation._id || violation.id}
-                  className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 hover:border-[#004ac6]/20 transition-all group"
+                  key={violation.id}
+                  onClick={() => navigate(`/manager/violation_detail/${violation.id}`)}
+                  className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 hover:border-[#004ac6]/20 hover:shadow-md transition-all group cursor-pointer"
                 >
                   <div className="flex flex-col xl:flex-row items-start justify-between gap-6">
                     <div className="flex gap-6">
@@ -222,16 +223,16 @@ const ViolationsTab = () => {
                         
                         {/* Display Shop and Product Info */}
                         <div className="flex flex-wrap items-center gap-4 mt-2">
-                          {violation.shop_id?.name && (
+                          {violation.shopId?.name && (
                             <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-lg">
                               <span className="material-symbols-outlined text-[16px] text-[#004ac6]">storefront</span>
-                              {violation.shop_id.name}
+                              {violation.shopId.name}
                             </div>
                           )}
-                          {violation.product_id?.name && (
+                          {violation.productId?.name && (
                             <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-lg">
                               <span className="material-symbols-outlined text-[16px] text-orange-500">inventory_2</span>
-                              {violation.product_id.name}
+                              {violation.productId.name}
                             </div>
                           )}
                         </div>
@@ -269,55 +270,40 @@ const ViolationsTab = () => {
                       {violation.severity === 'high' ? (
                         <>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'lock_shop', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'lock_shop', violation.title); }}
                             className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-md hover:scale-[1.02] transition-all cursor-pointer text-center w-full"
                           >
                             Lock Shop
                           </button>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'hide_products', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'hide_products', violation.title); }}
                             className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 hover:text-slate-800 transition-all cursor-pointer text-center w-full"
                           >
                             Hide Product
                           </button>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'dismiss', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'dismiss', violation.title); }}
                             className="px-6 py-3 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer text-center w-full"
                           >
                             Dismiss
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (targetProductId) {
-                                navigate(`/manager/product_detail/${targetProductId}`);
-                              } else if (targetShopId) {
-                                navigate(`/manager/shop_detail/${targetShopId}`);
-                              } else {
-                                toast.error('No associated shop or product to investigate');
-                              }
-                            }}
-                            className="px-6 py-3 bg-[#004ac6]/10 text-[#004ac6] hover:bg-[#004ac6] hover:text-white text-xs font-black rounded-xl transition-all cursor-pointer text-center w-full flex items-center justify-center gap-2"
-                          >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                            Investigate Case
                           </button>
                         </>
                       ) : (
                         <>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'issue_warning', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'issue_warning', violation.title); }}
                             className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black rounded-xl shadow-md hover:scale-[1.02] transition-all cursor-pointer text-center w-full"
                           >
                             Issue Warning
                           </button>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'suspend_chat', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'suspend_chat', violation.title); }}
                             className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 hover:text-slate-800 transition-all cursor-pointer text-center w-full"
                           >
                             Suspend Chat
                           </button>
                           <button
-                            onClick={() => confirmAction(violation.id || violation._id, 'dismiss', violation.title)}
+                            onClick={(e) => { e.stopPropagation(); confirmAction(violation.id || violation._id, 'dismiss', violation.title); }}
                             className="px-6 py-3 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer text-center w-full"
                           >
                             Dismiss

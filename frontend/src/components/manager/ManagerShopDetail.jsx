@@ -107,8 +107,8 @@ const ManagerShopDetail = ({ shopId }) => {
         });
       };
 
-      const idImgUrl = shopDetail.identity_card_url || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800";
-      const bizImgUrl = shopDetail.business_license_url || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800";
+      const idImgUrl = shopDetail.identityCardUrl || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800";
+      const bizImgUrl = shopDetail.businessLicenseUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800";
 
       const idImgData = await getBase64ImageFromUrl(idImgUrl);
       const bizImgData = await getBase64ImageFromUrl(bizImgUrl);
@@ -215,9 +215,9 @@ const ManagerShopDetail = ({ shopId }) => {
             <div className="grid grid-cols-2 gap-6">
               <div 
                 className="group relative rounded-3xl overflow-hidden border border-slate-200 aspect-video bg-slate-50 cursor-pointer"
-                onClick={() => setSelectedImage(shopDetail.identity_card_url || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800")}
+                onClick={() => setSelectedImage(shopDetail.identityCardUrl || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800")}
               >
-                <img src={shopDetail.identity_card_url || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800"} alt="Identity Card" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
+                <img src={shopDetail.identityCardUrl || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800"} alt="Identity Card" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                   <button className="w-10 h-10 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-110 transition-all shadow-xl cursor-pointer">
                     <span className="material-symbols-outlined">zoom_in</span>
@@ -230,9 +230,9 @@ const ManagerShopDetail = ({ shopId }) => {
               </div>
               <div 
                 className="group relative rounded-3xl overflow-hidden border border-slate-200 aspect-video bg-slate-50 cursor-pointer"
-                onClick={() => setSelectedImage(shopDetail.business_license_url || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800")}
+                onClick={() => setSelectedImage(shopDetail.businessLicenseUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800")}
               >
-                <img src={shopDetail.business_license_url || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800"} alt="Business License" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
+                <img src={shopDetail.businessLicenseUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=800"} alt="Business License" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                   <button className="w-10 h-10 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-110 transition-all shadow-xl cursor-pointer">
                     <span className="material-symbols-outlined">zoom_in</span>
@@ -335,29 +335,7 @@ const ManagerShopDetail = ({ shopId }) => {
                 </div>
               </div>
 
-              {/* AI Insights Footer */}
-              <div className="p-8 bg-blue-50/50 border-t border-[#004ac6]/10">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-[#004ac6] text-white rounded-xl flex items-center justify-center">
-                    <span className="material-symbols-outlined text-lg">smart_toy</span>
-                  </div>
-                  <h3 className="font-black text-[#004ac6] text-sm tracking-tight">AI Audit Result</h3>
-                </div>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[#16a34a] text-lg mt-0.5">check_circle</span>
-                    <p className="text-[11px] font-bold text-slate-600 leading-relaxed">Tax ID (MST) matches public business records.</p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[#16a34a] text-lg mt-0.5">check_circle</span>
-                    <p className="text-[11px] font-bold text-slate-600 leading-relaxed">Address verified via Google Maps.</p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[#f59e0b] text-lg mt-0.5">info</span>
-                    <p className="text-[11px] font-bold text-slate-600 leading-relaxed">Owner has 1 other shop with good rating.</p>
-                  </li>
-                </ul>
-              </div>
+
             </div>
           </div>
         </div>

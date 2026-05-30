@@ -43,6 +43,10 @@ async function seedViolations() {
         product_id: product1 ? product1._id : null,
         title: 'Counterfeit Product Reported',
         description: `Shop "${shop1.name}" (ID: ${shop1._id.toString().substring(0, 8)}) has been reported for selling unauthorized replicas of luxury watches. 12 user reports received in 24 hours.`,
+        evidence_urls: [
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400',
+          'https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&q=80&w=400'
+        ],
         severity: 'high',
         status: 'pending',
         reportedByCount: 12,
@@ -64,6 +68,9 @@ async function seedViolations() {
         product_id: product2 ? product2._id : null,
         title: 'Intellectual Property Infringement',
         description: `Product "${product2 ? product2.name : 'Premium Item'}" listed by "${shop3.name}" contains copyrighted graphics and logos without explicit merchant authorization.`,
+        evidence_urls: [
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400'
+        ],
         severity: 'high',
         status: 'pending',
         reportedByCount: 4,

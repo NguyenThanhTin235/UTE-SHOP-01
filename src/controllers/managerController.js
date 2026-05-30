@@ -88,16 +88,20 @@ const getDashboard = async (req, res) => {
     });
     const approvalTrends = Object.values(trendMap);
 
-    // --- Pending Tasks (5 most recent: mix shops + products) ---
-    const [pendingShopProfiles, pendingProductList] = await Promise.all([
+    // --- Pending Tasks (15 most recent: mix shops + products + violations) ---
+    const [pendingShopProfiles, pendingProductList, pendingViolations] = await Promise.all([
       SellerProfile.find({ status: 'pending' })
         .sort({ createdAt: -1 })
-        .limit(3)
+        .limit(5)
         .populate('user_id', 'full_name email'),
       Product.find({ approval_status: 'pending' })
         .sort({ createdAt: -1 })
-        .limit(3)
+        .limit(5)
         .populate('shop_id', 'name'),
+      Violation.find({ status: 'pending' })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate('shop_id', 'name')
     ]);
 
     const pendingTasks = [
@@ -107,6 +111,7 @@ const getDashboard = async (req, res) => {
         title: sp.user_id?.full_name || 'Unknown Seller',
         subtitle: `Shop Registration • ${timeAgo(sp.createdAt)}`,
         icon: 'store',
+        createdAt: sp.createdAt,
       })),
       ...pendingProductList.map((p) => ({
         id: p._id,
@@ -114,10 +119,19 @@ const getDashboard = async (req, res) => {
         title: p.name,
         subtitle: `Product Approval • ${timeAgo(p.createdAt)}`,
         icon: 'inventory_2',
+        createdAt: p.createdAt,
       })),
+      ...pendingViolations.map((v) => ({
+        id: v._id,
+        type: 'violation',
+        title: v.title || 'Violation Report',
+        subtitle: `Incident • ${timeAgo(v.createdAt)}`,
+        icon: 'report_problem',
+        createdAt: v.createdAt,
+      }))
     ]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
+      .slice(0, 15);
 
     // --- Recent Activity (last 8 audit logs) ---
     const recentLogs = await AuditLog.find()
@@ -638,6 +652,42 @@ const getViolations = async (req, res) => {
   }
 };
 
+const getViolationDetail = async (req, res) => {
+  try {
+    const violation = await Violation.findById(req.params.id)
+      .populate({
+        path: 'shop_id',
+        select: 'name slug owner_user_id email phone address status'
+      })
+      .populate({
+        path: 'product_id',
+        select: 'name slug mrp_price selling_price main_image status'
+      });
+
+    if (!violation) {
+      return response.error(res, { statusCode: 404, message: 'Violation not found' });
+    }
+
+    // Fetch history for the same shop, excluding the current violation
+    const history = await Violation.find({ 
+      shop_id: violation.shop_id._id, 
+      _id: { $ne: violation._id },
+      status: { $in: ['resolved', 'dismissed'] }
+    }).sort({ createdAt: -1 }).limit(5);
+
+    return response.success(res, {
+      message: 'Violation detail retrieved successfully',
+      data: {
+        violation,
+        history
+      }
+    });
+  } catch (err) {
+    console.error('getViolationDetail error:', err);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 const takeViolationAction = async (req, res) => {
   try {
     const { id } = req.params;
@@ -724,5 +774,6 @@ module.exports = {
   requestProductInfo,
   getProductDetail,
   getViolations,
+  getViolationDetail,
   takeViolationAction
 };
