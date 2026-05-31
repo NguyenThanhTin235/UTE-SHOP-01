@@ -55,5 +55,13 @@ router.delete('/wishlist/:productId', verifyToken, userController.removeFromWish
  */
 router.get('/coins/transactions', verifyToken, userController.getCoinTransactions);
 
+/**
+ * ── RECENTLY VIEWED PRODUCTS ──
+ */
+router.post('/recently-viewed', verifyToken, userController.recordRecentlyViewed);
+router.get('/recently-viewed', verifyToken, userController.getRecentlyViewed);
+router.delete('/recently-viewed/:productId', verifyToken, userController.removeFromRecentlyViewed);
+router.delete('/recently-viewed', verifyToken, userController.clearRecentlyViewed);
+
 module.exports = router;
 

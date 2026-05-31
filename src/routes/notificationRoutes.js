@@ -21,6 +21,7 @@ const optionalAuth = async (req, res, next) => {
 };
 
 // Các routes
+router.get('/unread-count', optionalAuth, notificationController.getUnreadCount);
 router.get('/', optionalAuth, notificationController.getNotifications);
 router.put('/:id/read', optionalAuth, notificationController.markAsRead);
 router.put('/read-all', optionalAuth, notificationController.markAllAsRead);

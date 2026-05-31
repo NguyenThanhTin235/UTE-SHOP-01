@@ -16,36 +16,50 @@ const Coins = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // all, earn, spend, refund
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 1,
+    limit: 5
+  });
+
+  const fetchCoinData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      const response = await axios.get('http://localhost:5000/api/users/coins/transactions', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        params: {
+          page: currentPage,
+          limit: 5,
+          type: activeTab
+        }
+      });
+
+      if (response.data && response.data.success) {
+        setCoinBalance(response.data.data.coinBalance || 0);
+        setTransactions(response.data.data.transactions || []);
+        if (response.data.pagination) {
+          setPagination(response.data.pagination);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching coin history:', error);
+      toast.error('Unable to load coin transaction history');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    const fetchCoinData = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-        const response = await axios.get('http://localhost:5000/api/users/coins/transactions', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (response.data && response.data.success) {
-          setCoinBalance(response.data.data.coinBalance || 0);
-          setTransactions(response.data.data.transactions || []);
-        }
-      } catch (error) {
-        console.error('Error fetching coin history:', error);
-        toast.error('Unable to load coin transaction history');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCoinData();
-  }, [user, navigate]);
+  }, [user, navigate, currentPage, activeTab]);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -54,11 +68,8 @@ const Coins = () => {
     toast.success('Logged out successfully');
   };
 
-  // Filter transactions based on active tab
-  const filteredTransactions = transactions.filter((tx) => {
-    if (activeTab === 'all') return true;
-    return tx.type === activeTab;
-  });
+  // Filter transactions based on active tab (now handled by backend)
+  const filteredTransactions = transactions;
 
   const getTransactionDetails = (tx) => {
     const orderCode = tx.orderId?.orderCode || 'N/A';
@@ -136,6 +147,10 @@ const Coins = () => {
             <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
+            </Link>
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">history</span>
+              <span>Recently Viewed</span>
             </Link>
             <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
@@ -227,8 +242,8 @@ const Coins = () => {
               ].map((tab) => (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex-shrink-0 px-8 py-5 text-sm font-bold transition-all ${
+                  onClick={() => { setActiveTab(tab.key); setCurrentPage(1); }}
+                  className={`flex-shrink-0 px-8 py-5 text-sm font-bold transition-all cursor-pointer ${
                     activeTab === tab.key
                       ? 'text-[#004ac6] border-b-2 border-[#004ac6]'
                       : 'text-[#434655] hover:bg-[#f2f3ff]/50'
@@ -306,6 +321,46 @@ const Coins = () => {
               )}
 
             </div>
+
+            {/* Pagination */}
+            {!loading && pagination.totalPages > 1 && (
+              <div className="p-6 border-t border-[#c3c6d7]/20 flex items-center justify-between bg-slate-50/50">
+                <p className="text-xs font-bold text-[#434655]">
+                  Showing {filteredTransactions.length} of {pagination.total} transactions
+                </p>
+                <nav className="flex items-center gap-1.5">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#c3c6d7]/40 hover:bg-[#f2f3ff] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer bg-white text-[#434655]"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+
+                  {Array.from({ length: pagination.totalPages }, (_, index) => (
+                    <button
+                      key={index + 1}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        currentPage === index + 1
+                          ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/10'
+                          : 'hover:bg-[#f2f3ff] text-[#434655] bg-white border border-[#c3c6d7]/30'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    disabled={currentPage === pagination.totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#c3c6d7]/40 hover:bg-[#f2f3ff] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer bg-white text-[#434655]"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </nav>
+              </div>
+            )}
 
           </div>
 

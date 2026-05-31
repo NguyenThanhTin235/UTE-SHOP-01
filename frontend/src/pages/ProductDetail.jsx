@@ -21,6 +21,8 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
+  
+
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -85,6 +87,25 @@ const ProductDetail = () => {
       }
     };
     checkWishlist();
+  }, [user, data]);
+
+  // Record recently viewed product
+  useEffect(() => {
+    const recordView = async () => {
+      if (!user || !data?.product) return;
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
+          },
+        };
+        const currentProductId = data.product._id || data.product.id;
+        await axios.post('http://localhost:5000/api/users/recently-viewed', { productId: currentProductId }, config);
+      } catch (error) {
+        console.error('Error recording recently viewed product:', error);
+      }
+    };
+    recordView();
   }, [user, data]);
 
   if (loading) {
@@ -314,6 +335,8 @@ const ProductDetail = () => {
                 <span className="text-sm text-on-surface-variant underline cursor-pointer">{reviews?.length || 0} Reviews</span>
                 <span className="text-outline-variant">|</span>
                 <span className="text-sm text-on-surface-variant">{sold || 0} Sold</span>
+                <span className="text-outline-variant">|</span>
+                <span className="text-sm text-on-surface-variant">{product.viewCount || 0} Views</span>
               </div>
             </div>
 
@@ -649,14 +672,14 @@ const ProductDetail = () => {
                                   <div className="flex justify-between items-start">
                                       <div className="flex gap-4">
                                           {r.user?.avatarUrl && r.user.avatarUrl !== "https://ui-avatars.com/api/?name=User&background=random" ? (
-                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" />
+                                              <img src={r.user.avatarUrl} className="w-12 h-12 rounded-full border border-outline-variant object-cover" alt="Avatar" referrerPolicy="no-referrer" />
                                           ) : (
                                               <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">
                                                   {r.user?.fullName ? r.user.fullName.substring(0, 2).toUpperCase() : 'JD'}
                                               </div>
                                           )}
                                           <div>
-                                              <h4 className="font-bold text-on-surface">{r.user?.fullName || 'John Doe'}</h4>
+                                              <h4 className="font-bold text-on-surface">{r.user?.fullName || 'Anonymous'}</h4>
                                               <div className="flex text-primary text-[14px]">
                                                   {[...Array(5)].map((_, i) => (
                                                       <span key={i} className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: i < r.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
@@ -664,20 +687,35 @@ const ProductDetail = () => {
                                               </div>
                                           </div>
                                       </div>
-                                      <span className="text-xs text-on-surface-variant">{new Date(r.createdAt).toLocaleDateString()}</span>
+                                      <span className="text-xs text-on-surface-variant">{new Date(r.createdAt).toLocaleDateString('en-US')}</span>
                                   </div>
-                                  <p className="text-sm text-on-surface-variant leading-relaxed">
-                                      {r.comment}
-                                  </p>
+                                  {r.comment && (
+                                    <p className="text-sm text-on-surface-variant leading-relaxed">{r.comment}</p>
+                                  )}
+                                  {/* Ảnh đính kèm review */}
+                                  {r.media && r.media.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {r.media.map((m, mi) => (
+                                        <a key={mi} href={m.url} target="_blank" rel="noopener noreferrer">
+                                          <img
+                                            src={m.url}
+                                            alt={`review-media-${mi}`}
+                                            className="w-16 h-16 rounded-xl object-cover border border-outline-variant/30 hover:opacity-90 hover:scale-105 transition-all cursor-pointer"
+                                          />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
                               </div>
                           )) : (
                               <div className="text-sm text-on-surface-variant italic py-8 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-                                  No reviews available for this product yet.
+                                  No reviews for this product yet.
                               </div>
                           )}
                       </div>
                   </div>
               </section>
+
 
               {/* Section 3: Shipping & Returns */}
               <section id="shipping" className="space-y-12 scroll-mt-32">
@@ -748,38 +786,74 @@ const ProductDetail = () => {
                 </button>
             </div>
             
-            {relatedProducts?.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {relatedProducts.map(p => (
-                        <Link to={`/product/${p.slug}`} key={p.id} className="group bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-primary/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full">
-                            <div className="aspect-square relative overflow-hidden bg-surface-container-low">
-                                <img src={p.media?.[0] || 'https://via.placeholder.com/300'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.name} />
-                            </div>
-                            <div className="p-5 flex-grow flex flex-col">
-                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{p.category?.name || 'Category'}</p>
-                                <h4 className="font-bold text-sm mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">{p.name}</h4>
-                                <div className="mt-auto flex items-center justify-between">
-                                    {p.mrpPrice > p.sellingPrice ? (
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</span>
-                                        <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
-                                      </div>
-                                    ) : (
-                                      <p className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</p>
-                                    )}
-                                    <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all">
-                                        <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
-                                    </button>
-                                  </div>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-sm text-on-surface-variant italic py-8 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-                    No recommended products available.
-                </div>
-            )}
+             {relatedProducts?.length > 0 ? (
+                 <div className="overflow-hidden relative w-full py-4">
+                     <div className="animate-marquee flex gap-6 hover:[animation-play-state:paused]">
+                         {/* First set */}
+                         {relatedProducts.map((p, idx) => (
+                             <Link 
+                                 to={`/product/${p.slug}`} 
+                                 key={`set1-${p.id || idx}`} 
+                                 className="flex-shrink-0 w-[260px] md:w-[280px] group bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-primary/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full"
+                             >
+                                 <div className="aspect-square relative overflow-hidden bg-surface-container-low">
+                                     <img src={p.media?.[0] || 'https://via.placeholder.com/300'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.name} />
+                                 </div>
+                                 <div className="p-5 flex-grow flex flex-col">
+                                     <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{p.category?.name || 'Category'}</p>
+                                     <h4 className="font-bold text-sm mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">{p.name}</h4>
+                                     <div className="mt-auto flex items-center justify-between">
+                                         {p.mrpPrice > p.sellingPrice ? (
+                                           <div className="flex items-center gap-1.5 flex-wrap">
+                                             <span className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</span>
+                                             <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
+                                           </div>
+                                         ) : (
+                                           <p className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</p>
+                                         )}
+                                         <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer">
+                                             <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
+                                         </button>
+                                       </div>
+                                 </div>
+                             </Link>
+                         ))}
+                         {/* Duplicate set for seamless looping */}
+                         {relatedProducts.map((p, idx) => (
+                             <Link 
+                                 to={`/product/${p.slug}`} 
+                                 key={`set2-${p.id || idx}`} 
+                                 className="flex-shrink-0 w-[260px] md:w-[280px] group bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-primary/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full"
+                             >
+                                 <div className="aspect-square relative overflow-hidden bg-surface-container-low">
+                                     <img src={p.media?.[0] || 'https://via.placeholder.com/300'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.name} />
+                                 </div>
+                                 <div className="p-5 flex-grow flex flex-col">
+                                     <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{p.category?.name || 'Category'}</p>
+                                     <h4 className="font-bold text-sm mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">{p.name}</h4>
+                                     <div className="mt-auto flex items-center justify-between">
+                                         {p.mrpPrice > p.sellingPrice ? (
+                                           <div className="flex items-center gap-1.5 flex-wrap">
+                                             <span className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</span>
+                                             <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
+                                           </div>
+                                         ) : (
+                                           <p className="text-primary font-extrabold">{p.sellingPrice?.toLocaleString()}₫</p>
+                                         )}
+                                         <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer">
+                                             <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
+                                         </button>
+                                       </div>
+                                 </div>
+                             </Link>
+                         ))}
+                     </div>
+                 </div>
+             ) : (
+                 <div className="text-sm text-on-surface-variant italic py-8 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
+                     No recommended products available.
+                 </div>
+             )}
         </section>
 
       </main>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -7,10 +8,23 @@ import { useNotifications } from '../../hooks/useNotifications';
 const SellerCancellations = ({ setActiveTab }) => {
     const { user } = useSelector(state => state.auth);
     const { unreadCount } = useNotifications();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeFilter = searchParams.get('status') || 'All';
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 10;
     const [cancellations, setCancellations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeFilter, setActiveFilter] = useState('All');
     const [search, setSearch] = useState('');
+
+    useEffect(() => {
+        if (!searchParams.has('page') || !searchParams.has('limit') || !searchParams.has('status')) {
+            const newParams = new URLSearchParams(searchParams);
+            if (!newParams.has('page')) newParams.set('page', '1');
+            if (!newParams.has('limit')) newParams.set('limit', '10');
+            if (!newParams.has('status')) newParams.set('status', 'All');
+            setSearchParams(newParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
     const [stats, setStats] = useState({ new: 0, system: 0, seller: 0, refund: 0 });
     const [actionModal, setActionModal] = useState({
         isOpen: false,
@@ -32,7 +46,9 @@ const SellerCancellations = ({ setActiveTab }) => {
             const res = await axios.get(`http://localhost:5000/api/seller/cancellations`, {
                 params: {
                     status: activeFilter,
-                    search: search
+                    search: search,
+                    page,
+                    limit
                 },
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem('token')}`
@@ -148,7 +164,12 @@ const SellerCancellations = ({ setActiveTab }) => {
                         {['All', 'Pending', 'Approved', 'Rejected'].map(tab => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveFilter(tab)}
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams);
+                                    params.set('status', tab);
+                                    params.set('page', '1');
+                                    setSearchParams(params);
+                                }}
                                 className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
                                         ? 'text-primary border-b-[3px] border-primary'
                                         : 'text-secondary hover:text-primary'
