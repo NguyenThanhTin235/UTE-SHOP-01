@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
+const reviewController = require('../controllers/reviewController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { isVendor } = require('../middleware/roleMiddleware');
 
@@ -19,7 +20,11 @@ router.put('/seller/orders/:orderId/status', verifyToken, isVendor, orderControl
 // Lấy thông tin chi tiết đơn hàng
 router.get('/:orderId', verifyToken, orderController.getOrderDetail);
 
+// Lấy danh sách sản phẩm có thể đánh giá trong đơn hàng đã giao
+router.get('/:orderId/reviewable', verifyToken, reviewController.getReviewableItems);
+
 // Yêu cầu hủy đơn hàng
 router.post('/:orderId/cancel', verifyToken, orderController.cancelOrder);
 
 module.exports = router;
+
