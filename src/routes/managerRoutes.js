@@ -42,6 +42,16 @@ const requireManagerOrAdmin = (req, res, next) => {
 // GET /api/manager/dashboard
 router.get('/dashboard', verifyToken, requireManagerOrAdmin, getDashboard);
 
+// ─── PROFILE MANAGEMENT ──
+const userController = require('../controllers/userController');
+router.get('/profile', verifyToken, requireManagerOrAdmin, userController.getProfile);
+router.put('/profile', verifyToken, requireManagerOrAdmin, userController.updateProfile);
+router.put('/profile/change-password', verifyToken, requireManagerOrAdmin, userController.changePassword);
+
+// ─── SECURITY SETTINGS ──
+router.get('/security/settings', verifyToken, requireManagerOrAdmin, userController.getSecuritySettings);
+router.put('/security/settings', verifyToken, requireManagerOrAdmin, userController.updateSecuritySettings);
+
 // ─── SHOP APPROVAL ──────────────────────────────────────────────────────────
 router.get('/shops/pending', verifyToken, requireManagerOrAdmin, getPendingShops);
 router.get('/shops/:id', verifyToken, requireManagerOrAdmin, getShopDetail);

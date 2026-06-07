@@ -165,9 +165,18 @@ const updateOrderStatus = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Order not found' });
         }
 
+        const isAlreadyDelivered = order.status === 'delivered';
         order.status = status;
 
-        if (status === 'delivered') {
+        if (status === 'delivered' && !isAlreadyDelivered) {
+            // Add funds to seller's wallet
+            const shopOwner = await User.findById(shop.owner_user_id);
+            if (shopOwner) {
+                const finalAmount = order.total_final - (order.platform_fee_amount || 0);
+                shopOwner.wallet_balance = (shopOwner.wallet_balance || 0) + finalAmount;
+                await shopOwner.save();
+            }
+
             const paymentOrder = await PaymentOrder.findById(order.payment_order_id);
             if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
                 order.payment_status = 'success';

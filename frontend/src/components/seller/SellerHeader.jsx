@@ -104,12 +104,11 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
           <NotificationDropdown />
         )}
 
-        <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
+        <div onClick={() => navigate('/seller/profile')} className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
           <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
             {user?.fullName?.charAt(0).toUpperCase() || 'J'}
           </div>
           <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>
-          <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
         </div>
       </div>
     </header>

@@ -20,6 +20,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import SecuritySettings from './pages/SecuritySettings';
+import DashboardProfile from './pages/DashboardProfile';
+import DashboardSecurity from './pages/DashboardSecurity';
+import UserStatistics from './pages/UserStatistics';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
@@ -88,7 +91,8 @@ function App() {
         <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
         <Route path="/recently-viewed" element={user ? <RecentlyViewed /> : <Navigate to="/login" />} />
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
-        <Route path="/security" element={user ? <SecuritySettings /> : <Navigate to="/login" />} />
+        <Route path="/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
+        <Route path="/user/statistics" element={<ProtectedRoute><UserStatistics /></ProtectedRoute>} />
         <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
@@ -103,7 +107,13 @@ function App() {
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        
+        <Route path="/manager/profile" element={<ProtectedRoute allowedRoles={['manager']}><DashboardProfile /></ProtectedRoute>} />
+        <Route path="/manager/security" element={<ProtectedRoute allowedRoles={['manager']}><DashboardSecurity /></ProtectedRoute>} />
         <Route path="/manager/*" element={<ProtectedRoute allowedRoles={['manager']}><ManagerDashboard /></ProtectedRoute>} />
+        
+        <Route path="/seller/profile" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardProfile /></ProtectedRoute>} />
+        <Route path="/seller/security" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardSecurity /></ProtectedRoute>} />
         <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
 
         <Route path="/" element={<Home />} />
