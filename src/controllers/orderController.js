@@ -1505,6 +1505,19 @@ class OrderController {
 
       // Adjust payment status and trigger stock/coin refunds if status transitioned to canceled or refunded
       if (newStatus === 'delivered') {
+        if (oldStatus !== 'delivered') {
+          // Add funds to seller's wallet
+          const shop = await Shop.findById(order.shop_id).session(session);
+          if (shop) {
+            const shopOwner = await User.findById(shop.owner_user_id).session(session);
+            if (shopOwner) {
+              const finalAmount = order.total_final - (order.platform_fee_amount || 0);
+              shopOwner.wallet_balance = (shopOwner.wallet_balance || 0) + finalAmount;
+              await shopOwner.save({ session });
+            }
+          }
+        }
+
         const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
         if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
           order.payment_status = 'success';

@@ -54,12 +54,11 @@ const ManagerHeader = ({
           <NotificationDropdown />
         )}
         <div className="h-8 w-px bg-slate-200 mx-2" />
-        <div className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
+        <div onClick={() => navigate('/manager/profile')} className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
           <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-black shadow-md shadow-blue-200">
             {user?.fullName?.slice(0, 2).toUpperCase() || 'NB'}
           </div>
           <span className="text-sm font-bold text-slate-700">{user?.fullName || 'Operations Manager'}</span>
-          <span className="material-symbols-outlined text-slate-400 text-lg group-hover:translate-y-0.5 transition-transform">expand_more</span>
         </div>
       </div>
     </header>
