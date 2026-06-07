@@ -1,8 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const sellerController = require('../controllers/sellerController');
+const userController = require('../controllers/userController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { uploadProduct } = require('../config/cloudinary');
+
+// ─── PROFILE MANAGEMENT ──
+router.get('/profile', verifyToken, userController.getProfile);
+router.put('/profile', verifyToken, userController.updateProfile);
+router.put('/profile/change-password', verifyToken, userController.changePassword);
+
+// ─── SECURITY SETTINGS ──
+router.get('/security/settings', verifyToken, userController.getSecuritySettings);
+router.put('/security/settings', verifyToken, userController.updateSecuritySettings);
 
 // Get products with pagination & filtering
 router.get('/products', verifyToken, sellerController.getProducts);

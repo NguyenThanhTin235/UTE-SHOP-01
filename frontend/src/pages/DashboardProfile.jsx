@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { updateProfile, uploadAvatar, logout, reset } from '../redux/authSlice';
-import Layout from '../components/Layout';
-import FABGroup from '../components/FABGroup';
 import toast from 'react-hot-toast';
 
-const Profile = () => {
+const DashboardProfile = () => {
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
   );
@@ -110,7 +108,13 @@ const Profile = () => {
   const avatarSrc = user?.avatarUrl ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <header className="h-20 bg-white border-b border-[#c3c6d7]/30 flex items-center px-4 md:px-10 sticky top-0 z-40 shadow-sm">
+        <button onClick={() => navigate(user?.role === 'manager' ? '/manager' : '/seller')} className="flex items-center gap-2 text-[#434655] hover:text-[#004ac6] transition-colors font-bold cursor-pointer">
+          <span className="material-symbols-outlined">arrow_back</span>
+          Back to Dashboard
+        </button>
+      </header>
       <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col md:flex-row gap-8 items-start">
         {/* SideNavBar */}
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
@@ -128,55 +132,15 @@ const Profile = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            {/* Active Item: Profile */}
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to={user?.role === "manager" ? "/manager/profile" : "/seller/profile"} className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">shopping_bag</span>
-              <span>Order History</span>
-            </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">star</span>
-              <span>My Reviews</span>
-            </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">favorite</span>
-              <span>Wishlist</span>
-            </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">history</span>
-              <span>Recently Viewed</span>
-            </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">location_on</span>
-              <span>Shipping Address</span>
-            </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">monetization_on</span>
-              <span>My Coins</span>
-            </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
-              <span>Statistics</span>
-            </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">chat</span>
-              <span>Messages</span>
-            </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to={user?.role === "manager" ? "/manager/security" : "/seller/security"} className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
           </nav>
-
-          <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">
-            <button onClick={onLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer">
-              <span className="material-symbols-outlined">logout</span>
-              <span>Log Out</span>
-            </button>
-          </div>
         </aside>
 
         {/* Main Content Area */}
@@ -327,10 +291,8 @@ const Profile = () => {
           </div>
         </section>
       </div>
-
-      <FABGroup />
-    </Layout>
+    </div>
   );
 };
 
-export default Profile;
+export default DashboardProfile;

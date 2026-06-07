@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const userStatisticsController = require('../controllers/userStatisticsController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { isAdmin, isVendor, isShipper } = require('../middleware/roleMiddleware');
 
@@ -10,6 +11,9 @@ const { isAdmin, isVendor, isShipper } = require('../middleware/roleMiddleware')
 
 // Lấy thông tin cá nhân hiện tại
 router.get('/profile', verifyToken, userController.getProfile);
+
+// Lấy thống kê người dùng
+router.get('/statistics', verifyToken, userStatisticsController.getStatistics);
 
 // Cập nhật thông tin cá nhân (UC04 + Avatar, Student Info)
 router.put('/profile', verifyToken, userController.updateProfile);
