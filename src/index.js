@@ -39,6 +39,7 @@ app.use('/api/checkout', require('./routes/checkoutRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/manager', require('./routes/managerRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 
 // Global Error Handler

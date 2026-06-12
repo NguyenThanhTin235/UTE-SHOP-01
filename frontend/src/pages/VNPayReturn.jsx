@@ -44,8 +44,8 @@ const VNPayReturn = () => {
         );
 
         if (response.data && response.data.success && response.data.data?.paymentStatus === 'success') {
-          setStatus('success');
           toast.success('Thanh toán qua VNPAY thành công!');
+          navigate(`/order-success?paymentCode=${txRef}`);
         } else {
           setStatus('failed');
           setErrorMessage(response.data?.message || 'Xác thực thanh toán thất bại');
