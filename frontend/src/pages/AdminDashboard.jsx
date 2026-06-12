@@ -10,6 +10,7 @@ import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminDashboardOverview from '../components/admin/AdminDashboardOverview';
 import AdminAiAssistant from '../components/admin/AdminAiAssistant';
+import UserManagementTab from '../components/admin/UserManagementTab';
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -165,7 +166,11 @@ const AdminDashboard = () => {
             />
           )}
 
-          {activeTab !== 'dashboard' && (
+          {activeTab === 'users' && (
+            <UserManagementTab searchTerm={searchTerm} />
+          )}
+
+          {activeTab !== 'dashboard' && activeTab !== 'users' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}
