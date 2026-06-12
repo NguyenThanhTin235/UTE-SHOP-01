@@ -8,6 +8,8 @@ const UserRole = require('../models/UserRole');
 const Role = require('../models/Role');
 const Address = require('../models/Address');
 const AuditLog = require('../models/AuditLog');
+const OrderItem = require('../models/OrderItem');
+const Product = require('../models/Product');
 const response = require('../utils/response');
 
 /**
@@ -177,7 +179,7 @@ const getAdminDashboard = async (req, res) => {
       .populate('product_id', 'name');
 
     const productModerationQueue = await Promise.all(queue.map(async (v) => {
-      let imageUrl = 'https://via.placeholder.com/150';
+      let imageUrl = '';
       if (v.product_id) {
         const media = await ProductMedia.findOne({ product_id: v.product_id._id }).sort({ sort_order: 1 });
         if (media) imageUrl = media.media_url;
@@ -289,8 +291,8 @@ const getUsers = async (req, res) => {
         _id: u._id,
         fullName: u.full_name,
         email: u.email,
-        phone: u.phone || 'N/A',
-        avatarUrl: u.avatar_url || 'https://via.placeholder.com/150',
+        phone: u.phone || '',
+        avatarUrl: u.avatar_url || '',
         status: u.status,
         coinBalance: u.coin_balance || 0,
         walletBalance: u.wallet_balance || 0,
@@ -299,10 +301,23 @@ const getUsers = async (req, res) => {
       };
     }));
 
+    const totalUsersCount = await User.countDocuments();
+    const activeTodayCount = await User.countDocuments({ status: 'active' });
+    const newThisWeekCount = await User.countDocuments({
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+    });
+    const bannedUsersCount = await User.countDocuments({ status: 'locked' });
+
     return response.success(res, {
       message: 'Users retrieved successfully',
       data: populatedUsers,
       meta: {
+        stats: {
+          totalUsers: totalUsersCount,
+          activeToday: activeTodayCount,
+          newThisWeek: newThisWeekCount,
+          bannedUsers: bannedUsersCount
+        },
         pagination: {
           total,
           perPage: limit,
@@ -484,6 +499,33 @@ const getUserDetails = async (req, res) => {
     const successfulOrders = await Order.find({ customer_id: user._id, payment_status: 'success' });
     const totalSpent = successfulOrders.reduce((sum, o) => sum + o.total_final, 0);
 
+    // Fetch all orders of this customer with their items
+    const allOrders = await Order.find({ customer_id: user._id }).sort({ createdAt: -1 });
+    const ordersWithItems = await Promise.all(allOrders.map(async (order) => {
+      const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
+      const itemsFormatted = await Promise.all(items.map(async (item) => {
+        const media = await ProductMedia.findOne({ product_id: item.product_id?._id }).sort({ sort_order: 1 });
+        return {
+          productId: item.product_id?._id,
+          productName: item.product_id?.name || 'Unknown Product',
+          productImage: media?.media_url || '',
+          quantity: item.quantity,
+          price: item.price_at_buy
+        };
+      }));
+      return {
+        id: order._id,
+        orderCode: order.order_code,
+        status: order.status,
+        paymentStatus: order.payment_status,
+        subtotal: order.subtotal_amount,
+        shippingFee: order.shipping_fee,
+        totalFinal: order.total_final,
+        createdAt: order.createdAt,
+        items: itemsFormatted
+      };
+    }));
+
     // Fetch audit history actions targeting this user or made by this user
     const auditLogs = await AuditLog.find({
       $or: [
@@ -510,8 +552,8 @@ const getUserDetails = async (req, res) => {
           id: user._id,
           fullName: user.full_name,
           email: user.email,
-          phone: user.phone || 'N/A',
-          avatarUrl: user.avatar_url || 'https://via.placeholder.com/150',
+          phone: user.phone || '',
+          avatarUrl: user.avatar_url || '',
           status: user.status,
           coinBalance: user.coin_balance || 0,
           walletBalance: user.wallet_balance || 0,
@@ -526,7 +568,8 @@ const getUserDetails = async (req, res) => {
           successfulOrdersCount: successfulOrders.length,
           totalSpent
         },
-        history
+        history,
+        orders: ordersWithItems
       }
     });
 

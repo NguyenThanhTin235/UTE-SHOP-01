@@ -153,7 +153,7 @@ const AdminDashboard = () => {
         />
 
         {/* Dashboard Body */}
-        <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
+        <div className="p-[10px] max-w-[1280px] mx-auto w-full space-y-8">
           {activeTab === 'dashboard' && (
             <AdminDashboardOverview 
               searchTerm={searchTerm} 
