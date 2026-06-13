@@ -223,7 +223,7 @@ const Promotions = () => {
                   {filteredCoupons.map((coupon) => {
                     const daysLeft = getRemainingDays(coupon.endAt);
                     const isPercentage = coupon.type === 'percent';
-                    const isFreeship = coupon.code === 'FREESHIP';
+                    const isFreeship = coupon.type === 'free_shipping' || coupon.code === 'FREESHIP';
                     
                     return (
                       <div 
@@ -252,7 +252,11 @@ const Promotions = () => {
                         <div className="flex-1 p-4 flex flex-col justify-between items-start text-left pl-6">
                           <div className="space-y-1 w-full">
                             <h3 className="font-black text-sm text-[#131b2e] leading-snug line-clamp-1">
-                              {isPercentage ? `Save ${coupon.value}% on order` : `Save ${formatPrice(coupon.value)}`}
+                              {coupon.type === 'free_shipping' 
+                                ? 'Free shipping on order'
+                                : coupon.type === 'fixed_shipping'
+                                ? `Save ${formatPrice(coupon.value)} on shipping`
+                                : (isPercentage ? `Save ${coupon.value}% on order` : `Save ${formatPrice(coupon.value)}`)}
                             </h3>
                             <p className="text-[11px] text-[#505f76] font-medium leading-normal">
                               Min Spend: <span className="font-extrabold text-[#131b2e]">{formatPrice(coupon.minOrderTotal)}</span>

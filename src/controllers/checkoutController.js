@@ -16,6 +16,7 @@ const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const CoinTransaction = require('../models/CoinTransaction');
 const Notification = require('../models/Notification');
+const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
 function sortObject(obj) {
@@ -93,6 +94,13 @@ class CheckoutController {
         });
       }
 
+      const productDiscounts = await getActiveCampaignsWithProducts();
+      for (const item of cartItems) {
+        if (item.product_id) {
+          await applyCampaignDiscount(item.product_id, productDiscounts, false);
+        }
+      }
+
       // Group products by Shop
       const shopsMap = {};
       let overallSubtotal = 0;
@@ -119,7 +127,11 @@ class CheckoutController {
           }
         }
 
-        const price = product.selling_price + additionalPrice;
+        const campDiscount = product.campaign_discount_percent || 0;
+        const origSelling = campDiscount > 0
+          ? Math.round(product.selling_price / (1 - campDiscount / 100))
+          : product.selling_price;
+        const price = Math.round((origSelling + additionalPrice) * (1 - campDiscount / 100));
         const itemSubtotal = price * item.quantity;
         overallSubtotal += itemSubtotal;
 
@@ -152,6 +164,7 @@ class CheckoutController {
           variantName,
           imageUrl,
           price,
+          mrpPrice: (campDiscount > 0 ? Math.max(product.mrp_price, origSelling) : product.mrp_price) + additionalPrice,
           quantity: item.quantity,
           stock: stockQuantity,
           itemSubtotal
@@ -210,14 +223,18 @@ class CheckoutController {
             } else {
               // Calculate discount
               if (coupon.type === 'fixed_amount') {
-                couponDiscount = coupon.value;
+                couponDiscount = Math.min(coupon.value, overallSubtotal);
               } else if (coupon.type === 'percent') {
                 couponDiscount = (overallSubtotal * coupon.value) / 100;
                 if (coupon.max_discount) {
                   couponDiscount = Math.min(couponDiscount, coupon.max_discount);
                 }
+                couponDiscount = Math.min(couponDiscount, overallSubtotal);
+              } else if (coupon.type === 'free_shipping') {
+                couponDiscount = overallShipping;
+              } else if (coupon.type === 'fixed_shipping') {
+                couponDiscount = Math.min(coupon.value, overallShipping);
               }
-              couponDiscount = Math.min(couponDiscount, overallSubtotal);
             }
           }
         } else {
@@ -366,6 +383,13 @@ class CheckoutController {
         });
       }
 
+      const productDiscounts = await getActiveCampaignsWithProducts();
+      for (const item of cartItems) {
+        if (item.product_id) {
+          await applyCampaignDiscount(item.product_id, productDiscounts, false);
+        }
+      }
+
       // 3. Stock Check & Calculations
       const shopsMap = {};
       let overallSubtotal = 0;
@@ -393,7 +417,11 @@ class CheckoutController {
           additionalPrice = v.additional_price || 0;
         }
 
-        const price = product.selling_price + additionalPrice;
+        const campDiscount = product.campaign_discount_percent || 0;
+        const origSelling = campDiscount > 0
+          ? Math.round(product.selling_price / (1 - campDiscount / 100))
+          : product.selling_price;
+        const price = Math.round((origSelling + additionalPrice) * (1 - campDiscount / 100));
         const itemSubtotal = price * item.quantity;
         overallSubtotal += itemSubtotal;
 
@@ -457,14 +485,18 @@ class CheckoutController {
             const isRedeemed = await CouponRedemption.findOne({ coupon_id: coupon._id, user_id: userId });
             if (!isRedeemed) {
               if (coupon.type === 'fixed_amount') {
-                couponDiscount = coupon.value;
+                couponDiscount = Math.min(coupon.value, overallSubtotal);
               } else if (coupon.type === 'percent') {
                 couponDiscount = (overallSubtotal * coupon.value) / 100;
                 if (coupon.max_discount) {
                   couponDiscount = Math.min(couponDiscount, coupon.max_discount);
                 }
+                couponDiscount = Math.min(couponDiscount, overallSubtotal);
+              } else if (coupon.type === 'free_shipping') {
+                couponDiscount = overallShipping;
+              } else if (coupon.type === 'fixed_shipping') {
+                couponDiscount = Math.min(coupon.value, overallShipping);
               }
-              couponDiscount = Math.min(couponDiscount, overallSubtotal);
             }
           }
         }

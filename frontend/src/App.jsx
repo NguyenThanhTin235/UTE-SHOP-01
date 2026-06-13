@@ -31,6 +31,7 @@ import VNPayReturn from './pages/VNPayReturn';
 import Coins from './pages/Coins';
 import ShopDetail from './pages/ShopDetail';
 import RecentlyViewed from './pages/RecentlyViewed';
+import Promotions from './pages/Promotions';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -104,6 +105,7 @@ function App() {
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/search" element={<Search />} />
         <Route path="/shop/:slug" element={<ShopDetail />} />
+        <Route path="/promotions" element={<Promotions />} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />

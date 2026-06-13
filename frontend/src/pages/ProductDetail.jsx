@@ -55,8 +55,17 @@ const ProductDetail = () => {
 
   // Update selectedVariant when selectedColor or selectedSize changes
   useEffect(() => {
-    if (data?.variants?.length > 0 && selectedColor && selectedSize) {
-      const found = data.variants.find(v => v.attributes?.color === selectedColor && v.attributes?.size === selectedSize);
+    if (data?.variants?.length > 0) {
+      const variantsList = data.variants;
+      const hasColors = variantsList.some(v => v.attributes?.color);
+      const hasSizes = variantsList.some(v => v.attributes?.size);
+
+      const found = variantsList.find(v => {
+        const matchColor = !hasColors || v.attributes?.color === selectedColor;
+        const matchSize = !hasSizes || v.attributes?.size === selectedSize;
+        return matchColor && matchSize;
+      });
+
       if (found) {
         setSelectedVariant(found);
         if (quantity !== '' && quantity > (found.stockQuantity || 0)) setQuantity(found.stockQuantity || 1);
@@ -119,9 +128,52 @@ const ProductDetail = () => {
   const availableColors = Array.from(new Set(variants?.map(v => v.attributes?.color).filter(Boolean)));
   const availableSizes = Array.from(new Set(variants?.map(v => v.attributes?.size).filter(Boolean)));
 
-  const currentSellingPrice = product.sellingPrice + (selectedVariant?.additionalPrice || 0);
-  const currentMrpPrice = product.mrpPrice + (selectedVariant?.additionalPrice || 0);
+  // Compute variant price consistently with listing cards:
+  // Listing formula: (baseSelling + additionalPrice) * (1 - discountPercent/100)
+  const campaignDiscount = product.campaignDiscountPercent || 0;
+  // Reconstruct the original selling price before campaign discount was applied
+  const originalSellingPrice = campaignDiscount > 0
+    ? Math.round(product.sellingPrice / (1 - campaignDiscount / 100))
+    : product.sellingPrice;
+  // The original mrp (before campaign adjustment) — if campaign set mrp = max(mrp, origSelling), 
+  // without campaign mrp is already the raw mrp. We use the base mrp without additionalPrice.
+  const baseMrp = campaignDiscount > 0
+    ? Math.max(product.mrpPrice, originalSellingPrice)
+    : product.mrpPrice;
+  
+  const isSelectionInvalid = variants?.length > 0 && !selectedVariant;
+  const addPrice = selectedVariant?.additionalPrice || 0;
+  const currentSellingPrice = Math.round((originalSellingPrice + addPrice) * (1 - campaignDiscount / 100));
+  const currentMrpPrice = baseMrp + addPrice;
   const currentStock = selectedVariant ? selectedVariant.stockQuantity : stock;
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+    if (selectedSize && variants?.length > 0) {
+      const isCompatible = variants.some(v => 
+        v.attributes?.color === color && 
+        v.attributes?.size === selectedSize &&
+        v.stockQuantity > 0
+      );
+      if (!isCompatible) {
+        setSelectedSize('');
+      }
+    }
+  };
+
+  const handleSizeSelect = (size) => {
+    setSelectedSize(size);
+    if (selectedColor && variants?.length > 0) {
+      const isCompatible = variants.some(v => 
+        v.attributes?.color === selectedColor && 
+        v.attributes?.size === size &&
+        v.stockQuantity > 0
+      );
+      if (!isCompatible) {
+        setSelectedColor('');
+      }
+    }
+  };
 
   const handleQuantityChange = (type) => {
     if (type === 'inc' && (quantity === '' || quantity < currentStock)) {
@@ -371,13 +423,16 @@ const ProductDetail = () => {
                     <div className="flex flex-wrap gap-2">
                       {availableColors.map(color => {
                         const isSelected = selectedColor === color;
-                        const match = variants.find(v => v.attributes?.color === color && v.attributes?.size === selectedSize);
-                        const isAvailable = match ? match.stockQuantity > 0 : true;
+                        const isAvailable = variants.some(v => 
+                          v.attributes?.color === color && 
+                          v.stockQuantity > 0 && 
+                          (!selectedSize || v.attributes?.size === selectedSize)
+                        );
 
                         return (
                           <button 
                             key={color} 
-                            onClick={() => setSelectedColor(color)}
+                            onClick={() => handleColorSelect(color)}
                             className={`px-6 py-2.5 rounded-xl border text-sm font-bold transition-all flex items-center gap-2 ${
                               isSelected 
                                 ? 'border-2 border-primary text-primary bg-primary/5 shadow-sm ring-2 ring-primary/20' 
@@ -405,14 +460,18 @@ const ProductDetail = () => {
                     <div className="flex flex-wrap gap-2">
                       {availableSizes.map(size => {
                         const isSelected = selectedSize === size;
-                        const match = variants.find(v => v.attributes?.size === size && v.attributes?.color === selectedColor);
-                        const isAvailable = match ? match.stockQuantity > 0 : true;
-                        const addPrice = match?.additionalPrice || 0;
+                        const matchForPrice = variants.find(v => v.attributes?.size === size);
+                        const isAvailable = variants.some(v => 
+                          v.attributes?.size === size && 
+                          v.stockQuantity > 0 && 
+                          (!selectedColor || v.attributes?.color === selectedColor)
+                        );
+                        const addPrice = matchForPrice?.additionalPrice || 0;
 
                         return (
                           <button 
                             key={size} 
-                            onClick={() => setSelectedSize(size)}
+                            onClick={() => handleSizeSelect(size)}
                             className={`px-6 py-2.5 rounded-xl border text-sm font-bold transition-all ${
                               isSelected 
                                 ? 'border-2 border-primary text-primary bg-primary/5 shadow-sm ring-2 ring-primary/20' 
@@ -457,12 +516,20 @@ const ProductDetail = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
-              <button onClick={handleAddToCart} disabled={currentStock <= 0} className="flex items-center justify-center gap-2 border-2 border-primary text-primary py-4 rounded-2xl font-bold hover:bg-primary/5 transition-all disabled:opacity-50 active:scale-95 cursor-pointer">
+              <button 
+                onClick={handleAddToCart} 
+                disabled={isSelectionInvalid || currentStock <= 0} 
+                className="flex items-center justify-center gap-2 border-2 border-primary text-primary py-4 rounded-2xl font-bold hover:bg-primary/5 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+              >
                 <span className="material-symbols-outlined">add_shopping_cart</span>
-                Add to Cart
+                {isSelectionInvalid ? 'Select Variant' : currentStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
-              <button onClick={handleBuyNow} disabled={currentStock <= 0} className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 cursor-pointer">
-                Buy It Now
+              <button 
+                onClick={handleBuyNow} 
+                disabled={isSelectionInvalid || currentStock <= 0} 
+                className="bg-primary text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 cursor-pointer"
+              >
+                {isSelectionInvalid ? 'Select Variant' : currentStock <= 0 ? 'Out of Stock' : 'Buy It Now'}
               </button>
             </div>
             

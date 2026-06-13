@@ -5,6 +5,7 @@ const ProductVariant = require('../models/ProductVariant');
 const ProductMedia = require('../models/ProductMedia');
 const Category = require('../models/Category');
 const Shop = require('../models/Shop');
+const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
 class CartController {
@@ -31,10 +32,13 @@ class CartController {
         .populate('variant_id');
 
       // Ánh xạ dữ liệu chi tiết (ảnh sản phẩm, danh mục, cửa hàng)
+      const productDiscounts = await getActiveCampaignsWithProducts();
       const formattedItems = await Promise.all(
         items.map(async (item) => {
           const product = item.product_id;
           if (!product) return null;
+          
+          await applyCampaignDiscount(product, productDiscounts, false);
 
           // Lấy hình ảnh đầu tiên của sản phẩm
           const media = await ProductMedia.findOne({ product_id: product._id }).sort({ sort_order: 1 });
@@ -58,15 +62,20 @@ class CartController {
             }
           }
 
-          return {
+            const campDiscount = product.campaign_discount_percent || 0;
+            const origSelling = campDiscount > 0
+              ? Math.round(product.selling_price / (1 - campDiscount / 100))
+              : product.selling_price;
+
+            return {
             id: item._id.toString(),
             productId: product._id.toString(),
             name: product.name,
             slug: product.slug,
             category: category ? category.name : 'Academic',
             imageUrl: media ? media.media_url : 'https://via.placeholder.com/150',
-            price: product.selling_price + additionalPrice,
-            mrpPrice: product.mrp_price + additionalPrice,
+            price: Math.round((origSelling + additionalPrice) * (1 - campDiscount / 100)),
+            mrpPrice: (campDiscount > 0 ? Math.max(product.mrp_price, origSelling) : product.mrp_price) + additionalPrice,
             quantity: item.quantity,
             note: item.note || '',
             variantId: item.variant_id ? item.variant_id._id.toString() : null,
@@ -136,14 +145,22 @@ class CartController {
 
       // Kiểm tra biến thể nếu có
       let variant = null;
-      if (variantId) {
-        variant = await ProductVariant.findById(variantId);
+      let resolvedVariantId = variantId || null;
+      if (resolvedVariantId) {
+        variant = await ProductVariant.findById(resolvedVariantId);
         if (!variant || variant.product_id.toString() !== productId) {
           return res.status(404).json({
             success: false,
             code: 404,
             message: 'Biến thể sản phẩm không hợp lệ'
           });
+        }
+      } else {
+        // Auto-assign first variant (sorted by _id) to match listing card default variant
+        const defaultVariant = await ProductVariant.findOne({ product_id: productId }).sort({ _id: 1 });
+        if (defaultVariant) {
+          variant = defaultVariant;
+          resolvedVariantId = defaultVariant._id;
         }
       }
 
@@ -155,8 +172,8 @@ class CartController {
 
       // Kiểm tra xem sản phẩm/biến thể đã tồn tại trong giỏ hàng chưa
       const query = { cart_id: cart._id, product_id: productId };
-      if (variantId) {
-        query.variant_id = variantId;
+      if (resolvedVariantId) {
+        query.variant_id = resolvedVariantId;
       } else {
         query.variant_id = null;
       }
@@ -182,7 +199,7 @@ class CartController {
         cartItem = await CartItem.create({
           cart_id: cart._id,
           product_id: productId,
-          variant_id: variantId || null,
+          variant_id: resolvedVariantId || null,
           quantity: Number(quantity),
           note
         });

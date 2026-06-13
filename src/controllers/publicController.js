@@ -10,6 +10,10 @@ const OrderItem = require('../models/OrderItem');
 const ProductReview = require('../models/ProductReview');
 const Shop = require('../models/Shop');
 const User = require('../models/User');
+const Coupon = require('../models/Coupon');
+const CouponRedemption = require('../models/CouponRedemption');
+const jwt = require('jsonwebtoken');
+const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
 // Cache lưu trữ lượt xem theo IP + Slug để tránh StrictMode gọi 2 lần hoặc spam refresh
@@ -38,6 +42,7 @@ exports.getHomepageData = async (req, res, next) => {
 
     // Helper to attach media and calculate averageRating dynamically from ProductReview
     const attachMediaAndRating = async (products) => {
+      const productDiscounts = await getActiveCampaignsWithProducts();
       return await Promise.all(products.map(async (p) => {
         const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 });
         const reviews = await ProductReview.find({ product_id: p._id });
@@ -56,6 +61,9 @@ exports.getHomepageData = async (req, res, next) => {
 
         const pObj = typeof p.toObject === 'function' ? p.toObject() : p;
         delete pObj.average_rating;
+
+        // Apply campaign discount
+        await applyCampaignDiscount(pObj, productDiscounts, true);
 
         return {
           ...pObj,
@@ -136,6 +144,8 @@ exports.getProductDetail = async (req, res, next) => {
       });
     }
 
+    const productDiscounts = await getActiveCampaignsWithProducts();
+
     // 2. Fetch Shop with more stats & calculate shop rating dynamically
     const shopRaw = await Shop.findById(product.shop_id).select('name slug logo_url address status followers response_rate joined_at response_time product_count');
     const shopProducts = await Product.find({ shop_id: product.shop_id }).select('_id');
@@ -165,8 +175,8 @@ exports.getProductDetail = async (req, res, next) => {
     // 4. Fetch Media
     const media = await ProductMedia.find({ product_id: product._id }).sort({ sort_order: 1 });
 
-    // 5. Fetch Variants & Calculate Total Stock
-    const variants = await ProductVariant.find({ product_id: product._id });
+    // 5. Fetch Variants & Calculate Total Stock (sorted by _id to match listing card default variant)
+    const variants = await ProductVariant.find({ product_id: product._id }).sort({ _id: 1 });
     const totalStock = variants.length > 0 
       ? variants.reduce((acc, v) => acc + (v.stock_quantity || 0), 0)
       : 100;
@@ -231,6 +241,9 @@ exports.getProductDetail = async (req, res, next) => {
       const relObj = p.toObject();
       delete relObj.average_rating;
 
+      // Apply campaign discount
+      await applyCampaignDiscount(relObj, productDiscounts, true);
+
       return {
         ...relObj,
         averageRating: pAvg,
@@ -243,6 +256,10 @@ exports.getProductDetail = async (req, res, next) => {
 
     const pObj = product.toObject();
     delete pObj.average_rating;
+
+    // Apply campaign discount
+    await applyCampaignDiscount(pObj, productDiscounts, false);
+
     pObj.averageRating = avgRating;
 
     res.status(200).json({
@@ -336,6 +353,7 @@ exports.searchProducts = async (req, res, next) => {
     const allProducts = await Product.find(query);
 
     // Attach Media, Categories, Variants & dynamically calculate averageRating from ProductReview
+    const productDiscounts = await getActiveCampaignsWithProducts();
     let results = await Promise.all(allProducts.map(async (p) => {
       const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 }).limit(1);
       const cat = await Category.findById(p.category_id).select('name slug');
@@ -356,6 +374,9 @@ exports.searchProducts = async (req, res, next) => {
 
       const pObj = p.toObject();
       delete pObj.average_rating;
+
+      // Apply campaign discount
+      await applyCampaignDiscount(pObj, productDiscounts, true);
 
       return {
         ...pObj,
@@ -485,6 +506,7 @@ exports.getShopDetail = async (req, res, next) => {
     });
 
     // 3. For each product, attach media, variants, rating, and soldCount
+    const productDiscounts = await getActiveCampaignsWithProducts();
     const products = await Promise.all(productsRaw.map(async (p) => {
       const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 }).limit(1);
       const reviews = await ProductReview.find({ product_id: p._id });
@@ -503,6 +525,9 @@ exports.getShopDetail = async (req, res, next) => {
 
       const pObj = p.toObject();
       delete pObj.average_rating;
+
+      // Apply campaign discount
+      await applyCampaignDiscount(pObj, productDiscounts, true);
 
       return {
         ...pObj,
@@ -550,6 +575,127 @@ exports.getShopDetail = async (req, res, next) => {
         deepDiscounts,
         allProducts
       }),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getCampaigns = async (req, res, next) => {
+  try {
+    const activeCampaigns = await Campaign.find({
+      status: 'active',
+      start_at: { $lte: new Date() },
+      end_at: { $gte: new Date() }
+    }).sort({ createdAt: -1 });
+
+    const productDiscounts = await getActiveCampaignsWithProducts();
+
+    const formattedCampaigns = await Promise.all(activeCampaigns.map(async (camp) => {
+      // Find targets
+      const targets = await CampaignTarget.find({ campaign_id: camp._id });
+      const productIds = targets.map(t => t.product_id);
+      
+      // Fetch products
+      const productsRaw = await Product.find({
+        _id: { $in: productIds },
+        approval_status: 'approved',
+        is_active: true
+      });
+
+      // Fetch media for each product
+      const products = await Promise.all(productsRaw.map(async (p) => {
+        const media = await ProductMedia.findOne({ product_id: p._id }).sort({ sort_order: 1 });
+        const pObj = typeof p.toObject === 'function' ? p.toObject() : p;
+
+        await applyCampaignDiscount(pObj, productDiscounts, true);
+
+        return {
+          ...pObj,
+          imageUrl: media ? media.media_url : 'https://via.placeholder.com/150'
+        };
+      }));
+
+      const campObj = typeof camp.toObject === 'function' ? camp.toObject() : camp;
+      return {
+        ...campObj,
+        products
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Active campaigns fetched successfully',
+      data: toCamelCase(formattedCampaigns),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getCoupons = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const filter = {
+      status: 'active',
+      $expr: { $lt: ["$used_count", "$usage_limit"] },
+      $and: [
+        {
+          $or: [
+            { start_at: { $lte: now } },
+            { start_at: null }
+          ]
+        },
+        {
+          $or: [
+            { end_at: { $gt: now } },
+            { end_at: null }
+          ]
+        }
+      ]
+    };
+
+    let userId = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (error) {
+        // Ignore invalid token
+      }
+    }
+
+    // Fetch coupons
+    const coupons = await Coupon.find(filter).sort({ createdAt: -1 });
+
+    let redemptions = [];
+    if (userId) {
+      const couponIds = coupons.map(c => c._id);
+      redemptions = await CouponRedemption.find({
+        user_id: userId,
+        coupon_id: { $in: couponIds }
+      });
+    }
+
+    const redemptionSet = new Set(redemptions.map(r => r.coupon_id.toString()));
+
+    const formattedCoupons = coupons.map(c => {
+      const cObj = typeof c.toObject === 'function' ? c.toObject() : c;
+      return {
+        ...cObj,
+        isUsed: redemptionSet.has(c._id.toString())
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Active coupons fetched successfully',
+      data: toCamelCase(formattedCoupons),
       timestamp: Math.floor(Date.now() / 1000)
     });
   } catch (error) {

@@ -11,6 +11,10 @@ import AdminHeader from '../components/admin/AdminHeader';
 import AdminDashboardOverview from '../components/admin/AdminDashboardOverview';
 import AdminAiAssistant from '../components/admin/AdminAiAssistant';
 import UserManagementTab from '../components/admin/UserManagementTab';
+import PromotionsTab from '../components/admin/PromotionsTab';
+import CampaignEditor from '../components/admin/CampaignEditor';
+import CouponEditor from '../components/admin/CouponEditor';
+
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -21,6 +25,7 @@ const AdminDashboard = () => {
   // URL-based Tab routing
   const pathParts = location.pathname.split('/').filter(Boolean);
   const activeTab = pathParts.length > 1 ? pathParts[1] : 'dashboard';
+  const isEditorPage = activeTab === 'promotions' && pathParts.length > 2 && (pathParts[2] === 'coupon' || pathParts[2] === 'campaign');
 
   const setActiveTab = (tabId) => {
     if (tabId === 'dashboard') {
@@ -144,33 +149,53 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
         {/* Top Header */}
-        <AdminHeader
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          unreadCount={unreadCount}
-          user={user}
-          navigate={navigate}
-        />
+        {!isEditorPage && (
+          <AdminHeader
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            unreadCount={unreadCount}
+            user={user}
+            navigate={navigate}
+          />
+        )}
 
         {/* Dashboard Body */}
-        <div className="p-[10px] max-w-[1280px] mx-auto w-full space-y-8">
-          {activeTab === 'dashboard' && (
-            <AdminDashboardOverview 
-              searchTerm={searchTerm} 
-              dashboardData={dashboardData} 
-              loading={loading} 
-              days={days}
-              setDays={setDays}
-              setActiveTab={setActiveTab}
-              refetch={fetchDashboardData}
-            />
-          )}
+        {isEditorPage ? (
+          activeTab === 'promotions' && (
+            <>
+              {pathParts.length > 2 && pathParts[2] === 'coupon' && (
+                <CouponEditor mode={pathParts[3] || 'create'} />
+              )}
+              {pathParts.length > 2 && pathParts[2] === 'campaign' && (
+                <CampaignEditor mode={pathParts[3] || 'create'} />
+              )}
+            </>
+          )
+        ) : (
+          <div className="p-[10px] max-w-[1280px] mx-auto w-full space-y-8">
+            {activeTab === 'dashboard' && (
+              <AdminDashboardOverview 
+                searchTerm={searchTerm} 
+                dashboardData={dashboardData} 
+                loading={loading} 
+                days={days}
+                setDays={setDays}
+                setActiveTab={setActiveTab}
+                refetch={fetchDashboardData}
+              />
+            )}
 
-          {activeTab === 'users' && (
-            <UserManagementTab searchTerm={searchTerm} />
-          )}
+            {activeTab === 'users' && (
+              <UserManagementTab searchTerm={searchTerm} />
+            )}
 
-          {activeTab !== 'dashboard' && activeTab !== 'users' && (
+            {activeTab === 'promotions' && (
+              <>
+                {pathParts.length === 2 && <PromotionsTab searchTerm={searchTerm} />}
+              </>
+            )}
+
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}
@@ -198,8 +223,9 @@ const AdminDashboard = () => {
             </div>
           )}
         </div>
+      )}
 
-        {/* Floating Action Buttons & Chat Window */}
+      {/* Floating Action Buttons & Chat Window */}
         <AdminAiAssistant
           showAI={showAI}
           setShowAI={setShowAI}

@@ -328,7 +328,12 @@ const Checkout = () => {
                               <p className="text-[11px] text-[#737686] mt-1">Variant: {item.variantName}</p>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                              <p className="font-bold text-sm text-[#004ac6]">{item.price?.toLocaleString()}₫</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-sm text-[#004ac6]">{item.price?.toLocaleString()}₫</p>
+                                {item.mrpPrice > item.price && (
+                                  <p className="text-[10px] text-[#737686] line-through">{item.mrpPrice?.toLocaleString()}₫</p>
+                                )}
+                              </div>
                               <p className="text-xs text-[#505f76] font-medium">x{item.quantity}</p>
                             </div>
                           </div>

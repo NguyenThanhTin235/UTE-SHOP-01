@@ -486,7 +486,12 @@ const Cart = () => {
                                   Variant: {item.variant || 'Default'}
                                 </p>
                               </div>
-                              <span className="font-bold text-lg text-[#004ac6] whitespace-nowrap">{item.price?.toLocaleString()}₫</span>
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-lg text-[#004ac6] whitespace-nowrap">{item.price?.toLocaleString()}₫</span>
+                                {item.mrpPrice > item.price && (
+                                  <span className="text-xs text-[#737686] line-through whitespace-nowrap">{item.mrpPrice?.toLocaleString()}₫</span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Quantity, Note & Delete Actions */}

@@ -66,4 +66,7 @@ router.get('/preview-email', (req, res) => {
   return res.status(400).send('Invalid preview type');
 });
 
+router.get('/campaigns', publicController.getCampaigns);
+router.get('/coupons', publicController.getCoupons);
+
 module.exports = router;
