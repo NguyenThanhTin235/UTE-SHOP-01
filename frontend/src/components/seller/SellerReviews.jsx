@@ -314,7 +314,7 @@ const SellerReviews = () => {
               onClick={() => { setFilterTab('all'); setCurrentPage(1); }}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                 filterTab === 'all' 
-                  ? 'bg-[#004ac6] text-white shadow-lg shadow-[#004ac6]/10' 
+                  ? 'bg-primary text-white shadow-lg shadow-primary/10' 
                   : 'text-[#434655] hover:bg-slate-50'
               }`}
             >
@@ -325,7 +325,7 @@ const SellerReviews = () => {
               onClick={() => { setFilterTab('unreplied'); setCurrentPage(1); }}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative ${
                 filterTab === 'unreplied' 
-                  ? 'bg-[#004ac6] text-white shadow-lg shadow-[#004ac6]/10' 
+                  ? 'bg-primary text-white shadow-lg shadow-primary/10' 
                   : 'text-[#434655] hover:bg-slate-50'
               }`}
             >
@@ -341,7 +341,7 @@ const SellerReviews = () => {
               onClick={() => { setFilterTab('media'); setCurrentPage(1); }}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                 filterTab === 'media' 
-                  ? 'bg-[#004ac6] text-white shadow-lg shadow-[#004ac6]/10' 
+                  ? 'bg-primary text-white shadow-lg shadow-primary/10' 
                   : 'text-[#434655] hover:bg-slate-50'
               }`}
             >
@@ -352,11 +352,11 @@ const SellerReviews = () => {
 
           {/* Search bar */}
           <form onSubmit={handleSearchSubmit} className="relative w-full lg:w-[350px] group">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#004ac6] transition-colors">search</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
             <input
               type="text"
               placeholder="Search by customer, comment, product..."
-              className="w-full pl-11 pr-4 py-3 bg-[#f2f3ff]/40 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#004ac6]/10 placeholder:text-gray-400 transition-all outline-none"
+              className="w-full pl-11 pr-4 py-3 bg-[#f2f3ff]/40 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder:text-gray-400 transition-all outline-none"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -374,7 +374,7 @@ const SellerReviews = () => {
               <button
                 type="button"
                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                className="bg-white border border-slate-200 rounded-xl text-xs font-bold py-2.5 px-4 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none min-w-[220px] flex items-center justify-between cursor-pointer select-none"
+                className="bg-white border border-slate-200 rounded-xl text-xs font-bold py-2.5 px-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-w-[220px] flex items-center justify-between cursor-pointer select-none"
               >
                 <span className="truncate max-w-[180px]">
                   {shopCategories.find(c => c._id === selectedCategory)?.indentName || 'All Categories'}
@@ -394,7 +394,7 @@ const SellerReviews = () => {
                       setIsCategoryDropdownOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors text-xs font-bold ${
-                      selectedCategory === '' ? 'text-[#004ac6] bg-[#004ac6]/5' : 'text-[#434655]'
+                      selectedCategory === '' ? 'text-primary bg-primary/5' : 'text-[#434655]'
                     }`}
                   >
                     All Categories
@@ -409,7 +409,7 @@ const SellerReviews = () => {
                         setIsCategoryDropdownOpen(false);
                       }}
                       className={`w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors text-xs font-bold whitespace-pre-wrap ${
-                        selectedCategory === cat._id ? 'text-[#004ac6] bg-[#004ac6]/5' : 'text-[#434655]'
+                        selectedCategory === cat._id ? 'text-primary bg-primary/5' : 'text-[#434655]'
                       }`}
                     >
                       {cat.indentName}
@@ -426,7 +426,7 @@ const SellerReviews = () => {
             <select 
               value={sortBy}
               onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-              className="bg-white border border-slate-200 rounded-xl text-xs font-bold py-2.5 px-4 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none cursor-pointer"
+              className="bg-white border border-slate-200 rounded-xl text-xs font-bold py-2.5 px-4 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer"
             >
               <option value="newest">Newest First</option>
               <option value="highest">Highest Rating</option>
@@ -440,7 +440,7 @@ const SellerReviews = () => {
       <div className="space-y-6 text-left">
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white border border-slate-200 rounded-[2rem] shadow-sm">
-            <div className="w-12 h-12 border-4 border-[#004ac6] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="text-xs text-[#434655] font-black">Loading reviews...</p>
           </div>
         ) : reviews.length > 0 ? (
@@ -453,7 +453,7 @@ const SellerReviews = () => {
               <div 
                 key={rev._id} 
                 className={`bg-white rounded-[2rem] border shadow-[0px_4px_20px_rgba(15,23,42,0.05)] p-8 group transition-all duration-300 ${
-                  rev.rating <= 2 ? 'border-red-100 hover:border-red-200' : 'border-slate-200 hover:border-[#004ac6]/30'
+                  rev.rating <= 2 ? 'border-red-100 hover:border-red-200' : 'border-slate-200 hover:border-primary/30'
                 }`}
               >
                 <div className="flex flex-col md:flex-row gap-8">
@@ -461,7 +461,7 @@ const SellerReviews = () => {
                   <div className="w-full md:w-64 space-y-4 flex-shrink-0">
                     {/* Buyer card */}
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-full bg-[#004ac6]/10 flex items-center justify-center text-[#004ac6] font-black text-xs">
+                      <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
                         {rev.user_id?.avatarUrl ? (
                           <img 
                             src={rev.user_id.avatarUrl.startsWith('http') ? rev.user_id.avatarUrl : `http://localhost:5000${rev.user_id.avatarUrl}`}
@@ -491,7 +491,7 @@ const SellerReviews = () => {
                         alt="Product"
                       />
                       <div className="min-w-0">
-                        <p className="text-[11px] font-black text-[#131b2e] truncate hover:text-[#004ac6] transition-colors cursor-pointer">
+                        <p className="text-[11px] font-black text-[#131b2e] truncate hover:text-primary transition-colors cursor-pointer">
                           {rev.product_id?.name || 'Product'}
                         </p>
                         <p className="text-[9px] text-[#434655] font-medium mt-0.5">
@@ -551,15 +551,15 @@ const SellerReviews = () => {
                     <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
                       {hasExistingReply ? (
                         /* Display Existing Seller Response */
-                        <div className="bg-[#E8EFFF]/30 rounded-2xl p-4 border border-[#004ac6]/10 relative group-hover:border-[#004ac6]/20 transition-all">
+                        <div className="bg-[#E8EFFF]/30 rounded-2xl p-4 border border-primary/10 relative group-hover:border-primary/20 transition-all">
                           <div className="flex justify-between items-center mb-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[#004ac6]">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
                               Your Response
                             </span>
                             <div className="flex gap-2">
                               <button 
                                 onClick={() => setEditingReplyId(rev._id)}
-                                className="text-[10px] font-bold text-[#004ac6] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
                               >
                                 <span className="material-symbols-outlined text-[12px]">edit</span>
                                 Edit
@@ -589,12 +589,12 @@ const SellerReviews = () => {
                         /* Textarea Editor Box to reply */
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-[#004ac6]">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-primary">
                               {editingReplyId === rev._id ? 'Edit Response' : 'Your Response'}
                             </label>
                             <button
                               onClick={() => draftReplyWithAI(rev)}
-                              className="bg-[#004ac6]/5 hover:bg-[#004ac6]/10 text-[#004ac6] border border-[#004ac6]/20 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 cursor-pointer"
+                              className="bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 cursor-pointer"
                             >
                               <span className="material-symbols-outlined text-xs">smart_toy</span>
                               Draft with AI
@@ -605,7 +605,7 @@ const SellerReviews = () => {
                               placeholder={`Enter reply to ${rev.user_id?.fullName || 'customer'}...`}
                               value={replies[rev._id] || ''}
                               onChange={(e) => handleReplyChange(rev._id, e.target.value)}
-                              className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl px-4 py-3 pb-12 text-sm font-bold focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none min-h-[90px] transition-all resize-none"
+                              className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl px-4 py-3 pb-12 text-sm font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-[90px] transition-all resize-none"
                             />
                             <div className="absolute bottom-3 right-3 flex gap-2">
                               {editingReplyId === rev._id && (
@@ -622,7 +622,7 @@ const SellerReviews = () => {
                               <button 
                                 onClick={() => handleReplySubmit(rev._id)}
                                 disabled={submittingReplyId === rev._id}
-                                className="bg-[#004ac6] text-white px-5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 disabled:opacity-50 disabled:scale-100 transition-all cursor-pointer shadow-md shadow-[#004ac6]/10"
+                                className="bg-primary text-white px-5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 disabled:opacity-50 disabled:scale-100 transition-all cursor-pointer shadow-md shadow-primary/10"
                               >
                                 {submittingReplyId === rev._id ? 'Sending...' : 'Submit Reply'}
                               </button>
@@ -666,7 +666,7 @@ const SellerReviews = () => {
                 onClick={() => setCurrentPage(index + 1)}
                 className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all cursor-pointer ${
                   currentPage === index + 1
-                    ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/10'
+                    ? 'bg-primary text-white shadow-md shadow-primary/10'
                     : 'hover:bg-[#f2f3ff] text-[#434655] bg-white border border-[#c3c6d7]/30'
                 }`}
               >
@@ -689,7 +689,7 @@ const SellerReviews = () => {
       <div className="fixed bottom-8 right-8 z-[110] flex flex-col gap-4">
         <button 
           onClick={() => setShowAIChat(!showAIChat)} 
-          className="size-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border border-[#004ac6]/10 cursor-pointer"
+          className="size-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border border-primary/10 cursor-pointer"
         >
           <span className="material-symbols-outlined text-3xl select-none">smart_toy</span>
           <span className="absolute right-full mr-4 px-3 py-1.5 bg-[#131b2e] text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md">
@@ -701,7 +701,7 @@ const SellerReviews = () => {
       {showAIChat && (
         <div className="fixed bottom-28 right-8 w-96 h-[550px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col z-[120] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
-          <div className="p-6 bg-[#004ac6] text-white flex items-center justify-between shrink-0">
+          <div className="p-6 bg-primary text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="size-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
                 <span className="material-symbols-outlined text-xl">smart_toy</span>
@@ -727,14 +727,14 @@ const SellerReviews = () => {
                 className={`flex gap-3 max-w-[85%] ${msg.sender === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}
               >
                 {msg.sender === 'ai' && (
-                  <div className="size-8 rounded-lg bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center shrink-0">
+                  <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-sm">smart_toy</span>
                   </div>
                 )}
                 <div 
                   className={`p-4 rounded-2xl shadow-sm text-xs font-bold leading-relaxed whitespace-pre-line text-left border ${
                     msg.sender === 'user' 
-                      ? 'bg-[#004ac6] text-white border-[#004ac6] rounded-tr-none' 
+                      ? 'bg-primary text-white border-primary rounded-tr-none' 
                       : 'bg-white text-[#131b2e] border-slate-200/60 rounded-tl-none'
                   }`}
                 >
@@ -756,7 +756,7 @@ const SellerReviews = () => {
               />
               <button 
                 type="submit"
-                className="size-10 bg-[#004ac6] text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm shadow-[#004ac6]/10"
+                className="size-10 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm shadow-primary/10"
               >
                 <span className="material-symbols-outlined text-lg">send</span>
               </button>

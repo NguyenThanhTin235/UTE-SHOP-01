@@ -117,7 +117,7 @@ const Profile = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" />
               </div>
               <div className="overflow-hidden">
@@ -129,43 +129,43 @@ const Profile = () => {
 
           <nav className="flex flex-col gap-1 text-left">
             {/* Active Item: Profile */}
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -198,10 +198,10 @@ const Profile = () => {
                         src={avatarSrc}
                       />
                     </div>
-                    <div className="absolute inset-0 bg-[#004ac6]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl backdrop-blur-sm">
                       <span className="material-symbols-outlined text-white text-4xl">photo_camera</span>
                     </div>
-                    <div className="absolute -bottom-2 -right-2 bg-[#004ac6] p-2 rounded-full text-white shadow-lg flex items-center justify-center">
+                    <div className="absolute -bottom-2 -right-2 bg-primary p-2 rounded-full text-white shadow-lg flex items-center justify-center">
                       <span className="material-symbols-outlined text-sm">edit</span>
                     </div>
                   </div>
@@ -216,7 +216,7 @@ const Profile = () => {
                       <div className="flex flex-col gap-1 text-left">
                         <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Full Name</label>
                         <input 
-                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none" 
+                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" 
                           type="text" 
                           name="fullName" 
                           value={formData.fullName} 
@@ -226,8 +226,8 @@ const Profile = () => {
                       <div className="flex flex-col gap-1 text-left">
                         <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Account Tier</label>
                         <div className="flex items-center gap-2 bg-[#f7f9ff] border border-[#c3c6d7]/60 p-3 rounded-lg h-[50px]">
-                          <span className="material-symbols-outlined text-[#004ac6]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                          <span className="text-xs text-[#004ac6] font-bold">{user?.tier || 'Standard Member'}</span>
+                          <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                          <span className="text-xs text-primary font-bold">{user?.tier || 'Standard Member'}</span>
                         </div>
                       </div>
                     </div>
@@ -249,7 +249,7 @@ const Profile = () => {
                       <div className="flex flex-col gap-1 text-left">
                         <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Phone Number</label>
                         <input 
-                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none" 
+                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" 
                           placeholder="+84 (03) 000-0000" 
                           type="tel" 
                           name="phone" 
@@ -260,7 +260,7 @@ const Profile = () => {
                       <div className="flex flex-col gap-1 text-left">
                         <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Date of Birth</label>
                         <input 
-                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none" 
+                          className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" 
                           type="date" 
                           name="dob" 
                           value={formData.dob} 
@@ -272,7 +272,7 @@ const Profile = () => {
                     <div className="flex flex-col gap-1 text-left">
                       <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Gender</label>
                       <select 
-                        className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] transition-all appearance-none cursor-pointer outline-none" 
+                        className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 text-base text-[#131b2e] focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer outline-none" 
                         name="gender" 
                         value={formData.gender} 
                         onChange={onChange}
@@ -289,7 +289,7 @@ const Profile = () => {
                       <button 
                         type="submit" 
                         disabled={isLoading} 
-                        className="bg-[#004ac6] text-white font-bold px-8 py-3 rounded-lg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="bg-primary text-white font-bold px-8 py-3 rounded-lg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                       >
                         {isLoading ? <span className="animate-spin material-symbols-outlined">progress_activity</span> : null}
                         Save changes
@@ -304,21 +304,21 @@ const Profile = () => {
           {/* Bento Card for Extra Info */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#c3c6d7]/30">
-              <div className="flex items-center gap-2 text-[#004ac6] mb-2">
+              <div className="flex items-center gap-2 text-primary mb-2">
                 <span className="material-symbols-outlined">security</span>
                 <h4 className="text-sm font-bold text-[#131b2e]">Security Status</h4>
               </div>
               <p className="text-sm text-[#434655]">{user?.twoFactorEnabled ? '2FA security is enabled.' : '2FA security is not enabled.'}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#c3c6d7]/30">
-              <div className="flex items-center gap-2 text-[#004ac6] mb-2">
+              <div className="flex items-center gap-2 text-primary mb-2">
                 <span className="material-symbols-outlined">history</span>
                 <h4 className="text-sm font-bold text-[#131b2e]">Member Since</h4>
               </div>
               <p className="text-sm text-[#434655]">{user?.createdAt ? `Member since ${new Date(user.createdAt).getMonth() + 1}/${new Date(user.createdAt).getFullYear()}.` : 'Join date not available.'}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#c3c6d7]/30">
-              <div className="flex items-center gap-2 text-[#004ac6] mb-2">
+              <div className="flex items-center gap-2 text-primary mb-2">
                 <span className="material-symbols-outlined">account_balance_wallet</span>
                 <h4 className="text-sm font-bold text-[#131b2e]">UTE Points</h4>
               </div>

@@ -206,10 +206,10 @@ const seedFashionData = async () => {
       permissions.push(p);
     }
 
-    const adminRole = await Role.findOne({ name: 'ADMIN' }) || await Role.create({ name: 'ADMIN', description: 'Quản trị viên tối cao' });
-    const managerRole = await Role.findOne({ name: 'MANAGER' }) || await Role.create({ name: 'MANAGER', description: 'Quản lý vận hành' });
-    const sellerRole = await Role.findOne({ name: 'SELLER' }) || await Role.create({ name: 'SELLER', description: 'Đối tác bán hàng' });
-    const customerRole = await Role.findOne({ name: 'CUSTOMER' }) || await Role.create({ name: 'CUSTOMER', description: 'Khách hàng mua sắm' });
+    const adminRole = await Role.findOne({ name: 'ADMIN' }) || await Role.create({ name: 'ADMIN', description: 'Platform Admin / Root access to all system configurations and security.' });
+    const managerRole = await Role.findOne({ name: 'MANAGER' }) || await Role.create({ name: 'MANAGER', description: 'Operational management, moderation, and support oversight.' });
+    const sellerRole = await Role.findOne({ name: 'SELLER' }) || await Role.create({ name: 'SELLER', description: 'Merchant access to store management, products, and wallet.' });
+    const customerRole = await Role.findOne({ name: 'CUSTOMER' }) || await Role.create({ name: 'CUSTOMER', description: 'Standard consumer access to browse, buy, and review.' });
 
     // Link permissions
     await RolePermission.deleteMany({});

@@ -432,7 +432,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
             </div>
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-level-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Today</p>
-              <h3 className="text-2xl font-black text-[#004ac6]">{stats.activeToday.toLocaleString('vi-VN')}</h3>
+              <h3 className="text-2xl font-black text-primary">{stats.activeToday.toLocaleString('vi-VN')}</h3>
             </div>
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-level-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">New This Week</p>
@@ -474,7 +474,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                       }}
                       className={`w-full text-left px-5 py-2 text-xs font-bold capitalize transition-colors ${
                         selectedStatus === st 
-                          ? 'bg-slate-50 text-[#004ac6]' 
+                          ? 'bg-slate-50 text-primary' 
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`}
                     >
@@ -503,13 +503,13 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                 <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in-50 slide-in-from-top-2 duration-150">
                   <button
                     onClick={() => { setSortBy('newest'); setShowSortDropdown(false); }}
-                    className={`w-full text-left px-5 py-2 text-xs font-bold transition-colors ${sortBy === 'newest' ? 'bg-slate-50 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
+                    className={`w-full text-left px-5 py-2 text-xs font-bold transition-colors ${sortBy === 'newest' ? 'bg-slate-50 text-primary' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     Newest First
                   </button>
                   <button
                     onClick={() => { setSortBy('oldest'); setShowSortDropdown(false); }}
-                    className={`w-full text-left px-5 py-2 text-xs font-bold transition-colors ${sortBy === 'oldest' ? 'bg-slate-50 text-[#004ac6]' : 'text-slate-600 hover:bg-slate-50'}`}
+                    className={`w-full text-left px-5 py-2 text-xs font-bold transition-colors ${sortBy === 'oldest' ? 'bg-slate-50 text-primary' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     Oldest First
                   </button>
@@ -537,7 +537,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
         <button
           onClick={handleExportData}
-          className="px-6 py-3 bg-[#004ac6] text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+          className="px-6 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
         >
           <span className="material-symbols-outlined text-sm">download</span>
           <span>Export User Data</span>
@@ -644,7 +644,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                     {/* View Details */}
                     <button
                       onClick={() => openDetails(user.id)}
-                      className="p-2 text-slate-400 hover:text-[#004ac6] transition-all cursor-pointer inline-block"
+                      className="p-2 text-slate-400 hover:text-primary transition-all cursor-pointer inline-block"
                       title="View Details"
                     >
                       <span className="material-symbols-outlined text-xl">visibility</span>
@@ -653,7 +653,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                     {/* Order History */}
                     <button
                       onClick={() => openHistory(user.id)}
-                      className="p-2 text-slate-400 hover:text-[#004ac6] transition-all cursor-pointer inline-block"
+                      className="p-2 text-slate-400 hover:text-primary transition-all cursor-pointer inline-block"
                       title="Purchase History"
                     >
                       <span className="material-symbols-outlined text-xl">shopping_bag</span>
@@ -698,7 +698,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
               <button
                 disabled={currentPage === 1 || loading}
                 onClick={() => setCurrentPage(1)}
-                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-[#004ac6] disabled:opacity-40 transition-all cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="First Page"
               >
                 <span className="material-symbols-outlined text-sm">first_page</span>
@@ -707,7 +707,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
               <button
                 disabled={currentPage === 1 || loading}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-[#004ac6] disabled:opacity-40 transition-all cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Previous Page"
               >
                 <span className="material-symbols-outlined text-sm">chevron_left</span>
@@ -730,7 +730,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                         }
                       }}
                       onBlur={handleActivePageSubmit}
-                      className="w-10 h-8 text-center bg-[#004ac6] text-white rounded-xl text-[11px] font-black outline-none border-none focus:ring-2 focus:ring-blue-300 shadow-md shadow-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-text"
+                      className="w-10 h-8 text-center bg-primary text-white rounded-xl text-[11px] font-black outline-none border-none focus:ring-2 focus:ring-blue-300 shadow-md shadow-blue-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-text"
                       title="Enter page number directly"
                     />
                   ) : (
@@ -749,7 +749,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
               <button
                 disabled={currentPage === pagination.totalPages || loading}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-[#004ac6] disabled:opacity-40 transition-all cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Next Page"
               >
                 <span className="material-symbols-outlined text-sm">chevron_right</span>
@@ -759,7 +759,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
               <button
                 disabled={currentPage === pagination.totalPages || loading}
                 onClick={() => setCurrentPage(pagination.totalPages)}
-                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-[#004ac6] disabled:opacity-40 transition-all cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Last Page"
               >
                 <span className="material-symbols-outlined text-sm">last_page</span>
@@ -776,7 +776,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
             <div className="p-8 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">Full User Profile</h3>
-                <p className="text-[11px] text-[#004ac6] font-black uppercase tracking-widest mt-1">Identity Information</p>
+                <p className="text-[11px] text-primary font-black uppercase tracking-widest mt-1">Identity Information</p>
               </div>
               <button onClick={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full hover:bg-slate-50 flex items-center justify-center text-slate-400 cursor-pointer">
                 <span className="material-symbols-outlined">close</span>
@@ -837,7 +837,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Wallet Balance</p>
-                      <p className="text-sm font-bold text-[#004ac6]">
+                      <p className="text-sm font-bold text-primary">
                         {selectedUser.profile.walletBalance.toLocaleString('vi-VN')}₫
                       </p>
                     </div>
@@ -873,7 +873,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                           <p className="font-bold text-slate-900">
                             {rName} {rPhone ? `(${rPhone})` : ''}
                             {defaultAddr.label && (
-                              <span className="ml-2 bg-blue-50 text-[#004ac6] border border-blue-100 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+                              <span className="ml-2 bg-blue-50 text-primary border border-blue-100 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
                                 {defaultAddr.label}
                               </span>
                             )}
@@ -931,7 +931,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">
                   {selectedUser ? `${selectedUser.profile.fullName}'s` : ''} Purchase History
                 </h3>
-                <p className="text-[11px] text-[#004ac6] font-black uppercase tracking-widest mt-1">Transaction Insight</p>
+                <p className="text-[11px] text-primary font-black uppercase tracking-widest mt-1">Transaction Insight</p>
               </div>
               <button onClick={() => setShowHistoryModal(false)} className="w-10 h-10 rounded-full hover:bg-slate-50 flex items-center justify-center text-slate-400 cursor-pointer">
                 <span className="material-symbols-outlined">close</span>
@@ -997,7 +997,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                     {/* Order Total */}
                     <div className="flex justify-between items-center pt-2 border-t border-slate-200/50">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</span>
-                      <span className="text-sm font-black text-[#004ac6] uppercase">
+                      <span className="text-sm font-black text-primary uppercase">
                         {order.totalFinal.toLocaleString('vi-VN')}₫
                       </span>
                     </div>

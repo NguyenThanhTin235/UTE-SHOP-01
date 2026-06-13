@@ -134,7 +134,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
   if (loading && !data) {
     return (
       <div className="p-10 flex justify-center items-center h-full">
-        <div className="w-10 h-10 border-4 border-[#004ac6] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -177,7 +177,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-[#004ac6] transition-colors">expand_more</span>
+            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
           </div>
           <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group">
             <span className="material-symbols-outlined text-slate-400 text-lg">category</span>
@@ -186,7 +186,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-[#004ac6] transition-colors">expand_more</span>
+            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
           </div>
           <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group">
             <span className="material-symbols-outlined text-slate-400 text-lg">filter_list</span>
@@ -195,19 +195,19 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-[#004ac6] transition-colors">expand_more</span>
+            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <button onClick={handleExportCSV} className="px-6 py-3 bg-[#004ac6] text-white text-xs font-black rounded-xl shadow-lg shadow-blue-100 hover:scale-105 transition-all flex items-center gap-2">
+          <button onClick={handleExportCSV} className="px-6 py-3 bg-primary text-white text-xs font-black rounded-xl shadow-lg shadow-blue-100 hover:scale-105 transition-all flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">download</span>
             Export Report
           </button>
           <button 
             onClick={() => fetchStatistics(true)} 
             disabled={loading}
-            className={`w-11 h-11 flex items-center justify-center bg-white border ${loading ? 'border-[#004ac6] text-[#004ac6]' : 'border-slate-200 text-slate-400'} rounded-xl hover:text-[#004ac6] hover:border-[#004ac6] transition-all shadow-sm`} 
+            className={`w-11 h-11 flex items-center justify-center bg-white border ${loading ? 'border-primary text-primary' : 'border-slate-200 text-slate-400'} rounded-xl hover:text-primary hover:border-primary transition-all shadow-sm`} 
             title="Refresh Data"
           >
             <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>refresh</span>
@@ -296,7 +296,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                   <span>{item.accuracy}% Accuracy</span>
                 </div>
                 <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#004ac6]" style={{ width: `${item.accuracy}%` }}></div>
+                  <div className="h-full bg-primary" style={{ width: `${item.accuracy}%` }}></div>
                 </div>
               </div>
             ))}
@@ -342,7 +342,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
         <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Top Violating Shops</h3>
-            <button className="text-[10px] font-black text-[#004ac6] uppercase tracking-widest hover:underline">View All</button>
+            <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">View All</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -469,7 +469,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-5 text-slate-400 text-xs font-mono">{f.shopId?.toUpperCase()}</td>
                     <td className="px-6 py-5 text-slate-900">{f.shopName}</td>
-                    <td className="px-6 py-5 text-right font-black text-[#004ac6]">${f.gmv?.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td className="px-6 py-5 text-right font-black text-primary">${f.gmv?.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                     <td className="px-6 py-5 text-right text-[#16a34a]">${f.commission?.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                     <td className="px-6 py-5 text-center text-slate-600">{f.orders?.toLocaleString()}</td>
                     <td className="px-6 py-5 text-right">
@@ -488,7 +488,7 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
             <tfoot>
               <tr className="bg-slate-50/50 font-black">
                 <td colSpan="2" className="px-6 py-5 text-[10px] text-slate-900 uppercase">Total Period Metrics</td>
-                <td className="px-6 py-5 text-right text-[#004ac6] text-base">
+                <td className="px-6 py-5 text-right text-primary text-base">
                   ${filteredFinancialIntelligence?.reduce((acc, curr) => acc + (curr.gmv || 0), 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
                 <td className="px-6 py-5 text-right text-[#16a34a] text-base">
@@ -506,19 +506,19 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
         <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-8 print:hidden">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing {financialIntelligence?.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} - {Math.min(currentPage * rowsPerPage, financialIntelligence?.length || 0)} of {financialIntelligence?.length || 0} performance records</p>
           <div className="flex gap-2">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm disabled:opacity-50">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm disabled:opacity-50">
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
             {Array.from({ length: Math.ceil((financialIntelligence?.length || 0) / rowsPerPage) || 1 }, (_, i) => i + 1).map(page => (
               <button 
                 key={page} 
                 onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all ${currentPage === page ? 'bg-[#004ac6] text-white shadow-lg shadow-blue-100' : 'bg-white border border-slate-200 text-slate-400 hover:text-[#004ac6] shadow-sm'}`}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all ${currentPage === page ? 'bg-primary text-white shadow-lg shadow-blue-100' : 'bg-white border border-slate-200 text-slate-400 hover:text-primary shadow-sm'}`}
               >
                 {page}
               </button>
             ))}
-            <button disabled={currentPage === Math.ceil((financialIntelligence?.length || 0) / rowsPerPage)} onClick={() => setCurrentPage(p => Math.min(Math.ceil((financialIntelligence?.length || 0) / rowsPerPage), p + 1))} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] transition-all shadow-sm disabled:opacity-50">
+            <button disabled={currentPage === Math.ceil((financialIntelligence?.length || 0) / rowsPerPage)} onClick={() => setCurrentPage(p => Math.min(Math.ceil((financialIntelligence?.length || 0) / rowsPerPage), p + 1))} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm disabled:opacity-50">
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
           </div>

@@ -145,7 +145,7 @@ const DashboardBankAccounts = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="h-20 bg-white border-b border-[#c3c6d7]/30 flex items-center px-4 md:px-10 sticky top-0 z-40 shadow-sm">
-        <button onClick={() => navigate('/seller')} className="flex items-center gap-2 text-[#434655] hover:text-[#004ac6] transition-colors font-bold cursor-pointer">
+        <button onClick={() => navigate('/seller')} className="flex items-center gap-2 text-[#434655] hover:text-primary transition-colors font-bold cursor-pointer">
           <span className="material-symbols-outlined">arrow_back</span>
           Back to Dashboard
         </button>
@@ -156,7 +156,7 @@ const DashboardBankAccounts = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" />
               </div>
               <div className="overflow-hidden">
@@ -167,15 +167,15 @@ const DashboardBankAccounts = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/seller/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/seller/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/seller/bank-accounts" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/seller/bank-accounts" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
               <span>Bank Accounts</span>
             </Link>
-            <Link to="/seller/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/seller/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -197,7 +197,7 @@ const DashboardBankAccounts = () => {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#434655] mb-2">Registered Accounts</h3>
                   {loadingBanks ? (
                     <div className="py-12 flex flex-col items-center justify-center gap-3">
-                      <div className="w-8 h-8 border-4 border-[#004ac6] border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                       <p className="text-xs text-[#434655] font-bold">Loading bank accounts...</p>
                     </div>
                   ) : bankAccounts.length > 0 ? (
@@ -205,7 +205,7 @@ const DashboardBankAccounts = () => {
                       {bankAccounts.map(acc => (
                         <div 
                           key={acc._id} 
-                          className={`p-5 rounded-2xl border ${acc.is_default ? 'border-[#004ac6]/30 bg-[#004ac6]/5' : 'border-[#c3c6d7]/50 bg-[#F8FAFC]'} flex flex-col justify-between`}
+                          className={`p-5 rounded-2xl border ${acc.is_default ? 'border-primary/30 bg-primary/5' : 'border-[#c3c6d7]/50 bg-[#F8FAFC]'} flex flex-col justify-between`}
                         >
                           <div className="flex justify-between items-start">
                             <div>
@@ -218,7 +218,7 @@ const DashboardBankAccounts = () => {
                               </p>
                             </div>
                             {acc.is_default && (
-                              <span className="bg-[#004ac6] text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider">
+                              <span className="bg-primary text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider">
                                 Default
                               </span>
                             )}
@@ -228,14 +228,14 @@ const DashboardBankAccounts = () => {
                             {!acc.is_default && (
                               <button 
                                 onClick={() => handleSetDefaultBank(acc._id)}
-                                className="text-[10px] font-bold text-[#004ac6] uppercase tracking-wider hover:underline cursor-pointer"
+                                className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline cursor-pointer"
                               >
                                 Set Default
                               </button>
                             )}
                             <button 
                               onClick={() => startEditBank(acc)}
-                              className="text-[10px] font-bold text-slate-600 hover:text-[#004ac6] uppercase tracking-wider hover:underline cursor-pointer flex items-center gap-0.5"
+                              className="text-[10px] font-bold text-slate-600 hover:text-primary uppercase tracking-wider hover:underline cursor-pointer flex items-center gap-0.5"
                             >
                               <span className="material-symbols-outlined text-xs">edit</span>
                               Edit
@@ -272,7 +272,7 @@ const DashboardBankAccounts = () => {
                         placeholder="e.g., Vietcombank, Techcombank, ACB"
                         value={bankName}
                         onChange={(e) => setBankName(e.target.value)}
-                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] outline-none transition-all"
+                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                         required
                       />
                     </div>
@@ -284,7 +284,7 @@ const DashboardBankAccounts = () => {
                         placeholder="e.g., NGUYEN VAN A"
                         value={accountName}
                         onChange={(e) => setAccountName(e.target.value.toUpperCase())}
-                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] outline-none transition-all uppercase"
+                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all uppercase"
                         required
                       />
                     </div>
@@ -296,7 +296,7 @@ const DashboardBankAccounts = () => {
                         placeholder="e.g., 0123456789"
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
-                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-[#004ac6] focus:border-[#004ac6] outline-none transition-all"
+                        className="w-full bg-white border border-[#c3c6d7] rounded-lg p-2.5 text-sm font-bold focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                         required
                       />
                     </div>
@@ -307,7 +307,7 @@ const DashboardBankAccounts = () => {
                         type="checkbox" 
                         checked={isDefault}
                         onChange={(e) => setIsDefault(e.target.checked)}
-                        className="w-4 h-4 border-[#c3c6d7] rounded text-[#004ac6] focus:ring-[#004ac6] cursor-pointer"
+                        className="w-4 h-4 border-[#c3c6d7] rounded text-primary focus:ring-primary cursor-pointer"
                       />
                       <label htmlFor="is-default-checkbox" className="text-xs font-bold text-[#434655] cursor-pointer select-none">
                         Set as default bank account
@@ -326,7 +326,7 @@ const DashboardBankAccounts = () => {
                       )}
                       <button 
                         type="submit"
-                        className="flex-1 bg-[#004ac6] hover:brightness-110 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#004ac6]/10"
+                        className="flex-1 bg-primary hover:brightness-110 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-primary/10"
                       >
                         {isEditing ? 'Save Changes' : 'Register Account'}
                       </button>

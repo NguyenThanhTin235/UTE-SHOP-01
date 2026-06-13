@@ -33,12 +33,15 @@ import Coins from './pages/Coins';
 import ShopDetail from './pages/ShopDetail';
 import RecentlyViewed from './pages/RecentlyViewed';
 import Promotions from './pages/Promotions';
+import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
 import { useEffect } from 'react';
 
 import { useSelector } from 'react-redux';
+import ThemeProvider from './components/ThemeProvider';
 
 const RoleBasedRedirect = ({ user }) => {
   useEffect(() => {
@@ -69,8 +72,9 @@ function App() {
   }, [toasts]);
 
   return (
-    <Router>
-      <Toaster 
+    <ThemeProvider>
+      <Router>
+        <Toaster 
         position="top-center" 
         reverseOrder={false} 
         toastOptions={{
@@ -107,6 +111,8 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/shop/:slug" element={<ShopDetail />} />
         <Route path="/promotions" element={<Promotions />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogDetail />} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />
@@ -124,7 +130,8 @@ function App() {
 
         <Route path="/" element={<Home />} />
       </Routes>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 

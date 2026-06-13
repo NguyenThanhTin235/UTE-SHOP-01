@@ -214,7 +214,7 @@ const AddressBook = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -225,44 +225,44 @@ const AddressBook = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
             {/* Active Item: Address Book */}
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -281,13 +281,13 @@ const AddressBook = () => {
           {/* Content Header */}
           <div className="flex justify-between items-end">
             <div>
-              <h1 className="text-3xl font-extrabold text-[#004ac6] tracking-tight">Shipping Addresses</h1>
+              <h1 className="text-3xl font-extrabold text-primary tracking-tight">Shipping Addresses</h1>
               <p className="text-sm text-[#434655] mt-1">Manage your delivery locations for faster checkout.</p>
             </div>
             {!showForm && (
               <button 
                 onClick={handleAddNewClick}
-                className="bg-[#004ac6] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 transition-all text-sm font-bold shadow-sm"
+                className="bg-primary text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 transition-all text-sm font-bold shadow-sm"
               >
                 <span className="material-symbols-outlined text-[20px]">add</span>
                 Add New Address
@@ -297,12 +297,12 @@ const AddressBook = () => {
 
           {loading ? (
              <div className="flex justify-center items-center py-24">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
              </div>
           ) : showForm ? (
             /* Management Form Section */
             <div className="bg-white border border-[#c3c6d7] rounded-xl p-8 shadow-sm">
-              <h2 className="text-xl font-bold text-[#004ac6] mb-8 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-primary mb-8 flex items-center gap-2">
                 <span className="material-symbols-outlined">add_location</span>
                 {editingId ? 'Edit Address Details' : 'Add Address Details'}
               </h2>
@@ -315,7 +315,7 @@ const AddressBook = () => {
                         <label className="block text-sm font-bold text-[#434655] mb-1">Address Label</label>
                         <select 
                           name="labelType" value={formData.labelType || 'Home'} onChange={handleInputChange}
-                          className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all appearance-none"
+                          className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
                         >
                           <option value="Home">Home</option>
                           <option value="Office">Office</option>
@@ -327,7 +327,7 @@ const AddressBook = () => {
                           <label className="block text-sm font-bold text-[#434655] mb-1">Custom Label</label>
                           <input 
                             name="label" value={formData.label} onChange={handleInputChange}
-                            className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all" 
+                            className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" 
                             placeholder="e.g. Apartment" type="text" 
                           />
                         </div>
@@ -337,7 +337,7 @@ const AddressBook = () => {
                       <label className="block text-sm font-bold text-[#434655] mb-1">Recipient Name *</label>
                       <input 
                         name="recipient_name" value={formData.recipient_name} onChange={handleInputChange} required
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all" 
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" 
                         placeholder="Full Name" type="text" 
                       />
                     </div>
@@ -345,7 +345,7 @@ const AddressBook = () => {
                       <label className="block text-sm font-bold text-[#434655] mb-1">Phone Number *</label>
                       <input 
                         name="recipient_phone" value={formData.recipient_phone} onChange={handleInputChange} required
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all" 
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" 
                         placeholder="0xxx xxx xxx" type="tel" 
                       />
                     </div>
@@ -356,7 +356,7 @@ const AddressBook = () => {
                       <label className="block text-sm font-bold text-[#434655] mb-1">City/Province *</label>
                       <select 
                         name="city" value={formData.city} onChange={handleInputChange} required
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all appearance-none"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
                       >
                         <option value="">Select City/Province</option>
                         {VIETNAM_PROVINCES.map(province => (
@@ -368,7 +368,7 @@ const AddressBook = () => {
                       <label className="block text-sm font-bold text-[#434655] mb-1">Detailed Address *</label>
                       <textarea 
                         name="street_address" value={formData.street_address} onChange={handleInputChange} required
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all" 
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" 
                         placeholder="House number, Street name..." rows="4"
                       ></textarea>
                     </div>
@@ -378,7 +378,7 @@ const AddressBook = () => {
                 <div className="flex items-center gap-2 pt-2">
                   <input 
                     name="is_default" checked={formData.is_default} onChange={handleInputChange}
-                    className="w-5 h-5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]" 
+                    className="w-5 h-5 rounded border-[#c3c6d7] text-primary focus:ring-primary" 
                     id="set_default" type="checkbox" 
                   />
                   <label className="text-base text-[#131b2e] cursor-pointer" htmlFor="set_default">Set as default address</label>
@@ -393,7 +393,7 @@ const AddressBook = () => {
                     Cancel
                   </button>
                   <button 
-                    className="px-8 py-3 rounded-lg bg-[#004ac6] text-white font-bold hover:opacity-90 transition-all text-sm shadow-sm" 
+                    className="px-8 py-3 rounded-lg bg-primary text-white font-bold hover:opacity-90 transition-all text-sm shadow-sm" 
                     type="submit"
                   >
                     Save Address
@@ -403,8 +403,8 @@ const AddressBook = () => {
             </div>
           ) : addresses.length === 0 ? (
             <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-sm text-center max-w-2xl mx-auto my-8 space-y-6">
-              <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="material-symbols-outlined text-[#004ac6] text-[48px]">location_off</span>
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-symbols-outlined text-primary text-[48px]">location_off</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">No Shipping Addresses</h2>
               <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
@@ -413,7 +413,7 @@ const AddressBook = () => {
               <div className="pt-4">
                 <button 
                   onClick={handleAddNewClick}
-                  className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined">add_location</span>
                   Add New Address
@@ -424,14 +424,14 @@ const AddressBook = () => {
             /* Address Grid */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {addresses.map((address) => (
-                <div key={address.id} className={`bg-white p-6 rounded-xl relative overflow-hidden ${address.isDefault ? 'border-2 border-[#004ac6] shadow-[0px_4px_20px_rgba(15,23,42,0.05)]' : 'border border-[#c3c6d7] shadow-sm'}`}>
+                <div key={address.id} className={`bg-white p-6 rounded-xl relative overflow-hidden ${address.isDefault ? 'border-2 border-primary shadow-[0px_4px_20px_rgba(15,23,42,0.05)]' : 'border border-[#c3c6d7] shadow-sm'}`}>
                   {address.isDefault && (
-                    <div className="absolute top-0 right-0 bg-[#004ac6] text-white px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
+                    <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
                       Default
                     </div>
                   )}
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${address.isDefault ? 'bg-[#d0e1fb] text-[#004ac6]' : 'bg-[#e2e7ff] text-[#434655]'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${address.isDefault ? 'bg-[#d0e1fb] text-primary' : 'bg-[#e2e7ff] text-[#434655]'}`}>
                       <span className="material-symbols-outlined text-[16px]">
                         {address.label && address.label.toLowerCase().includes('office') ? 'work' : 'home'}
                       </span>
@@ -450,7 +450,7 @@ const AddressBook = () => {
                   </div>
                   <div className={`mt-4 pt-4 flex ${address.isDefault ? 'gap-4 border-t border-[#c3c6d7]/50' : 'justify-between items-center border-t border-[#c3c6d7]/50'}`}>
                     <div className="flex gap-4">
-                      <button onClick={() => handleEditClick(address)} className="text-[#004ac6] font-bold text-sm flex items-center gap-1 hover:underline">
+                      <button onClick={() => handleEditClick(address)} className="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                         Edit
                       </button>
@@ -460,7 +460,7 @@ const AddressBook = () => {
                       </button>
                     </div>
                     {!address.isDefault && (
-                      <button onClick={() => handleSetDefault(address.id)} className="text-[#505f76] font-bold text-sm hover:text-[#004ac6] transition-colors">
+                      <button onClick={() => handleSetDefault(address.id)} className="text-[#505f76] font-bold text-sm hover:text-primary transition-colors">
                         Set as Default
                       </button>
                     )}

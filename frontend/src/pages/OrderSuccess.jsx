@@ -45,13 +45,13 @@ const OrderSuccess = () => {
   }, [paymentCode]);
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow max-w-[800px] mx-auto w-full px-4 pt-28 pb-32">
         {loading ? (
           <div className="bg-white rounded-3xl p-16 border border-[#c3c6d7]/30 shadow-sm flex flex-col items-center justify-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             <p className="text-[#505f76] text-sm">Loading your order details...</p>
           </div>
         ) : error ? (
@@ -62,7 +62,7 @@ const OrderSuccess = () => {
             <h2 className="text-2xl font-bold text-[#131b2e]">An error occurred</h2>
             <p className="text-[#434655] text-sm max-w-md mx-auto">{error}</p>
             <div className="pt-4">
-              <Link to="/" className="bg-[#004ac6] text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:opacity-90 transition-all shadow-sm">
+              <Link to="/" className="bg-primary text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:opacity-90 transition-all shadow-sm">
                 Back to Homepage
               </Link>
             </div>
@@ -71,7 +71,7 @@ const OrderSuccess = () => {
           <div className="bg-white rounded-3xl border border-[#c3c6d7]/30 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] overflow-hidden text-left">
             
             {/* Banner Header */}
-            <div className="bg-gradient-to-r from-[#004ac6] to-[#0053db] p-8 text-center text-white space-y-3">
+            <div className="bg-gradient-to-r from-primary to-[#0053db] p-8 text-center text-white space-y-3">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto">
                 <span className="material-symbols-outlined text-white text-[36px]">check_circle</span>
               </div>
@@ -128,7 +128,7 @@ const OrderSuccess = () => {
                             <p className="font-bold text-[#131b2e] truncate">{item.product?.name}</p>
                             <p className="text-[10px] text-[#737686] mt-0.5">Quantity: {item.quantity}</p>
                           </div>
-                          <span className="font-bold text-[#004ac6] flex-shrink-0">
+                          <span className="font-bold text-primary flex-shrink-0">
                             {(item.priceAtBuy * item.quantity).toLocaleString()}₫
                           </span>
                         </div>
@@ -168,7 +168,7 @@ const OrderSuccess = () => {
                 <div className="h-px bg-[#c3c6d7]/30 my-2"></div>
                 <div className="flex justify-between items-center pt-1 font-bold text-sm text-[#131b2e]">
                   <span>Total Payment</span>
-                  <span className="text-lg text-[#004ac6]">{orderData.paymentOrder.finalAmount?.toLocaleString()}₫</span>
+                  <span className="text-lg text-primary">{orderData.paymentOrder.finalAmount?.toLocaleString()}₫</span>
                 </div>
               </div>
 
@@ -176,7 +176,7 @@ const OrderSuccess = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link 
                   to="/order-history" 
-                  className="flex-1 bg-[#004ac6] text-white py-3.5 rounded-xl font-bold text-sm text-center hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2"
+                  className="flex-1 bg-primary text-white py-3.5 rounded-xl font-bold text-sm text-center hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
                   View Order History

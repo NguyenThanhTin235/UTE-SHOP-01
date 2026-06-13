@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        "primary": "#004ac6",
+        "primary": "var(--color-primary, #004ac6)",
         "on-surface": "#131b2e",
         "on-surface-variant": "#434655",
         "background": "#faf8ff",
@@ -24,9 +24,9 @@ export default {
         "warning": "#f59e0b",
       },
       fontFamily: {
-        "display": ["Manrope", "sans-serif"],
-        "body": ["Manrope", "sans-serif"],
-        "sans": ["Manrope", "sans-serif"],
+        "display": ["var(--font-family, Manrope)", "sans-serif"],
+        "body": ["var(--font-family, Manrope)", "sans-serif"],
+        "sans": ["var(--font-family, Manrope)", "sans-serif"],
       },
       spacing: {
         "margin-mobile": "1rem",

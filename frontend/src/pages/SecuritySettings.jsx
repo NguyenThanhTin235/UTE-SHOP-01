@@ -170,7 +170,7 @@ const SecuritySettings = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -181,44 +181,44 @@ const SecuritySettings = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
             {/* Active Item: Security Settings */}
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
               <span>Security Settings</span>
             </Link>
@@ -252,13 +252,13 @@ const SecuritySettings = () => {
                       name="oldPassword"
                       value={formData.oldPassword}
                       onChange={handleInputChange}
-                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all text-[#131b2e]" 
+                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-[#131b2e]" 
                       placeholder="••••••••••••" 
                       type={showOldPassword ? "text" : "password"}
                     />
                     <button 
                       onClick={() => setShowOldPassword(!showOldPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors" 
                       type="button"
                     >
                       <span className="material-symbols-outlined">{showOldPassword ? "visibility_off" : "visibility"}</span>
@@ -274,13 +274,13 @@ const SecuritySettings = () => {
                       name="newPassword"
                       value={formData.newPassword}
                       onChange={handleInputChange}
-                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all text-[#131b2e]" 
+                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-[#131b2e]" 
                       placeholder="••••••••••••" 
                       type={showNewPassword ? "text" : "password"}
                     />
                     <button 
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors" 
                       type="button"
                     >
                       <span className="material-symbols-outlined">{showNewPassword ? "visibility_off" : "visibility"}</span>
@@ -296,13 +296,13 @@ const SecuritySettings = () => {
                       name="confirmNewPassword"
                       value={formData.confirmNewPassword}
                       onChange={handleInputChange}
-                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#004ac6] outline-none transition-all text-[#131b2e]" 
+                      className="w-full bg-[#faf8ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-[#131b2e]" 
                       placeholder="••••••••••••" 
                       type={showConfirmPassword ? "text" : "password"}
                     />
                     <button 
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors" 
                       type="button"
                     >
                       <span className="material-symbols-outlined">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
@@ -316,7 +316,7 @@ const SecuritySettings = () => {
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-sm text-[#434655]">
                       {formData.newPassword.length >= 8 ? (
-                        <span className="material-symbols-outlined text-[#004ac6] scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <span className="material-symbols-outlined text-primary scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                       ) : (
                         <span className="material-symbols-outlined text-[#c3c6d7] scale-75">radio_button_unchecked</span>
                       )}
@@ -324,7 +324,7 @@ const SecuritySettings = () => {
                     </li>
                     <li className="flex items-center gap-2 text-sm text-[#434655]">
                       {/[A-Z]/.test(formData.newPassword) && /[a-z]/.test(formData.newPassword) ? (
-                        <span className="material-symbols-outlined text-[#004ac6] scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <span className="material-symbols-outlined text-primary scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                       ) : (
                         <span className="material-symbols-outlined text-[#c3c6d7] scale-75">radio_button_unchecked</span>
                       )}
@@ -332,7 +332,7 @@ const SecuritySettings = () => {
                     </li>
                     <li className="flex items-center gap-2 text-sm text-[#434655]">
                       {/[0-9]/.test(formData.newPassword) && /[!@#$%^&*]/.test(formData.newPassword) ? (
-                        <span className="material-symbols-outlined text-[#004ac6] scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <span className="material-symbols-outlined text-primary scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                       ) : (
                         <span className="material-symbols-outlined text-[#c3c6d7] scale-75">radio_button_unchecked</span>
                       )}
@@ -346,7 +346,7 @@ const SecuritySettings = () => {
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className="bg-[#004ac6] text-white font-bold px-8 py-4 rounded-lg shadow-sm hover:opacity-90 transition-all flex-1 disabled:opacity-50"
+                    className="bg-primary text-white font-bold px-8 py-4 rounded-lg shadow-sm hover:opacity-90 transition-all flex-1 disabled:opacity-50"
                   >
                     {loading ? 'Updating...' : 'Update Password'}
                   </button>
@@ -374,7 +374,7 @@ const SecuritySettings = () => {
                   <div className="bg-[#faf8ff] p-6 rounded-xl border border-[#c3c6d7]/30 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="material-symbols-outlined text-[#004ac6]">verified_user</span>
+                        <span className="material-symbols-outlined text-primary">verified_user</span>
                         <h3 className="font-bold text-[#131b2e]">Two-Factor Auth (2FA)</h3>
                       </div>
                       <p className="text-xs text-[#434655] mb-6">Require verification via email OTP when logging in from a new device.</p>
@@ -386,7 +386,7 @@ const SecuritySettings = () => {
                       <button
                         type="button"
                         onClick={handleToggle2FA}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.twoFactorEnabled ? 'bg-[#004ac6]' : 'bg-gray-200'}`}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.twoFactorEnabled ? 'bg-primary' : 'bg-gray-200'}`}
                       >
                         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.twoFactorEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
@@ -396,7 +396,7 @@ const SecuritySettings = () => {
                   {/* Alerts Settings */}
                   <div className="bg-[#faf8ff] p-6 rounded-xl border border-[#c3c6d7]/30 space-y-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="material-symbols-outlined text-[#004ac6]">notifications_active</span>
+                      <span className="material-symbols-outlined text-primary">notifications_active</span>
                       <h3 className="font-bold text-[#131b2e]">Security Alerts</h3>
                     </div>
                     
@@ -409,7 +409,7 @@ const SecuritySettings = () => {
                       <button
                         type="button"
                         onClick={() => handleToggleAlerts('loginAlerts')}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.securityAlerts?.loginAlerts ? 'bg-[#004ac6]' : 'bg-gray-200'}`}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.securityAlerts?.loginAlerts ? 'bg-primary' : 'bg-gray-200'}`}
                       >
                         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.securityAlerts?.loginAlerts ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
@@ -424,7 +424,7 @@ const SecuritySettings = () => {
                       <button
                         type="button"
                         onClick={() => handleToggleAlerts('passwordChanges')}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.securityAlerts?.passwordChanges ? 'bg-[#004ac6]' : 'bg-gray-200'}`}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.securityAlerts?.passwordChanges ? 'bg-primary' : 'bg-gray-200'}`}
                       >
                         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.securityAlerts?.passwordChanges ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
@@ -438,7 +438,7 @@ const SecuritySettings = () => {
 
             {/* Information Card */}
             <div className="mt-12 p-6 bg-[#d3e4fe]/20 border border-[#d0e1fb] rounded-xl flex items-start gap-4">
-              <span className="material-symbols-outlined text-[#004ac6]" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
               <div>
                 <p className="text-sm font-bold text-[#0b1c30]">Keep your account safe</p>
                 <p className="text-sm text-[#38485d] mt-1">Regularly updating your password, enabling 2FA, and monitoring your security alerts enhance your account security and prevent unauthorized access.</p>

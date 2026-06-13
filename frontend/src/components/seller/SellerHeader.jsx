@@ -16,7 +16,7 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
             <span className="material-symbols-outlined text-2xl">arrow_back</span>
           </button>
         ) : (
-          <span className="material-symbols-outlined text-[#004ac6] text-2xl">
+          <span className="material-symbols-outlined text-primary text-2xl">
             {headerInfo.icon}
           </span>
         )}
@@ -33,7 +33,7 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
 
         {activeTab !== 'settings' && activeTab !== 'add-product' && activeTab !== 'order-detail' && (
           <div className="ml-8 hidden md:flex items-center bg-[#F1F5F9] rounded-2xl px-4 py-2.5 w-80 group focus-within:ring-2 focus-within:ring-blue-100 transition-all border border-slate-200/60">
-            <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-[#004ac6]">search</span>
+            <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-primary">search</span>
             <input
               type="text"
               placeholder={
@@ -58,7 +58,7 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
         {activeTab === 'products' && (
           <button
             onClick={() => navigate('/seller/add-product')}
-            className="bg-[#004ac6] text-white px-6 py-2.5 rounded-[14px] text-sm font-bold shadow-md shadow-blue-200/50 hover:bg-[#003da8] transition-all cursor-pointer flex items-center gap-2 mr-2"
+            className="bg-primary text-white px-6 py-2.5 rounded-[14px] text-sm font-bold shadow-md shadow-blue-200/50 hover:bg-[#003da8] transition-all cursor-pointer flex items-center gap-2 mr-2"
           >
             <span className="material-symbols-outlined text-[20px] font-bold">add</span>
             Add New Product
@@ -68,7 +68,7 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
         {activeTab === 'settings' && (
           <button
             onClick={() => window.dispatchEvent(new Event('save-shop-settings'))}
-            className="bg-[#004ac6] text-white px-6 py-2.5 rounded-[14px] text-sm font-bold shadow-md shadow-blue-200/50 hover:bg-[#003da8] transition-all cursor-pointer"
+            className="bg-primary text-white px-6 py-2.5 rounded-[14px] text-sm font-bold shadow-md shadow-blue-200/50 hover:bg-[#003da8] transition-all cursor-pointer"
           >
             Save All Changes
           </button>
@@ -105,7 +105,7 @@ const SellerHeader = ({ activeTab, headerInfo, currentOrder, user, navigate }) =
         )}
 
         <div onClick={() => navigate('/seller/profile')} className="flex items-center gap-3 bg-[#F1F5F9] pl-1 pr-4 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-all group">
-          <div className="w-8 h-8 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-200">
             {user?.fullName?.charAt(0).toUpperCase() || 'J'}
           </div>
           <span className="text-sm font-bold text-slate-700">{user?.fullName || 'John Doe'}</span>

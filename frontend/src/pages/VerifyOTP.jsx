@@ -124,8 +124,8 @@ const VerifyOTP = () => {
           <div className="bg-white rounded-[24px] p-8 md:p-12 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30 text-center">
             {/* Illustration/Icon */}
             <div className="mb-8 flex justify-center">
-              <div className="w-16 h-16 bg-[#004ac6]/10 rounded-full flex items-center justify-center">
-                <span className="material-symbols-outlined text-[32px] text-[#004ac6]">verified_user</span>
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-[32px] text-primary">verified_user</span>
               </div>
             </div>
             
@@ -142,7 +142,7 @@ const VerifyOTP = () => {
                     key={index}
                     ref={inputRefs[index]}
                     type="text"
-                    className="w-12 h-14 md:w-14 md:h-16 text-center font-bold text-xl md:text-2xl border border-[#c3c6d7] rounded-xl bg-white focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 outline-none transition-all text-[#131b2e]"
+                    className="w-12 h-14 md:w-14 md:h-16 text-center font-bold text-xl md:text-2xl border border-[#c3c6d7] rounded-xl bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-[#131b2e]"
                     value={digit}
                     maxLength={1}
                     onChange={(e) => handleChange(index, e.target.value)}
@@ -152,7 +152,7 @@ const VerifyOTP = () => {
               </div>
 
               <button 
-                className="w-full bg-[#004ac6] text-white font-bold text-lg py-4 rounded-xl shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
+                className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
                 type="submit"
                 disabled={isLoading}
               >
@@ -171,7 +171,7 @@ const VerifyOTP = () => {
                   type="button" 
                   onClick={onResendOTP} 
                   disabled={!canResend}
-                  className={`font-bold transition-all ${canResend ? 'text-[#004ac6] hover:underline cursor-pointer' : 'text-[#737686] cursor-not-allowed'}`}
+                  className={`font-bold transition-all ${canResend ? 'text-primary hover:underline cursor-pointer' : 'text-[#737686] cursor-not-allowed'}`}
                 >
                   Resend Code
                 </button>
@@ -185,7 +185,7 @@ const VerifyOTP = () => {
           <div className="mt-8 text-center">
             <button 
               onClick={() => navigate('/login')} 
-              className="inline-flex items-center gap-2 text-[#434655] hover:text-[#004ac6] transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-2 text-[#434655] hover:text-primary transition-colors text-xs font-medium"
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
               Back to Login

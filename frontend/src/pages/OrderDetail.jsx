@@ -250,7 +250,7 @@ const OrderDetail = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center py-40 w-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </Layout>
     );
@@ -303,7 +303,7 @@ const OrderDetail = () => {
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -314,43 +314,43 @@ const OrderDetail = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -371,7 +371,7 @@ const OrderDetail = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Link to="/order-history" className="p-1 hover:bg-[#f2f3ff] rounded-full transition-colors -ml-1 text-[#004ac6]">
+                  <Link to="/order-history" className="p-1 hover:bg-[#f2f3ff] rounded-full transition-colors -ml-1 text-primary">
                     <span className="material-symbols-outlined font-bold">arrow_back</span>
                   </Link>
                   <h1 className="text-2xl md:text-3xl font-extrabold text-[#131b2e] tracking-tight">Order #{order.orderCode}</h1>
@@ -395,38 +395,38 @@ const OrderDetail = () => {
               <div className="flex items-center justify-between px-2 md:px-8 relative pt-4 pb-2">
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                    step1Active ? 'bg-[#004ac6] text-white shadow-[#004ac6]/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
+                    step1Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">inventory</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step1Active ? 'text-[#004ac6]' : 'text-[#434655]'}`}>Ordered</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step1Active ? 'text-primary' : 'text-[#434655]'}`}>Ordered</span>
                 </div>
-                <div className={`h-0.5 flex-grow ${step2Active ? 'bg-[#004ac6]' : 'bg-gray-200'}`}></div>
+                <div className={`h-0.5 flex-grow ${step2Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                    step2Active ? 'bg-[#004ac6] text-white shadow-[#004ac6]/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
+                    step2Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">verified</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step2Active ? 'text-[#004ac6]' : 'text-[#434655]'}`}>Confirmed</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step2Active ? 'text-primary' : 'text-[#434655]'}`}>Confirmed</span>
                 </div>
-                <div className={`h-0.5 flex-grow ${step3Active ? 'bg-[#004ac6]' : 'bg-gray-200'}`}></div>
+                <div className={`h-0.5 flex-grow ${step3Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                    step3Active ? 'bg-[#004ac6] text-white shadow-[#004ac6]/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
+                    step3Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">local_shipping</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-[#004ac6]' : 'text-[#434655]'}`}>Shipped</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-primary' : 'text-[#434655]'}`}>Shipped</span>
                 </div>
-                <div className={`h-0.5 flex-grow ${step4Active ? 'bg-[#004ac6]' : 'bg-gray-200'}`}></div>
+                <div className={`h-0.5 flex-grow ${step4Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                    step4Active ? 'bg-[#004ac6] text-white shadow-[#004ac6]/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
+                    step4Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-[#004ac6]' : 'text-[#434655]'}`}>Delivered</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-primary' : 'text-[#434655]'}`}>Delivered</span>
                 </div>
               </div>
             ) : (
@@ -479,24 +479,24 @@ const OrderDetail = () => {
               <div className="bg-white border border-[#c3c6d7]/30 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
                 <div className="flex items-center justify-between border-b border-[#c3c6d7]/20 pb-4">
                   <h2 className="text-lg font-extrabold text-[#131b2e] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#004ac6]">local_shipping</span>
+                    <span className="material-symbols-outlined text-primary">local_shipping</span>
                     Shipping Information
                   </h2>
                   {!isCanceled && (
                     <div className="text-right">
                       <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider">Tracking Number</p>
-                      <p className="font-extrabold text-[#004ac6] text-base">SPX-{order.orderCode.split('-')[2] || '948210'}</p>
+                      <p className="font-extrabold text-primary text-base">SPX-{order.orderCode.split('-')[2] || '948210'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Timeline tiến độ */}
                 <div className="bg-[#f2f3ff]/40 rounded-2xl p-5 border border-[#c3c6d7]/10">
-                  <div className="space-y-6 relative border-l border-[#004ac6]/20 ml-2.5 pl-6">
+                  <div className="space-y-6 relative border-l border-primary/20 ml-2.5 pl-6">
                     {order.timeline?.map((evt, idx) => (
                       <div key={idx} className="relative text-left">
                         <div className={`absolute -left-[30px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white ring-4 ${
-                          idx === 0 ? 'bg-[#004ac6] ring-[#004ac6]/10' : 'bg-gray-300 ring-transparent'
+                          idx === 0 ? 'bg-primary ring-primary/10' : 'bg-gray-300 ring-transparent'
                         }`}></div>
                         <div>
                           <p className={`font-bold text-xs ${idx === 0 ? 'text-[#131b2e]' : 'text-[#434655]'}`}>
@@ -513,7 +513,7 @@ const OrderDetail = () => {
 
                 {/* Địa chỉ giao hàng */}
                 <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
-                  <span className="material-symbols-outlined text-[#004ac6] text-2xl">location_on</span>
+                  <span className="material-symbols-outlined text-primary text-2xl">location_on</span>
                   <div>
                     <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-1">Shipping Address</p>
                     <p className="font-extrabold text-[#131b2e] text-sm">
@@ -528,7 +528,7 @@ const OrderDetail = () => {
                 {/* Thông tin thanh toán (Lịch sử thanh toán) */}
                 {order.paymentOrderId && (
                   <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
-                    <span className="material-symbols-outlined text-[#004ac6] text-2xl">credit_card</span>
+                    <span className="material-symbols-outlined text-primary text-2xl">credit_card</span>
                     <div className="flex-grow">
                       <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-2">Payment History</p>
                       <div className="text-xs text-[#434655] space-y-1.5">
@@ -559,7 +559,7 @@ const OrderDetail = () => {
                               {order.paymentTransactions.map((tx, idx) => (
                                 <div 
                                   key={idx} 
-                                  className="p-3 rounded-xl bg-white border border-[#c3c6d7]/20 flex justify-between items-center hover:shadow-sm hover:border-[#004ac6]/30 transition-all duration-200"
+                                  className="p-3 rounded-xl bg-white border border-[#c3c6d7]/20 flex justify-between items-center hover:shadow-sm hover:border-primary/30 transition-all duration-200"
                                 >
                                   <div className="space-y-0.5 text-left">
                                     <div className="flex items-center gap-2 flex-wrap">
@@ -583,7 +583,7 @@ const OrderDetail = () => {
                                     </p>
                                   </div>
                                   <div className="text-right flex-shrink-0">
-                                    <p className="font-extrabold text-xs text-[#004ac6]">
+                                    <p className="font-extrabold text-xs text-primary">
                                       {tx.amount?.toLocaleString()}₫
                                     </p>
                                     <p className="text-[9px] text-[#737686] font-bold uppercase tracking-wider mt-0.5">
@@ -630,7 +630,7 @@ const OrderDetail = () => {
                         <p className="text-[10px] text-[#737686] mt-0.5 font-medium">
                           Quantity: {item.quantity} | {item.variantName || 'Standard'}
                         </p>
-                        <p className="font-bold text-xs text-[#004ac6] mt-1">
+                        <p className="font-bold text-xs text-primary mt-1">
                           {item.price?.toLocaleString()}₫
                         </p>
                       </div>
@@ -665,7 +665,7 @@ const OrderDetail = () => {
                   <div className="pt-4 border-t border-[#c3c6d7]/20 mt-4 text-left">
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-[10px] text-[#737686] font-bold uppercase tracking-wider">Total</span>
-                      <span className="text-xl text-[#004ac6] font-black">
+                      <span className="text-xl text-primary font-black">
                         {order.totalFinal?.toLocaleString()}₫
                       </span>
                     </div>
@@ -673,7 +673,7 @@ const OrderDetail = () => {
                     <div className="space-y-2">
                       <button
                         onClick={() => toast.success('Contacting Customer Service...')}
-                        className="w-full bg-[#004ac6] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-[#004ac6]/10 flex items-center justify-center gap-1.5"
+                        className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-1.5"
                       >
                         <span className="material-symbols-outlined text-[18px]">support_agent</span> Contact Support
                       </button>
@@ -714,9 +714,9 @@ const OrderDetail = () => {
           {order.status === 'delivered' && reviewableItems.length > 0 && (
             <div className="bg-white border border-[#c3c6d7]/30 rounded-3xl p-6 md:p-8 shadow-sm">
               <h2 className="text-lg font-extrabold text-[#131b2e] mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#004ac6]">rate_review</span>
+                <span className="material-symbols-outlined text-primary">rate_review</span>
                 Product Reviews
-                <span className="ml-auto text-xs font-bold text-[#004ac6] bg-[#004ac6]/10 px-3 py-1 rounded-full">
+                <span className="ml-auto text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
                   {reviewableItems.filter(i => !i.isReviewed).length} pending
                 </span>
               </h2>
@@ -726,7 +726,7 @@ const OrderDetail = () => {
                   <div key={item.orderItemId} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                     item.isReviewed
                       ? 'bg-emerald-50/50 border-emerald-200/50'
-                      : 'bg-[#f2f3ff]/40 border-[#c3c6d7]/20 hover:border-[#004ac6]/30'
+                      : 'bg-[#f2f3ff]/40 border-[#c3c6d7]/20 hover:border-primary/30'
                   }`}>
                     <img
                       src={item.product?.imageUrl || 'https://placehold.co/64x64/f2f3ff/004ac6?text=SP'}
@@ -756,7 +756,7 @@ const OrderDetail = () => {
                       {item.isReviewed && (
                         <button
                           onClick={() => openViewReviewModal(item)}
-                          className="px-3.5 py-2 rounded-xl font-bold text-xs bg-[#f2f3ff] border border-[#c3c6d7]/30 text-[#004ac6] hover:bg-[#004ac6]/10 transition-all flex items-center gap-1"
+                          className="px-3.5 py-2 rounded-xl font-bold text-xs bg-[#f2f3ff] border border-[#c3c6d7]/30 text-primary hover:bg-primary/10 transition-all flex items-center gap-1"
                         >
                           <span className="material-symbols-outlined text-sm font-semibold">visibility</span>
                           View
@@ -766,8 +766,8 @@ const OrderDetail = () => {
                         onClick={() => openReviewModal(item)}
                         className={`px-4 py-2 rounded-xl font-bold text-xs transition-all ${
                           item.isReviewed
-                            ? 'bg-white border border-[#c3c6d7]/40 text-[#434655] hover:border-[#004ac6]/40 hover:text-[#004ac6]'
-                            : 'bg-[#004ac6] text-white hover:opacity-90 shadow-md shadow-[#004ac6]/20'
+                            ? 'bg-white border border-[#c3c6d7]/40 text-[#434655] hover:border-primary/40 hover:text-primary'
+                            : 'bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20'
                         }`}
                       >
                         {item.isReviewed ? 'Edit' : '⭐ Review'}
@@ -866,7 +866,7 @@ const OrderDetail = () => {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={closeViewReviewModal}
-                  className="w-full py-3 rounded-xl bg-[#004ac6] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20"
+                  className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
                 >
                   Close
                 </button>
@@ -937,7 +937,7 @@ const OrderDetail = () => {
                   placeholder="Share your experience about this product..."
                   maxLength={500}
                   rows={4}
-                  className="w-full border border-[#c3c6d7]/40 rounded-2xl p-4 text-sm text-[#131b2e] placeholder-[#b0b3c1] focus:outline-none focus:border-[#004ac6]/50 focus:ring-2 focus:ring-[#004ac6]/10 resize-none transition-all"
+                  className="w-full border border-[#c3c6d7]/40 rounded-2xl p-4 text-sm text-[#131b2e] placeholder-[#b0b3c1] focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 resize-none transition-all"
                 />
                 <p className="text-[10px] text-right text-[#737686] mt-1">{reviewComment.length}/500</p>
               </div>
@@ -975,7 +975,7 @@ const OrderDetail = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl border-2 border-dashed border-[#c3c6d7]/60 flex flex-col items-center justify-center hover:border-[#004ac6]/40 hover:bg-[#f2f3ff]/60 transition-all cursor-pointer"
+                      className="w-16 h-16 rounded-xl border-2 border-dashed border-[#c3c6d7]/60 flex flex-col items-center justify-center hover:border-primary/40 hover:bg-[#f2f3ff]/60 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[#737686] text-[22px]">add_photo_alternate</span>
                     </button>
@@ -1004,7 +1004,7 @@ const OrderDetail = () => {
                 <button
                   onClick={handleSubmitReview}
                   disabled={submittingReview || !reviewRating}
-                  className="flex-1 py-3 rounded-xl bg-[#004ac6] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submittingReview ? (
                     <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>&nbsp;Submitting...</>

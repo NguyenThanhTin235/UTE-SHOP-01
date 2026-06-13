@@ -173,7 +173,7 @@ const NotificationDropdown = () => {
       if (t.includes('placed') || t.includes('paid') || t.includes('success')) {
         return { icon: 'shopping_basket', bg: 'bg-emerald-100 text-emerald-600', detailBg: 'bg-emerald-50', badgeBg: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
       }
-      return { icon: 'package_2', bg: 'bg-blue-100 text-[#004ac6]', detailBg: 'bg-blue-50', badgeBg: 'bg-blue-100 text-blue-700 border-blue-200' };
+      return { icon: 'package_2', bg: 'bg-blue-100 text-primary', detailBg: 'bg-blue-50', badgeBg: 'bg-blue-100 text-blue-700 border-blue-200' };
     }
 
     if (type === 'promotion') {
@@ -195,7 +195,7 @@ const NotificationDropdown = () => {
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
           <button
             onClick={() => setSelectedNotification(null)}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white hover:text-[#004ac6] transition-all cursor-pointer shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white hover:text-primary transition-all cursor-pointer shrink-0"
             title="Back to list"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -244,7 +244,7 @@ const NotificationDropdown = () => {
                     <p className="text-xs text-slate-500 mt-0.5">{n.orderSummary.variant}</p>
                   )}
                   {n.orderSummary.qty && (
-                    <p className="text-xs font-bold text-[#004ac6] mt-1">Qty: {n.orderSummary.qty}</p>
+                    <p className="text-xs font-bold text-primary mt-1">Qty: {n.orderSummary.qty}</p>
                   )}
                 </div>
               </div>
@@ -256,7 +256,7 @@ const NotificationDropdown = () => {
             {n.link && (
               <a 
                 href={n.link}
-                className="w-full py-3 bg-[#004ac6] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 transition-all shadow-md shadow-blue-200/50 cursor-pointer text-center"
+                className="w-full py-3 bg-primary text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 transition-all shadow-md shadow-blue-200/50 cursor-pointer text-center"
               >
                 <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                 View Details
@@ -290,7 +290,7 @@ const NotificationDropdown = () => {
           <button 
             onClick={handleMarkAllAsRead}
             title="Mark all as read"
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">done_all</span>
           </button>
@@ -346,7 +346,7 @@ const NotificationDropdown = () => {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {!notification.is_read && (
-                      <div className="w-2 h-2 rounded-full bg-[#004ac6]"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                     )}
                     <span className="material-symbols-outlined text-[16px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity">
                       chevron_right
@@ -363,7 +363,7 @@ const NotificationDropdown = () => {
         <div className="p-3 bg-slate-50/50 border-t border-slate-100 text-center">
           <button 
             onClick={() => setIsOpen(false)}
-            className="text-xs font-bold text-slate-500 hover:text-[#004ac6] transition-colors uppercase tracking-widest cursor-pointer"
+            className="text-xs font-bold text-slate-500 hover:text-primary transition-colors uppercase tracking-widest cursor-pointer"
           >
             Close Menu
           </button>
@@ -377,7 +377,7 @@ const NotificationDropdown = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative cursor-pointer border ${
-          isOpen ? 'bg-slate-50 text-[#004ac6] border-blue-100 shadow-inner' : 'text-slate-500 hover:bg-slate-50 border-slate-100'
+          isOpen ? 'bg-slate-50 text-primary border-blue-100 shadow-inner' : 'text-slate-500 hover:bg-slate-50 border-slate-100'
         }`}
       >
         <span className="material-symbols-outlined text-2xl">notifications</span>

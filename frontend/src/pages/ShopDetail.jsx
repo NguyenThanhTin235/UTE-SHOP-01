@@ -180,10 +180,10 @@ const ShopDetail = () => {
 
   if (loading) {
     return (
-      <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+      <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
         <Header />
         <div className="flex-grow flex justify-center items-center py-32">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#004ac6]"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
         </div>
         <Footer />
       </div>
@@ -240,7 +240,7 @@ const ShopDetail = () => {
           badgeBgClass = 'bg-emerald-600';
         } else {
           badgeText = 'CAMPUS TREND';
-          badgeBgClass = 'bg-[#004ac6]';
+          badgeBgClass = 'bg-primary';
         }
       }
     }
@@ -251,7 +251,7 @@ const ShopDetail = () => {
         <button 
           onClick={() => handleToggleWishlist(product.id || product._id)}
           title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-[#004ac6] hover:bg-white hover:scale-110 transition-all shadow-sm cursor-pointer"
+          className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary hover:bg-white hover:scale-110 transition-all shadow-sm cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: isWishlisted ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
         </button>
@@ -276,12 +276,12 @@ const ShopDetail = () => {
         {/* Product Info */}
         <div className="p-5 flex-grow flex flex-col justify-between space-y-4 text-left">
           <div className="space-y-1">
-            <h3 className="font-bold text-sm leading-tight text-[#131b2e] group-hover:text-[#004ac6] transition-colors line-clamp-2 h-10 overflow-hidden">
+            <h3 className="font-bold text-sm leading-tight text-[#131b2e] group-hover:text-primary transition-colors line-clamp-2 h-10 overflow-hidden">
               <Link to={`/product/${product.slug}`}>{product.name}</Link>
             </h3>
             
             <div className="flex items-center gap-1.5 pt-1.5 flex-wrap">
-              <div className="flex items-center text-[#004ac6]">
+              <div className="flex items-center text-primary">
                 <span className="material-symbols-outlined text-[15px] fill-current text-amber-500">star</span>
                 <span className="text-xs font-black ml-0.5">{product.averageRating || '5.0'}</span>
               </div>
@@ -295,15 +295,15 @@ const ShopDetail = () => {
               {hasDiscount ? (
                 <>
                   <span className="text-[10px] text-[#505f76] line-through font-medium leading-none mb-1">{product.mrpPrice.toLocaleString()}₫</span>
-                  <span className="font-black text-base text-[#004ac6] leading-none">{product.sellingPrice.toLocaleString()}₫</span>
+                  <span className="font-black text-base text-primary leading-none">{product.sellingPrice.toLocaleString()}₫</span>
                 </>
               ) : (
-                <span className="font-black text-base text-[#004ac6] leading-none">{product.sellingPrice.toLocaleString()}₫</span>
+                <span className="font-black text-base text-primary leading-none">{product.sellingPrice.toLocaleString()}₫</span>
               )}
             </div>
             <button 
               onClick={() => handleAddToCart(product.id || product._id)}
-              className="w-10 h-10 bg-[#eaedff] hover:bg-[#004ac6] text-[#004ac6] hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm active:scale-95 cursor-pointer"
+              className="w-10 h-10 bg-[#eaedff] hover:bg-primary text-primary hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm active:scale-95 cursor-pointer"
               title="Add to cart"
             >
               <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
@@ -358,7 +358,7 @@ const ShopDetail = () => {
                   setCurrentPage(p);
                   window.scrollTo({ top: 400, behavior: 'smooth' });
                 }}
-                className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all ${current === p ? 'bg-[#004ac6] text-white shadow-md' : 'border border-[#c3c6d7] hover:bg-[#f2f3ff]'}`}
+                className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all ${current === p ? 'bg-primary text-white shadow-md' : 'border border-[#c3c6d7] hover:bg-[#f2f3ff]'}`}
               >
                 {p}
               </button>
@@ -381,7 +381,7 @@ const ShopDetail = () => {
   };
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 py-8">
@@ -447,7 +447,7 @@ const ShopDetail = () => {
                   className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer ${
                     isFollowed 
                       ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                      : 'bg-white text-[#004ac6] hover:bg-slate-50'
+                      : 'bg-white text-primary hover:bg-slate-50'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">{isFollowed ? 'done' : 'favorite'}</span>
@@ -470,7 +470,7 @@ const ShopDetail = () => {
           {/* Products Count */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">inventory_2</span>
+              <span className="material-symbols-outlined text-base text-primary">inventory_2</span>
               Products
             </span>
             <span className="text-xl font-black text-[#131b2e]">{shop.productCount || shopData.allProducts.length}</span>
@@ -479,7 +479,7 @@ const ShopDetail = () => {
           {/* Followers */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">group</span>
+              <span className="material-symbols-outlined text-base text-primary">group</span>
               Followers
             </span>
             <span className="text-xl font-black text-[#131b2e]">
@@ -490,7 +490,7 @@ const ShopDetail = () => {
           {/* Rating */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">star</span>
+              <span className="material-symbols-outlined text-base text-primary">star</span>
               Shop Rating
             </span>
             <span className="text-xl font-black text-[#131b2e] flex items-center gap-1">
@@ -501,7 +501,7 @@ const ShopDetail = () => {
           {/* Response Rate */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">forum</span>
+              <span className="material-symbols-outlined text-base text-primary">forum</span>
               Response Rate
             </span>
             <span className="text-xl font-black text-[#131b2e]">{shop.responseRate || 95}%</span>
@@ -510,7 +510,7 @@ const ShopDetail = () => {
           {/* Response Time */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">pace</span>
+              <span className="material-symbols-outlined text-base text-primary">pace</span>
               Response Time
             </span>
             <span className="text-sm font-black text-[#131b2e] capitalize">{shop.responseTime || 'within hours'}</span>
@@ -519,7 +519,7 @@ const ShopDetail = () => {
           {/* Joined Date */}
           <div className="flex flex-col justify-center px-4">
             <span className="text-[10px] font-black text-[#505f76] uppercase tracking-widest mb-1.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-base text-[#004ac6]">calendar_month</span>
+              <span className="material-symbols-outlined text-base text-primary">calendar_month</span>
               Joined
             </span>
             <span className="text-sm font-black text-[#131b2e]">{formattedJoinedDate}</span>
@@ -533,8 +533,8 @@ const ShopDetail = () => {
               onClick={() => setActiveTab('best_sellers')}
               className={`pb-4 text-sm font-bold tracking-tight transition-all cursor-pointer ${
                 activeTab === 'best_sellers'
-                  ? 'border-b-2 border-[#004ac6] text-[#004ac6]'
-                  : 'text-[#434655] hover:text-[#004ac6]'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-[#434655] hover:text-primary'
               }`}
             >
               Top Selling
@@ -543,8 +543,8 @@ const ShopDetail = () => {
               onClick={() => setActiveTab('discounts')}
               className={`pb-4 text-sm font-bold tracking-tight transition-all cursor-pointer ${
                 activeTab === 'discounts'
-                  ? 'border-b-2 border-[#004ac6] text-[#004ac6]'
-                  : 'text-[#434655] hover:text-[#004ac6]'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-[#434655] hover:text-primary'
               }`}
             >
               Hot Discounts
@@ -553,8 +553,8 @@ const ShopDetail = () => {
               onClick={() => setActiveTab('all')}
               className={`pb-4 text-sm font-bold tracking-tight transition-all cursor-pointer ${
                 activeTab === 'all'
-                  ? 'border-b-2 border-[#004ac6] text-[#004ac6]'
-                  : 'text-[#434655] hover:text-[#004ac6]'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-[#434655] hover:text-primary'
               }`}
             >
               All Products
@@ -608,8 +608,8 @@ const ShopDetail = () => {
               {/* Inner Shop Filters Bar */}
               <div className="bg-white rounded-[1.5rem] border border-[#c3c6d7]/40 p-4 md:p-6 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
                 {/* Shop Search Bar */}
-                <div className="flex items-center bg-[#f8f7ff] rounded-xl px-4 py-2.5 w-full md:w-96 group focus-within:ring-2 focus-within:ring-[#004ac6]/10 transition-all border border-[#c3c6d7]/50">
-                  <span className="material-symbols-outlined text-[#505f76] text-xl group-focus-within:text-[#004ac6]">search</span>
+                <div className="flex items-center bg-[#f8f7ff] rounded-xl px-4 py-2.5 w-full md:w-96 group focus-within:ring-2 focus-within:ring-primary/10 transition-all border border-[#c3c6d7]/50">
+                  <span className="material-symbols-outlined text-[#505f76] text-xl group-focus-within:text-primary">search</span>
                   <input
                     type="text"
                     placeholder="Search in this shop..."
@@ -630,7 +630,7 @@ const ShopDetail = () => {
                   <select 
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-[#f8f7ff] border border-[#c3c6d7]/50 rounded-xl py-2.5 px-4 text-xs font-bold outline-none focus:border-[#004ac6] transition-all cursor-pointer shadow-sm"
+                    className="bg-[#f8f7ff] border border-[#c3c6d7]/50 rounded-xl py-2.5 px-4 text-xs font-bold outline-none focus:border-primary transition-all cursor-pointer shadow-sm"
                   >
                     <option value="newest">Newest Arrivals</option>
                     <option value="price_asc">Price: Low to High</option>

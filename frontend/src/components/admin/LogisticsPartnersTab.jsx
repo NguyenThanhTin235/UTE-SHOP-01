@@ -222,11 +222,11 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
   });
 
   return (
-    <div className="space-y-8 pb-12 font-['Manrope']">
+    <div className="space-y-8 pb-12 font-sans">
       {/* Header Panel */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#004ac6]">
+          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-primary">
             <span className="material-symbols-outlined text-3xl">local_shipping</span>
           </div>
           <div>
@@ -239,7 +239,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
       {/* Partners List Grid */}
       {loading ? (
         <div className="min-h-[300px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004ac6]"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
         </div>
       ) : filteredPartners.length === 0 ? (
         <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-12 text-center flex flex-col items-center justify-center">
@@ -332,7 +332,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                     <button
                       onClick={() => handleToggleStatus(partner)}
                       className={`w-9 h-5 rounded-full relative cursor-pointer transition-all duration-200 outline-none ${
-                        isPartnerActive ? 'bg-[#004ac6]' : 'bg-slate-200'
+                        isPartnerActive ? 'bg-primary' : 'bg-slate-200'
                       }`}
                     >
                       <span
@@ -384,7 +384,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                       )}
                       {uploading && (
                         <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                          <div className="animate-spin rounded-full size-5 border-2 border-t-transparent border-[#004ac6]"></div>
+                          <div className="animate-spin rounded-full size-5 border-2 border-t-transparent border-primary"></div>
                         </div>
                       )}
                     </div>
@@ -418,7 +418,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Giao Hàng Tiết Kiệm"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                   />
                 </div>
 
@@ -432,7 +432,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="e.g. GHTK"
                     disabled={isEditing}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   {!isEditing && (
                     <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">Unique identifier code. Usually abbreviated (e.g. VNPOST, GRAB).</p>
@@ -450,12 +450,12 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                       onChange={(e) => setShippingFee(e.target.value)}
                       placeholder="e.g. 30000"
                       min="0"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-2.5 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-2.5 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm">₫</span>
                   </div>
                   {shippingFee > 0 && (
-                    <p className="text-[10px] text-[#004ac6] font-bold mt-1">
+                    <p className="text-[10px] text-primary font-bold mt-1">
                       Preview: {Number(shippingFee).toLocaleString('vi-VN')} ₫
                     </p>
                   )}
@@ -471,7 +471,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                     type="button"
                     onClick={() => setIsActive(prev => !prev)}
                     className={`w-9 h-5 rounded-full relative cursor-pointer transition-all duration-200 outline-none ${
-                      isActive ? 'bg-[#004ac6]' : 'bg-slate-200'
+                      isActive ? 'bg-primary' : 'bg-slate-200'
                     }`}
                   >
                     <span
@@ -494,7 +494,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#004ac6] hover:bg-[#003da6] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/10 active:scale-95 transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-primary hover:bg-[#003da6] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/10 active:scale-95 transition-all cursor-pointer"
                 >
                   {isEditing ? 'Save Changes' : 'Create Partner'}
                 </button>

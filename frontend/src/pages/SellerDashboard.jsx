@@ -133,7 +133,7 @@ const SellerDashboard = () => {
   }, [user, location.pathname]);
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
+    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
       <SellerSidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -168,7 +168,7 @@ const SellerDashboard = () => {
           <Route path="*" element={
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-                <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
+                <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                   {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
                 </span>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">

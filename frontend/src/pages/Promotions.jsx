@@ -68,7 +68,7 @@ const Promotions = () => {
   };
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 pt-24 pb-32">
@@ -292,7 +292,7 @@ const Promotions = () => {
                                   ? 'bg-slate-300 text-slate-500 cursor-not-allowed' 
                                   : copiedCode === coupon.code 
                                     ? 'bg-emerald-600 text-white' 
-                                    : 'bg-[#004ac6] text-white hover:opacity-90 shadow-sm cursor-pointer'
+                                    : 'bg-primary text-white hover:opacity-90 shadow-sm cursor-pointer'
                               }`}
                             >
                               {coupon.isUsed ? 'Used' : copiedCode === coupon.code ? 'Copied' : 'Copy Code'}

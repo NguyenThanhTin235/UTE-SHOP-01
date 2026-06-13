@@ -464,7 +464,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                 {loading ? (
                     <div className="flex items-center justify-center min-h-[400px]">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="size-12 border-4 border-slate-200 border-t-[#004ac6] rounded-full animate-spin"></div>
+                            <div className="size-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
                             <span className="text-sm font-bold text-slate-500">Analyzing store data...</span>
                         </div>
                     </div>

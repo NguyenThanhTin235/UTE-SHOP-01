@@ -6,7 +6,7 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
       {/* Seller Identity */}
       <div className="p-8 border-b border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
             US
           </div>
           <div>
@@ -32,7 +32,7 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
               <button
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] transition-all text-[15px] group cursor-pointer ${isActive
-                  ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm shadow-blue-100/50'
+                  ? 'bg-[#E8EFFF] text-primary font-bold shadow-sm shadow-blue-100/50'
                   : 'text-[#475569] font-medium hover:bg-slate-50'
                   }`}
               >
@@ -51,7 +51,7 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
 
       {/* Revenue Card */}
       <div className="px-6 py-4 mt-auto border-t border-slate-100">
-        <div className="bg-[#004ac6] rounded-[24px] p-5 text-white relative overflow-hidden shadow-lg shadow-blue-200/50">
+        <div className="bg-primary rounded-[24px] p-5 text-white relative overflow-hidden shadow-lg shadow-blue-200/50">
           <div className="absolute top-0 right-0 p-3 opacity-10">
             <span className="material-symbols-outlined text-4xl">account_balance_wallet</span>
           </div>
@@ -62,7 +62,7 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
             </h3>
             <button
               onClick={() => setActiveTab('wallet')}
-              className="flex items-center justify-center w-full bg-white text-[#004ac6] py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+              className="flex items-center justify-center w-full bg-white text-primary py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
             >
               Access Wallet
             </button>

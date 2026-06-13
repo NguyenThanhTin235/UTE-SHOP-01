@@ -128,7 +128,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
   if (loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004ac6]"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -141,7 +141,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
       {/* Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex items-center gap-6 transition-all hover:-translate-y-0.5 hover:shadow-md">
-          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#004ac6]">
+          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-primary">
             <span className="material-symbols-outlined text-3xl">percent</span>
           </div>
           <div>
@@ -189,7 +189,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   step="0.1"
                   min="0"
                   max="100"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="text-slate-400 font-black text-xl">%</span>
               </div>
@@ -206,7 +206,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   step="0.1"
                   min="0"
                   max="100"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="text-slate-400 font-black text-xl">%</span>
               </div>
@@ -215,7 +215,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
             
             <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
               <span className="text-sm font-black text-slate-500 uppercase tracking-wider">Total Standard Commission</span>
-              <span className="text-xl font-black text-[#004ac6]">{totalCommission}%</span>
+              <span className="text-xl font-black text-primary">{totalCommission}%</span>
             </div>
           </div>
         </section>
@@ -238,7 +238,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   value={coinEarnRate}
                   onChange={(e) => setCoinEarnRate(e.target.value)}
                   min="0"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="text-slate-400 font-black text-sm">Coins</span>
               </div>
@@ -254,7 +254,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   onChange={(e) => setCoinMaxUsagePercent(e.target.value)}
                   min="0"
                   max="100"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="text-slate-400 font-black text-xl">%</span>
               </div>
@@ -266,7 +266,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
               <select
                 value={coinExpiryDuration}
                 onChange={(e) => setCoinExpiryDuration(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all cursor-pointer outline-none font-semibold text-slate-700"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all cursor-pointer outline-none font-semibold text-slate-700"
               >
                 <option value="6 Months from Earning">6 Months from Earning</option>
                 <option value="End of Current Year">End of Current Year</option>
@@ -294,7 +294,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   value={minWithdrawal}
                   onChange={(e) => setMinWithdrawal(e.target.value)}
                   min="0"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm">₫</span>
               </div>
@@ -308,7 +308,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   value={maxDailyWithdrawal}
                   onChange={(e) => setMaxDailyWithdrawal(e.target.value)}
                   min="0"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm">₫</span>
               </div>
@@ -319,7 +319,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
               <select
                 value={payoutProcessingTime}
                 onChange={(e) => setPayoutProcessingTime(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-[#004ac6] focus:border-[#004ac6] transition-all cursor-pointer outline-none font-semibold text-slate-700"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all cursor-pointer outline-none font-semibold text-slate-700"
               >
                 <option value="Instant Payout">Instant Payout</option>
                 <option value="T+1">T+1 (Next Business Day)</option>
@@ -379,7 +379,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                     <td className="px-8 py-4 text-sm font-medium text-slate-500">{log.action}</td>
                     <td className="px-8 py-4 text-sm font-semibold text-slate-600 max-w-md">
                       {log.newValue.split(', ').map((c, i) => (
-                        <span key={i} className="inline-block bg-blue-50/50 text-[#004ac6] border border-blue-100/50 text-[11px] font-black px-2 py-0.5 rounded-lg mr-1.5 mb-1">
+                        <span key={i} className="inline-block bg-blue-50/50 text-primary border border-blue-100/50 text-[11px] font-black px-2 py-0.5 rounded-lg mr-1.5 mb-1">
                           {c}
                         </span>
                       ))}
@@ -404,7 +404,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
               <button
                 disabled={logPage === 1}
                 onClick={() => setLogPage(p => p - 1)}
-                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-[#004ac6] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">chevron_left</span>
               </button>
@@ -414,7 +414,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
                   onClick={() => setLogPage(page)}
                   className={`size-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                     logPage === page
-                      ? 'bg-[#004ac6] text-white shadow-lg shadow-blue-200'
+                      ? 'bg-primary text-white shadow-lg shadow-blue-200'
                       : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
@@ -424,7 +424,7 @@ const FinanceSettingsTab = ({ searchTerm, setApplyChangesHandler, setApplyingSta
               <button
                 disabled={logPage === totalPages}
                 onClick={() => setLogPage(p => p + 1)}
-                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-[#004ac6] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">chevron_right</span>
               </button>

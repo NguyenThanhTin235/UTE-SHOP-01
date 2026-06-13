@@ -3,6 +3,8 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const adminPromotionController = require('../controllers/adminPromotionController');
 const adminLogisticsController = require('../controllers/adminLogisticsController');
+const adminUIController = require('../controllers/adminUIController');
+const adminRBACController = require('../controllers/adminRBACController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/roleMiddleware');
 const { uploadProduct, upload } = require('../config/cloudinary');
@@ -54,5 +56,32 @@ router.put('/logistics/:id', verifyToken, isAdmin, adminLogisticsController.upda
 router.delete('/logistics/:id', verifyToken, isAdmin, adminLogisticsController.deleteShippingPartner);
 router.post('/logistics/upload', verifyToken, isAdmin, upload.single('avatar'), adminLogisticsController.uploadAvatar);
 
-module.exports = router;
 
+// Security Logs
+router.get('/security-logs', verifyToken, isAdmin, adminController.getSecurityLogs);
+
+// RBAC
+router.get('/rbac/roles', verifyToken, isAdmin, adminRBACController.getRoles);
+router.post('/rbac/roles', verifyToken, isAdmin, adminRBACController.createRole);
+router.put('/rbac/roles/:id', verifyToken, isAdmin, adminRBACController.updateRole);
+router.delete('/rbac/roles/:id', verifyToken, isAdmin, adminRBACController.deleteRole);
+router.get('/rbac/permissions', verifyToken, isAdmin, adminRBACController.getPermissions);
+router.put('/rbac/permissions', verifyToken, isAdmin, adminRBACController.updatePermissions);
+
+// UI/UX Config
+router.get('/ui-config', verifyToken, isAdmin, adminUIController.getUIConfig);
+router.put('/ui-config/theme', verifyToken, isAdmin, adminUIController.updateTheme);
+router.put('/ui-config/banners', verifyToken, isAdmin, adminUIController.updateBanners);
+router.put('/ui-config/sections', verifyToken, isAdmin, adminUIController.updateSections);
+router.post('/ui-config/upload-banner', verifyToken, isAdmin, upload.single('banner'), adminUIController.uploadBanner);
+
+// Blog Management
+const adminBlogController = require('../controllers/adminBlogController');
+router.get('/blog', verifyToken, isAdmin, adminBlogController.getAllPosts);
+router.get('/blog/:id', verifyToken, isAdmin, adminBlogController.getPostById);
+router.post('/blog', verifyToken, isAdmin, adminBlogController.createPost);
+router.put('/blog/:id', verifyToken, isAdmin, adminBlogController.updatePost);
+router.delete('/blog/:id', verifyToken, isAdmin, adminBlogController.deletePost);
+router.post('/blog/upload-image', verifyToken, isAdmin, upload.single('image'), adminBlogController.uploadBlogImage);
+
+module.exports = router;

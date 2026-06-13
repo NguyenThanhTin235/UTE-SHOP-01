@@ -102,7 +102,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center h-screen bg-[#F8FAFC]">
-        <div className="size-12 border-4 border-slate-200 border-t-[#004ac6] rounded-full animate-spin"></div>
+        <div className="size-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
         <p className="mt-4 text-slate-500 font-bold">Loading case details...</p>
       </div>
     );
@@ -147,7 +147,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
                     </div>
                     <div>
                       <p className="text-sm font-black text-slate-900 line-clamp-1">{violation.shopId?.name || 'Unknown Shop'}</p>
-                      <p className="text-[10px] text-[#004ac6] font-bold">ID: {(violation.shopId?.id || '').toString().substring(0, 8)} | Shop</p>
+                      <p className="text-[10px] text-primary font-bold">ID: {(violation.shopId?.id || '').toString().substring(0, 8)} | Shop</p>
                     </div>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Primary Reporter</p>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center overflow-hidden font-black text-[#004ac6] text-xs shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center overflow-hidden font-black text-primary text-xs shrink-0">
                       RPT
                     </div>
                     <div>
@@ -180,7 +180,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
               <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-lg font-black text-slate-900 tracking-tight">Evidence Gallery</h3>
-                  <span className="text-[10px] font-black text-[#004ac6] bg-blue-50 px-3 py-1 rounded-lg uppercase">{violation.evidenceUrls.length} Attachments</span>
+                  <span className="text-[10px] font-black text-primary bg-blue-50 px-3 py-1 rounded-lg uppercase">{violation.evidenceUrls.length} Attachments</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {violation.evidenceUrls.map((url, index) => {
@@ -207,7 +207,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
                         <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px] flex items-center justify-center">
                           <button 
                             onClick={(e) => { e.stopPropagation(); setSelectedImage(url); }}
-                            className="bg-white text-[#004ac6] px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 transform translate-y-3 group-hover:translate-y-0"
+                            className="bg-white text-primary px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 transform translate-y-3 group-hover:translate-y-0"
                           >
                             <span className="material-symbols-outlined text-base font-black">zoom_in</span>
                             Inspect
@@ -296,7 +296,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
                           value={reason}
                           onChange={(e) => setReason(e.target.value)}
                           placeholder="State the reason for this action (visible to subject)..." 
-                          className="w-full h-32 bg-slate-50 border border-slate-200 rounded-3xl p-4 text-sm font-bold focus:ring-[#004ac6]/20 focus:border-[#004ac6]/50 placeholder:text-slate-400 transition-all outline-none"
+                          className="w-full h-32 bg-slate-50 border border-slate-200 rounded-3xl p-4 text-sm font-bold focus:ring-primary/20 focus:border-primary/50 placeholder:text-slate-400 transition-all outline-none"
                         ></textarea>
                       </div>
                     </div>

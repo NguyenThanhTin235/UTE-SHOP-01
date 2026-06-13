@@ -211,7 +211,7 @@ const AdminDashboardOverview = ({
           
           <button 
             onClick={exportToPDF}
-            className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#004ac6]/30 hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">download</span>
             Export Report
@@ -227,11 +227,11 @@ const AdminDashboardOverview = ({
         ) : (
           <div 
             onClick={() => setActiveTab('finance_config')}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-[#004ac6] cursor-pointer transition-all duration-300 active:scale-95"
+            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-primary cursor-pointer transition-all duration-300 active:scale-95"
           >
             <div>
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-blue-50 rounded-xl text-[#004ac6]">
+                <div className="p-3 bg-blue-50 rounded-xl text-primary">
                   <span className="material-symbols-outlined">trending_up</span>
                 </div>
                 <span className={`text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 ${
@@ -258,7 +258,7 @@ const AdminDashboardOverview = ({
         ) : (
           <div 
             onClick={() => setActiveTab('users')}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-[#004ac6] cursor-pointer transition-all duration-300 active:scale-95"
+            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-primary cursor-pointer transition-all duration-300 active:scale-95"
           >
             <div>
               <div className="flex justify-between items-start mb-4">
@@ -289,11 +289,11 @@ const AdminDashboardOverview = ({
         ) : (
           <div 
             onClick={() => setActiveTab('promotions')}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-[#004ac6] cursor-pointer transition-all duration-300 active:scale-95"
+            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between group hover:border-primary cursor-pointer transition-all duration-300 active:scale-95"
           >
             <div>
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-blue-50 rounded-xl text-[#004ac6]">
+                <div className="p-3 bg-blue-50 rounded-xl text-primary">
                   <span className="material-symbols-outlined">campaign</span>
                 </div>
                 <span className="text-xs font-bold text-[#2e7d32] bg-[#2e7d32]/10 px-2 py-1 rounded-full flex items-center gap-1">
@@ -359,7 +359,7 @@ const AdminDashboardOverview = ({
                   onClick={() => setDays(7)}
                   className={`px-5 py-1.5 text-xs uppercase tracking-widest rounded-lg cursor-pointer transition-all ${
                     days === 7 
-                      ? 'bg-white text-[#004ac6] font-black shadow-sm' 
+                      ? 'bg-white text-primary font-black shadow-sm' 
                       : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
@@ -369,7 +369,7 @@ const AdminDashboardOverview = ({
                   onClick={() => setDays(30)}
                   className={`px-5 py-1.5 text-xs uppercase tracking-widest rounded-lg cursor-pointer transition-all ${
                     days === 30 
-                      ? 'bg-white text-[#004ac6] font-black shadow-sm' 
+                      ? 'bg-white text-primary font-black shadow-sm' 
                       : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
@@ -379,7 +379,7 @@ const AdminDashboardOverview = ({
                   onClick={() => setDays(90)}
                   className={`px-5 py-1.5 text-xs uppercase tracking-widest rounded-lg cursor-pointer transition-all ${
                     days === 90 
-                      ? 'bg-white text-[#004ac6] font-black shadow-sm' 
+                      ? 'bg-white text-primary font-black shadow-sm' 
                       : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
@@ -394,8 +394,8 @@ const AdminDashboardOverview = ({
                     <div 
                       className={`w-full rounded-t-xl transition-all relative ${
                         week.label === 'Current' || week.label === 'Today'
-                          ? 'bg-[#004ac6] shadow-lg shadow-blue-100' 
-                          : 'bg-[#004ac6]/20 group-hover:bg-[#004ac6]/40'
+                          ? 'bg-primary shadow-lg shadow-blue-100' 
+                          : 'bg-primary/20 group-hover:bg-primary/40'
                       }`} 
                       style={{ height: `${week.percentage}%` }}
                     >
@@ -409,7 +409,7 @@ const AdminDashboardOverview = ({
                       </div>
                     </div>
                     <span className={`mt-4 text-[10px] font-black uppercase tracking-widest ${
-                      week.label === 'Current' || week.label === 'Today' ? 'text-[#004ac6]' : 'text-slate-400'
+                      week.label === 'Current' || week.label === 'Today' ? 'text-primary' : 'text-slate-400'
                     }`}>
                       {week.label}
                     </span>
@@ -440,7 +440,7 @@ const AdminDashboardOverview = ({
                           {alert.shopName} processed {alert.amount.toLocaleString('vi-VN')} ₫. Fraud check required.
                         </p>
                         <div className="flex gap-2 mt-3">
-                          <button onClick={() => toast.success(`Reviewing Transaction ${alert.orderCode}`)} className="text-[10px] font-black text-[#004ac6] hover:underline cursor-pointer">Review</button>
+                          <button onClick={() => toast.success(`Reviewing Transaction ${alert.orderCode}`)} className="text-[10px] font-black text-primary hover:underline cursor-pointer">Review</button>
                           <button onClick={() => toast.error(`Transaction ${alert.orderCode} placed on hold`)} className="text-[10px] font-black text-[#b3261e] hover:underline cursor-pointer">Hold</button>
                         </div>
                       </div>
@@ -469,7 +469,7 @@ const AdminDashboardOverview = ({
                     </p>
                     <button 
                       onClick={() => setActiveTab('users')}
-                      className="text-[10px] font-black text-[#004ac6] hover:underline mt-3 cursor-pointer"
+                      className="text-[10px] font-black text-primary hover:underline mt-3 cursor-pointer"
                     >
                       Open Queue
                     </button>
@@ -478,7 +478,7 @@ const AdminDashboardOverview = ({
               </div>
             </div>
 
-            <div className="bg-[#004ac6] rounded-2xl p-6 text-white shadow-xl shadow-blue-200 overflow-hidden relative">
+            <div className="bg-primary rounded-2xl p-6 text-white shadow-xl shadow-blue-200 overflow-hidden relative">
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <span className="material-symbols-outlined text-6xl">insights</span>
               </div>
@@ -489,7 +489,7 @@ const AdminDashboardOverview = ({
               </p>
               <button 
                 onClick={() => setActiveTab('rbac')}
-                className="w-full bg-white text-[#004ac6] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-sm cursor-pointer"
+                className="w-full bg-white text-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-sm cursor-pointer"
               >
                 View Workload
               </button>
@@ -507,7 +507,7 @@ const AdminDashboardOverview = ({
               {filteredQueue.length} Flagged
             </span>
           </div>
-          <button onClick={() => toast.success('Processing all flagged items...')} className="text-[#004ac6] text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Process All</button>
+          <button onClick={() => toast.success('Processing all flagged items...')} className="text-primary text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Process All</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -567,7 +567,7 @@ const AdminDashboardOverview = ({
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleAction('view', item.name)}
-                          className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-[#004ac6] hover:bg-blue-50 transition-all flex items-center justify-center cursor-pointer border border-slate-200/40"
+                          className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-primary hover:bg-blue-50 transition-all flex items-center justify-center cursor-pointer border border-slate-200/40"
                         >
                           <span className="material-symbols-outlined text-xl">visibility</span>
                         </button>
@@ -593,7 +593,7 @@ const AdminDashboardOverview = ({
             <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white transition-all opacity-50 cursor-pointer">
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#004ac6] text-white text-xs font-black shadow-lg shadow-blue-100 cursor-pointer">1</button>
+            <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white text-xs font-black shadow-lg shadow-blue-100 cursor-pointer">1</button>
             <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-white text-xs font-black transition-all cursor-pointer">2</button>
             <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-white transition-all cursor-pointer">
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>

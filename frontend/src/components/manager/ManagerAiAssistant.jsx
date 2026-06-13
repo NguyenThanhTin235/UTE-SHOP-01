@@ -16,7 +16,7 @@ const ManagerAiAssistant = ({
       <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
         <button
           onClick={() => setShowAI(!showAI)}
-          className="w-16 h-16 bg-[#004ac6] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative border border-white/20 cursor-pointer"
+          className="w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative border border-white/20 cursor-pointer"
         >
           <span className="material-symbols-outlined text-3xl">smart_toy</span>
           {unreadCount > 0 && (
@@ -34,7 +34,7 @@ const ManagerAiAssistant = ({
       {showAI && (
         <div className="fixed bottom-28 right-8 w-96 h-[560px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col z-[60] overflow-hidden">
           {/* Header */}
-          <div className="p-6 bg-[#004ac6] text-white flex items-center justify-between shrink-0">
+          <div className="p-6 bg-primary text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined">smart_toy</span>
@@ -56,7 +56,7 @@ const ManagerAiAssistant = ({
           <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50 flex flex-col">
             {aiMessages.map((msg, idx) => (
               <div key={idx} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-900 text-white' : 'bg-[#004ac6]/10 text-[#004ac6]'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-900 text-white' : 'bg-primary/10 text-primary'}`}>
                   <span className="material-symbols-outlined text-sm">{msg.sender === 'user' ? 'person' : 'smart_toy'}</span>
                 </div>
                 <div className={`p-4 rounded-2xl shadow-sm text-sm font-medium leading-relaxed max-w-[80%] ${
@@ -83,7 +83,7 @@ const ManagerAiAssistant = ({
               />
               <button
                 type="submit"
-                className="w-10 h-10 bg-[#004ac6] text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer shadow-md shadow-[#004ac6]/20"
+                className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer shadow-md shadow-primary/20"
               >
                 <span className="material-symbols-outlined">send</span>
               </button>

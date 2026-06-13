@@ -17,8 +17,11 @@ import CouponEditor from '../components/admin/CouponEditor';
 import FinanceSettingsTab from '../components/admin/FinanceSettingsTab';
 import WithdrawalApprovalTab from '../components/admin/WithdrawalApprovalTab';
 import LogisticsPartnersTab from '../components/admin/LogisticsPartnersTab';
-
-
+import SecurityLogsTab from '../components/admin/SecurityLogsTab';
+import UIConfigTab from '../components/admin/UIConfigTab';
+import RBACTab from '../components/admin/RBACTab';
+import BlogManagementTab from '../components/admin/BlogManagementTab';
+import BlogEditor from '../components/admin/BlogEditor';
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -28,7 +31,9 @@ const AdminDashboard = () => {
   // URL-based Tab routing
   const pathParts = location.pathname.split('/').filter(Boolean);
   const activeTab = pathParts.length > 1 ? pathParts[1] : 'dashboard';
-  const isEditorPage = activeTab === 'promotions' && pathParts.length > 2 && (pathParts[2] === 'coupon' || pathParts[2] === 'campaign');
+  const isEditorPage = 
+    (activeTab === 'promotions' && pathParts.length > 2 && (pathParts[2] === 'coupon' || pathParts[2] === 'campaign')) ||
+    (activeTab === 'blog' && pathParts.length > 2 && (pathParts[2] === 'create' || pathParts[2] === 'edit'));
 
   const setActiveTab = (tabId) => {
     if (tabId === 'dashboard') {
@@ -42,6 +47,7 @@ const AdminDashboard = () => {
   const [applyChangesHandler, setApplyChangesHandler] = useState(null);
   const [applyingState, setApplyingState] = useState(false);
   const [addPartnerTrigger, setAddPartnerTrigger] = useState(null);
+  const [addRoleTrigger, setAddRoleTrigger] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -138,12 +144,13 @@ const AdminDashboard = () => {
     { id: 'logistics', label: 'Logistics Partners', icon: 'local_shipping', category: 'Management' },
     { id: 'rbac', label: 'Access Control', icon: 'admin_panel_settings', category: 'Security' },
     { id: 'security_logs', label: 'Security Logs', icon: 'security', category: 'Security' },
+    { id: 'blog', label: 'Blog Management', icon: 'article', category: 'Content' },
     { id: 'ui_config', label: 'UI/UX Settings', icon: 'palette', category: 'Appearance' },
     { id: 'platform_settings', label: 'Platform Settings', icon: 'settings', category: 'Appearance' },
   ];
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
+    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
       {/* Admin Sidebar */}
       <AdminSidebar
         navItems={navItems}
@@ -166,12 +173,14 @@ const AdminDashboard = () => {
             onApplyChanges={applyChangesHandler}
             applying={applyingState}
             addPartnerTrigger={addPartnerTrigger}
+            addRoleTrigger={addRoleTrigger}
+            addPostTrigger={activeTab === 'blog' ? () => navigate('/admin/blog/create') : null}
           />
         )}
 
         {/* Dashboard Body */}
         {isEditorPage ? (
-          activeTab === 'promotions' && (
+          activeTab === 'promotions' ? (
             <>
               {pathParts.length > 2 && pathParts[2] === 'coupon' && (
                 <CouponEditor mode={pathParts[3] || 'create'} />
@@ -180,7 +189,9 @@ const AdminDashboard = () => {
                 <CampaignEditor mode={pathParts[3] || 'create'} />
               )}
             </>
-          )
+          ) : activeTab === 'blog' ? (
+            <BlogEditor mode={pathParts[2] || 'create'} postId={pathParts[3]} />
+          ) : null
         ) : (
           <div className="p-[10px] max-w-[1280px] mx-auto w-full space-y-8">
             {activeTab === 'dashboard' && (
@@ -220,10 +231,25 @@ const AdminDashboard = () => {
             {activeTab === 'logistics' && (
               <LogisticsPartnersTab searchTerm={searchTerm} setAddPartnerTrigger={setAddPartnerTrigger} />
             )}
+            {activeTab === 'security_logs' && (
+              <SecurityLogsTab searchTerm={searchTerm} />
+            )}
+            {activeTab === 'ui_config' && (
+              <UIConfigTab 
+                setApplyChangesHandler={setApplyChangesHandler}
+                setApplyingState={setApplyingState}
+              />
+            )}
+            {activeTab === 'rbac' && (
+              <RBACTab searchTerm={searchTerm} setAddRoleTrigger={setAddRoleTrigger} />
+            )}
+            {activeTab === 'blog' && (
+              <BlogManagementTab searchTerm={searchTerm} navigate={navigate} />
+            )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && (
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
+              <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}
               </span>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
@@ -235,7 +261,7 @@ const AdminDashboard = () => {
               <div className="flex gap-4">
                 <button 
                   onClick={() => toast.success(`Settings for ${navItems.find(i => i.id === activeTab)?.label} saved successfully.`)}
-                  className="px-6 py-3 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#004ac6]/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                  className="px-6 py-3 bg-primary text-white text-xs font-bold rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                 >
                   Save Configuration
                 </button>

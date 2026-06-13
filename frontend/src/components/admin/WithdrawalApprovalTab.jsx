@@ -146,7 +146,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Pending Requests Count */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex items-center gap-6 transition-all hover:-translate-y-0.5 hover:shadow-md">
-          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#004ac6]">
+          <div className="size-14 rounded-2xl bg-blue-50 flex items-center justify-center text-primary">
             <span className="material-symbols-outlined text-3xl">hourglass_empty</span>
           </div>
           <div>
@@ -220,7 +220,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
         <div className="overflow-x-auto">
           {loading ? (
             <div className="min-h-[350px] flex flex-col items-center justify-center gap-3">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#004ac6]"></div>
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Requests...</p>
             </div>
           ) : (
@@ -247,7 +247,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
                     const { date, time } = formatDate(req.createdAt);
                     
                     let badgeClass = 'bg-slate-100 text-slate-600 border border-slate-200/50';
-                    if (req.status === 'pending') badgeClass = 'bg-blue-50 text-[#004ac6] border border-blue-100/50';
+                    if (req.status === 'pending') badgeClass = 'bg-blue-50 text-primary border border-blue-100/50';
                     if (req.status === 'approved' || req.status === 'paid') badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100/50';
                     if (req.status === 'rejected') badgeClass = 'bg-rose-50 text-rose-700 border border-rose-100/50';
 
@@ -355,7 +355,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-[#004ac6] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
+                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
               >
                 <span className="material-symbols-outlined text-sm">chevron_left</span>
               </button>
@@ -365,7 +365,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
                   onClick={() => setPage(p)}
                   className={`size-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                     page === p
-                      ? 'bg-[#004ac6] text-white shadow-lg shadow-blue-200'
+                      ? 'bg-primary text-white shadow-lg shadow-blue-200'
                       : 'border border-slate-200 text-slate-600 hover:bg-slate-50 bg-white'
                   }`}
                 >
@@ -375,7 +375,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-[#004ac6] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
+                className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
               >
                 <span className="material-symbols-outlined text-sm">chevron_right</span>
               </button>

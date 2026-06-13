@@ -118,7 +118,7 @@ const ProductDetail = () => {
   }, [user, data]);
 
   if (loading) {
-    return <div className="min-h-screen bg-background text-on-background flex items-center justify-center font-['Manrope'] font-bold text-lg">Loading Academic Collection...</div>;
+    return <div className="min-h-screen bg-background text-on-background flex items-center justify-center font-sans font-bold text-lg">Loading Academic Collection...</div>;
   }
 
   if (!data) return null;
@@ -308,7 +308,7 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="bg-background text-on-background min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-background text-on-background min-h-screen flex flex-col font-sans">
       <Header />
       <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 py-8">
         {/* Breadcrumbs */}
@@ -779,7 +779,7 @@ const ProductDetail = () => {
                                     <div className="mt-4 ml-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative text-left">
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                          <span className="material-symbols-outlined text-[#004ac6] text-sm">storefront</span>
+                                          <span className="material-symbols-outlined text-primary text-sm">storefront</span>
                                           <span className="text-xs font-black text-[#131b2e]">Shop Response</span>
                                         </div>
                                         {r.replyCreatedAt && (

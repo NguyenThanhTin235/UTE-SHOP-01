@@ -21,10 +21,10 @@ body {
 }
 .category-item:hover {
   background-color: #eaedff;
-  color: #004ac6;
+  color: var(--color-primary, #004ac6);
 }
 .category-item.active {
-  background-color: #004ac6;
+  background-color: var(--color-primary, #004ac6);
   color: #ffffff;
 }
 .product-card {
@@ -44,7 +44,7 @@ body {
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: #004ac6;
+  background-color: var(--color-primary, #004ac6);
 }
 
 /* Seamless infinite marquee animation */

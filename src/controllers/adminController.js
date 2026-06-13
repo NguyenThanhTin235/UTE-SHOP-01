@@ -952,6 +952,124 @@ const rejectWithdraw = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/admin/security-logs
+ * Fetch audit logs with pagination and filters
+ */
+const getSecurityLogs = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const { timeRange, role, actionType, search } = req.query;
+    const filter = {};
+
+    // Filter by timeRange
+    if (timeRange && timeRange !== 'all') {
+      const now = new Date();
+      if (timeRange === '24h') {
+        filter.createdAt = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+      } else if (timeRange === '7d') {
+        filter.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+      } else if (timeRange === '30d') {
+        filter.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+      }
+    }
+
+    // Filter by actionType
+    if (actionType && actionType !== 'all') {
+      if (actionType === 'update') filter.action = { $regex: 'UPDATE', $options: 'i' };
+      else if (actionType === 'grant') filter.action = { $regex: 'GRANT|ROLE', $options: 'i' };
+      else if (actionType === 'delete') filter.action = { $regex: 'DELETE', $options: 'i' };
+      else if (actionType === 'alert') filter.action = { $regex: 'ALERT', $options: 'i' };
+      else filter.action = actionType;
+    }
+
+    // Filter by role
+    if (role && role !== 'all') {
+      const targetRole = await Role.findOne({ name: { $regex: new RegExp('^' + role + '$', 'i') } });
+      if (targetRole) {
+        const userRoles = await UserRole.find({ role_id: targetRole._id });
+        const userIds = userRoles.map(ur => ur.user_id);
+        filter.actor_id = { $in: userIds };
+      } else {
+        filter.actor_id = { $in: [] };
+      }
+    }
+
+    // Filter by search (action, entity_type, or actor name)
+    if (search && search.trim() !== '') {
+      const regex = new RegExp(search.trim(), 'i');
+      
+      // Search in users first
+      const users = await User.find({ full_name: regex }, '_id');
+      const userIdsFromSearch = users.map(u => u._id);
+
+      filter.$or = [
+        { action: regex },
+        { entity_type: regex },
+        { actor_id: { $in: userIdsFromSearch } }
+      ];
+    }
+
+    const total = await AuditLog.countDocuments(filter);
+    const logs = await AuditLog.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('actor_id', 'full_name email avatar_url');
+
+    // Populate role for each actor
+    const populatedLogs = await Promise.all(logs.map(async (log) => {
+      let roleName = 'user';
+      if (log.actor_id) {
+        const userRole = await UserRole.findOne({ user_id: log.actor_id._id }).populate('role_id');
+        if (userRole && userRole.role_id) {
+          roleName = userRole.role_id.name.toLowerCase();
+        }
+      }
+      return {
+        _id: log._id,
+        action: log.action,
+        entity_type: log.entity_type,
+        entity_id: log.entity_id,
+        metadata: log.metadata,
+        createdAt: log.createdAt,
+        actor: log.actor_id ? {
+          _id: log.actor_id._id,
+          full_name: log.actor_id.full_name,
+          email: log.actor_id.email,
+          avatar: log.actor_id.avatar_url,
+          role: roleName
+        } : null
+      };
+    }));
+
+    const totalStats = await AuditLog.countDocuments();
+
+    return response.success(res, {
+      message: 'Security logs retrieved successfully',
+      data: populatedLogs,
+      meta: {
+        totalActions: totalStats,
+        pagination: {
+          total,
+          perPage: limit,
+          currentPage: page,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('getSecurityLogs error:', error);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Failed to retrieve security logs'
+    });
+  }
+};
+
 module.exports = {
   getAdminDashboard,
   getUsers,
@@ -962,5 +1080,6 @@ module.exports = {
   updateFinanceSettings,
   getWithdrawRequests,
   approveWithdraw,
-  rejectWithdraw
+  rejectWithdraw,
+  getSecurityLogs
 };

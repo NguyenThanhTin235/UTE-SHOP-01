@@ -458,7 +458,7 @@ const SellerWallet = () => {
                             <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-3xl">
                                 <div className="flex items-center gap-4">
                                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                        Showing <span className="text-[#004ac6]">{(withdrawPage - 1) * withdrawLimit + 1} - {Math.min(withdrawPage * withdrawLimit, withdrawMeta.total)}</span> of <span className="text-slate-800">{withdrawMeta.total}</span> requests
+                                        Showing <span className="text-primary">{(withdrawPage - 1) * withdrawLimit + 1} - {Math.min(withdrawPage * withdrawLimit, withdrawMeta.total)}</span> of <span className="text-slate-800">{withdrawMeta.total}</span> requests
                                     </p>
                                     <div className="w-px h-4 bg-slate-200"></div>
                                     <div className="flex items-center gap-2">
@@ -484,14 +484,14 @@ const SellerWallet = () => {
                                         <button
                                             disabled={withdrawPage <= 1}
                                             onClick={() => setWithdrawPage(1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
                                         </button>
                                         <button
                                             disabled={withdrawPage <= 1}
                                             onClick={() => setWithdrawPage(withdrawPage - 1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">chevron_left</span>
                                         </button>
@@ -513,7 +513,7 @@ const SellerWallet = () => {
                                                             onClick={() => setWithdrawPage(i)}
                                                             className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                                                                 withdrawPage === i
-                                                                    ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                                                    ? 'bg-primary text-white shadow-md shadow-blue-200'
                                                                     : 'text-slate-600 hover:bg-slate-100'
                                                             }`}
                                                         >
@@ -528,14 +528,14 @@ const SellerWallet = () => {
                                         <button
                                             disabled={withdrawPage >= withdrawMeta.totalPages}
                                             onClick={() => setWithdrawPage(withdrawPage + 1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">chevron_right</span>
                                         </button>
                                         <button
                                             disabled={withdrawPage >= withdrawMeta.totalPages}
                                             onClick={() => setWithdrawPage(withdrawMeta.totalPages)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
                                         </button>
@@ -654,7 +654,7 @@ const SellerWallet = () => {
                     <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-3xl">
                         <div className="flex items-center gap-4">
                             <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                Showing <span className="text-[#004ac6]">{(transPage - 1) * transLimit + 1} - {Math.min(transPage * transLimit, transMeta.total)}</span> of <span className="text-slate-800">{transMeta.total}</span> transactions
+                                Showing <span className="text-primary">{(transPage - 1) * transLimit + 1} - {Math.min(transPage * transLimit, transMeta.total)}</span> of <span className="text-slate-800">{transMeta.total}</span> transactions
                             </p>
                             <div className="w-px h-4 bg-slate-200"></div>
                             <div className="flex items-center gap-2">
@@ -680,14 +680,14 @@ const SellerWallet = () => {
                                 <button
                                     disabled={transPage <= 1}
                                     onClick={() => setTransPage(1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
                                 </button>
                                 <button
                                     disabled={transPage <= 1}
                                     onClick={() => setTransPage(transPage - 1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">chevron_left</span>
                                 </button>
@@ -709,7 +709,7 @@ const SellerWallet = () => {
                                                     onClick={() => setTransPage(i)}
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                                                         transPage === i
-                                                            ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                                            ? 'bg-primary text-white shadow-md shadow-blue-200'
                                                             : 'text-slate-600 hover:bg-slate-100'
                                                     }`}
                                                 >
@@ -724,14 +724,14 @@ const SellerWallet = () => {
                                 <button
                                     disabled={transPage >= transMeta.totalPages}
                                     onClick={() => setTransPage(transPage + 1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">chevron_right</span>
                                 </button>
                                 <button
                                     disabled={transPage >= transMeta.totalPages}
                                     onClick={() => setTransPage(transMeta.totalPages)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
                                 </button>
@@ -1009,7 +1009,7 @@ const SellerWallet = () => {
                             </div>
                             <button 
                                 type="submit"
-                                className="w-full bg-primary hover:bg-[#004ac6] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-primary/10"
+                                className="w-full bg-primary hover:bg-primary text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-primary/10"
                             >
                                 Add Bank Account
                             </button>

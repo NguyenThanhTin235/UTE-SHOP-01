@@ -16,8 +16,31 @@ const jwt = require('jsonwebtoken');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
+const ThemeSetting = require('../models/ThemeSetting');
+
 // Cache lưu trữ lượt xem theo IP + Slug để tránh StrictMode gọi 2 lần hoặc spam refresh
 const viewedCache = new Map();
+
+exports.getUIConfig = async (req, res, next) => {
+  try {
+    let theme = await ThemeSetting.findOne();
+    if (!theme) {
+      theme = await ThemeSetting.create({});
+    }
+    
+    // We can also return active banners and active sections here if needed by the frontend dynamically, 
+    // but the homepage already fetches banners. We mainly need the theme here.
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'UI Configuration fetched successfully',
+      data: toCamelCase({ theme }),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.getHomepageData = async (req, res, next) => {
   try {
@@ -699,6 +722,90 @@ exports.getCoupons = async (req, res, next) => {
       message: 'Active coupons fetched successfully',
       data: toCamelCase(formattedCoupons),
       timestamp: Math.floor(Date.now() / 1000)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const Post = require('../models/Post');
+
+exports.getBlogPosts = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, category, search } = req.query;
+    
+    const query = { status: 'published' };
+    if (category) {
+      query.category = category;
+    }
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const posts = await Post.find(query)
+      .populate('author_id', 'full_name avatar_url')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit));
+
+    const total = await Post.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      data: toCamelCase(posts),
+      meta: {
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+        currentPage: Number(page)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getBlogPostBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+
+    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+    const cacheKey = `blog_${clientIp}_${slug}`;
+    const now = Date.now();
+
+    if (!viewedCache.has(cacheKey) || (now - viewedCache.get(cacheKey) > 3000)) {
+      await Post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
+      viewedCache.set(cacheKey, now);
+    }
+
+    const post = await Post.findOne({ slug, status: 'published' })
+      .populate('author_id', 'full_name avatar_url');
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        code: 404,
+        message: 'Post not found'
+      });
+    }
+
+    // Lấy bài viết liên quan (cùng category)
+    const relatedPosts = await Post.find({
+      category: post.category,
+      _id: { $ne: post._id },
+      status: 'published'
+    }).limit(3).select('title slug cover_image createdAt');
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      data: toCamelCase({
+        post,
+        relatedPosts
+      })
     });
   } catch (error) {
     next(error);

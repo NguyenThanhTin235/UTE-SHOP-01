@@ -192,8 +192,8 @@ const ManagerDashboard = () => {
       value: stats.pendingShops ?? '—',
       icon: 'storefront',
       bg: 'bg-blue-50',
-      color: 'text-[#004ac6]',
-      border: 'hover:border-[#004ac6]/40',
+      color: 'text-primary',
+      border: 'hover:border-primary/40',
     },
     {
       label: 'Pending Products',
@@ -222,7 +222,7 @@ const ManagerDashboard = () => {
   ];
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
+    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <ManagerSidebar 
@@ -298,8 +298,8 @@ const ManagerDashboard = () => {
                             key={day.date}
                             className={`flex-1 rounded-2xl transition-all relative group cursor-pointer ${
                               isToday
-                                ? 'bg-[#004ac6] shadow-lg shadow-blue-100 hover:brightness-110'
-                                : 'bg-[#004ac6]/10 hover:bg-[#004ac6]/30'
+                                ? 'bg-primary shadow-lg shadow-blue-100 hover:brightness-110'
+                                : 'bg-primary/10 hover:bg-primary/30'
                             }`}
                             style={{ height: `${pct}%` }}
                           >
@@ -317,7 +317,7 @@ const ManagerDashboard = () => {
                           <span
                             key={day.date}
                             className={`text-[10px] font-black uppercase tracking-widest ${
-                              isToday ? 'text-[#004ac6]' : 'text-slate-400'
+                              isToday ? 'text-primary' : 'text-slate-400'
                             }`}
                           >
                             {day.dayLabel}{isToday ? ' ★' : ''}
@@ -343,7 +343,7 @@ const ManagerDashboard = () => {
                     </div>
                     <button
                       onClick={() => setActiveTab('shop_approval')}
-                      className="text-[#004ac6] text-[10px] font-black uppercase tracking-widest hover:underline cursor-pointer"
+                      className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline cursor-pointer"
                     >
                       View All
                     </button>
@@ -375,11 +375,11 @@ const ManagerDashboard = () => {
                                 else if (task.type === 'product') setActiveTab(`product_detail/${task.id}`);
                                 else if (task.type === 'violation') setActiveTab(`violation_detail/${task.id}`);
                               }}
-                              className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[#004ac6]/30 hover:bg-blue-50/30 transition-all cursor-pointer group"
+                              className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary/30 hover:bg-blue-50/30 transition-all cursor-pointer group"
                             >
                               <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                  task.type === 'shop' ? 'bg-blue-100 text-[#004ac6]' : 
+                                  task.type === 'shop' ? 'bg-blue-100 text-primary' : 
                                   task.type === 'violation' ? 'bg-red-100 text-[#dc2626]' : 
                                   'bg-orange-100 text-[#f59e0b]'
                                 }`}>
@@ -390,7 +390,7 @@ const ManagerDashboard = () => {
                                   <p className="text-[10px] text-slate-400 font-medium">{task.subtitle}</p>
                                 </div>
                               </div>
-                              <span className="material-symbols-outlined text-slate-300 group-hover:text-[#004ac6] transition-colors shrink-0">
+                              <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors shrink-0">
                                 chevron_right
                               </span>
                             </div>
@@ -483,7 +483,7 @@ const ManagerDashboard = () => {
           {/* Other tabs placeholder */}
           {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
+              <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}
               </span>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
@@ -495,7 +495,7 @@ const ManagerDashboard = () => {
               <div className="flex gap-4">
                 <button
                   onClick={() => toast.success(`Batch approving items in ${navItems.find((i) => i.id === activeTab)?.label}...`)}
-                  className="px-6 py-3 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#004ac6]/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                  className="px-6 py-3 bg-primary text-white text-xs font-bold rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                 >
                   Batch Approve All
                 </button>

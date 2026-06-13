@@ -6,12 +6,12 @@ const AdminSidebar = ({ navItems, activeTab, setActiveTab, handleLogout }) => {
       {/* Brand Identity */}
       <div className="p-8 border-b border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#004ac6] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">
             UA
           </div>
           <div>
             <h2 className="font-black text-slate-900 text-lg leading-tight tracking-tighter">Admin CMS</h2>
-            <p className="text-[10px] text-[#004ac6] font-black uppercase tracking-widest">Platform Authority</p>
+            <p className="text-[10px] text-primary font-black uppercase tracking-widest">Platform Authority</p>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@ const AdminSidebar = ({ navItems, activeTab, setActiveTab, handleLogout }) => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
                   activeTab === item.id
-                    ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm'
+                    ? 'bg-[#E8EFFF] text-primary font-bold shadow-sm'
                     : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >

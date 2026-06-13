@@ -131,13 +131,13 @@ const RecentlyViewed = () => {
 
   return (
     <Layout>
-      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col md:flex-row gap-8 items-start font-['Manrope']">
+      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col md:flex-row gap-8 items-start font-sans">
         {/* SideNavBar */}
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           {/* User Info Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -148,44 +148,44 @@ const RecentlyViewed = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
             {/* Active Item: Recently Viewed */}
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -224,13 +224,13 @@ const RecentlyViewed = () => {
 
           {loading ? (
             <div className="flex justify-center items-center py-24">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : items.length === 0 ? (
             /* Empty State */
             <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-sm text-center max-w-2xl mx-auto my-8 space-y-6">
-              <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="material-symbols-outlined text-[#004ac6] text-[48px]">history</span>
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-symbols-outlined text-primary text-[48px]">history</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">No Viewed Products</h2>
               <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
@@ -239,7 +239,7 @@ const RecentlyViewed = () => {
               <div className="pt-4">
                 <Link 
                   to="/search" 
-                  className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined">explore</span>
                   Explore Catalog
@@ -251,7 +251,7 @@ const RecentlyViewed = () => {
             <div className="space-y-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-left">
                 {items.map((p) => (
-                  <div key={p.id} className="group bg-white rounded-2xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] overflow-hidden border border-transparent hover:border-[#004ac6]/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full relative">
+                  <div key={p.id} className="group bg-white rounded-2xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] overflow-hidden border border-transparent hover:border-primary/30 hover:shadow-xl transition-all duration-500 flex flex-col h-full relative">
                     {/* Delete Item Button */}
                     <div className="absolute top-3 right-3 z-10">
                       <button 
@@ -275,15 +275,15 @@ const RecentlyViewed = () => {
                       <div>
                         <p className="text-[10px] font-bold text-[#505f76] uppercase tracking-wider mb-1">{p.categoryName || 'General'}</p>
                         <Link to={`/product/${p.slug}`}>
-                          <h3 className="font-bold text-sm leading-5 text-[#131b2e] line-clamp-2 h-10 overflow-hidden group-hover:text-[#004ac6] transition-colors">{p.name}</h3>
+                          <h3 className="font-bold text-sm leading-5 text-[#131b2e] line-clamp-2 h-10 overflow-hidden group-hover:text-primary transition-colors">{p.name}</h3>
                         </Link>
                         {p.mrpPrice > p.sellingPrice ? (
                           <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                            <span className="text-base font-extrabold text-[#004ac6]">{p.sellingPrice?.toLocaleString()}₫</span>
+                            <span className="text-base font-extrabold text-primary">{p.sellingPrice?.toLocaleString()}₫</span>
                             <span className="text-xs text-[#505f76] line-through">{p.mrpPrice?.toLocaleString()}₫</span>
                           </div>
                         ) : (
-                          <p className="text-base font-extrabold text-[#004ac6] mt-1">{p.sellingPrice?.toLocaleString()}₫</p>
+                          <p className="text-base font-extrabold text-primary mt-1">{p.sellingPrice?.toLocaleString()}₫</p>
                         )}
                         <span className="text-[10px] text-gray-400 font-semibold mt-2 block">
                           Viewed {new Date(p.viewedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -292,7 +292,7 @@ const RecentlyViewed = () => {
 
                       <button 
                         onClick={() => handleAddToCart(p)}
-                        className="w-full py-2.5 bg-[#004ac6] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#2563eb] active:scale-[0.98] transition-all shadow-md shadow-[#004ac6]/20 cursor-pointer"
+                        className="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#2563eb] active:scale-[0.98] transition-all shadow-md shadow-primary/20 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-[16px]">shopping_cart</span>
                         Add to Cart
@@ -317,7 +317,7 @@ const RecentlyViewed = () => {
                     <button 
                       key={p}
                       onClick={() => setCurrentPage(p)}
-                      className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all ${currentPage === p ? 'bg-[#004ac6] text-white shadow-md' : 'border border-[#c3c6d7] hover:bg-[#f2f3ff]'}`}
+                      className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all ${currentPage === p ? 'bg-primary text-white shadow-md' : 'border border-[#c3c6d7] hover:bg-[#f2f3ff]'}`}
                     >
                       {p}
                     </button>
