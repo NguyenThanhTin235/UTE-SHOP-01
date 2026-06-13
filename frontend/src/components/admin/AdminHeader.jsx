@@ -12,7 +12,10 @@ const AdminHeader = ({
   applying,
   addPartnerTrigger,
   addRoleTrigger,
-  addPostTrigger
+  addPostTrigger,
+  activeTab,
+  activePlatformTab,
+  setActivePlatformTab
 }) => {
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
@@ -33,6 +36,22 @@ const AdminHeader = ({
       </div>
 
       <div className="flex items-center gap-4">
+        {activeTab === 'platform_settings' && (
+          <div className="mr-2 hidden md:flex items-center bg-slate-100 p-1 rounded-xl group transition-all border border-slate-200/60">
+            <button 
+              onClick={() => setActivePlatformTab('general')}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activePlatformTab === 'general' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              General
+            </button>
+            <button 
+              onClick={() => setActivePlatformTab('categories')}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activePlatformTab === 'categories' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              Categories
+            </button>
+          </div>
+        )}
         {showApplyButton && (
           <button 
             onClick={onApplyChanges}

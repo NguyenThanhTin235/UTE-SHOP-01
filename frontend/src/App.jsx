@@ -41,7 +41,38 @@ import { Toaster, useToasterStore, toast } from 'react-hot-toast';
 import { useEffect } from 'react';
 
 import { useSelector } from 'react-redux';
-import ThemeProvider from './components/ThemeProvider';
+import ThemeProvider, { usePlatform } from './components/ThemeProvider';
+
+const MaintenanceGuard = ({ children }) => {
+  const { isMaintenanceMode, maintenanceMessage, platformSettings } = usePlatform() || {};
+  const { user } = useSelector((state) => state.auth);
+  const storeName = platformSettings?.storeName || 'UTEShop';
+  const logoUrl = platformSettings?.logoUrl;
+
+  // Allow admin users to bypass maintenance mode
+  if (isMaintenanceMode && (!user || user.role !== 'admin')) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf8ff] px-4">
+        <div className="text-center space-y-6 max-w-md">
+          {logoUrl ? (
+            <img src={logoUrl} alt={storeName} className="h-16 w-16 object-contain rounded-2xl mx-auto shadow-lg" />
+          ) : (
+            <span className="material-symbols-outlined text-6xl text-primary">construction</span>
+          )}
+          <h1 className="text-3xl font-extrabold text-[#131b2e] tracking-tight">{storeName}</h1>
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-[#c3c6d7]/30">
+            <span className="material-symbols-outlined text-4xl text-primary mb-4 block">engineering</span>
+            <h2 className="text-xl font-bold text-[#131b2e] mb-3">Under Maintenance</h2>
+            <p className="text-[#434655] leading-relaxed">{maintenanceMessage}</p>
+          </div>
+          <p className="text-sm text-[#434655]/60">We'll be back shortly. Thank you for your patience.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
 
 const RoleBasedRedirect = ({ user }) => {
   useEffect(() => {
@@ -73,6 +104,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <MaintenanceGuard>
       <Router>
         <Toaster 
         position="top-center" 
@@ -131,6 +163,7 @@ function App() {
         <Route path="/" element={<Home />} />
       </Routes>
       </Router>
+      </MaintenanceGuard>
     </ThemeProvider>
   );
 }

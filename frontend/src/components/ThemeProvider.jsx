@@ -1,15 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
+
+const PlatformContext = createContext(null);
+
+export const usePlatform = () => useContext(PlatformContext);
 
 const ThemeProvider = ({ children }) => {
   const [themeLoaded, setThemeLoaded] = useState(false);
+  const [platformSettings, setPlatformSettings] = useState(null);
 
   useEffect(() => {
     const loadTheme = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/public/ui-config');
         if (response.data && response.data.success) {
-          const { theme } = response.data.data;
+          const { theme, platformSettings: settings } = response.data.data;
+          
+          // Apply platform settings
+          if (settings) {
+            setPlatformSettings(settings);
+
+            // Update page title dynamically
+            if (settings.storeName) {
+              document.title = `${settings.storeName} | Marketplace`;
+            }
+
+            // Update favicon dynamically
+            if (settings.faviconUrl) {
+              let faviconEl = document.querySelector("link[rel='icon']");
+              if (faviconEl) {
+                faviconEl.href = settings.faviconUrl;
+              }
+            }
+          }
+
+          // Apply theme settings
           if (theme) {
             const root = document.documentElement;
             
@@ -60,7 +85,15 @@ const ThemeProvider = ({ children }) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <PlatformContext.Provider value={{ 
+      platformSettings,
+      isMaintenanceMode: platformSettings?.isMaintenanceMode || false,
+      maintenanceMessage: platformSettings?.maintenanceMessage || 'We are currently under maintenance. Please check back later.'
+    }}>
+      {children}
+    </PlatformContext.Provider>
+  );
 };
 
 export default ThemeProvider;

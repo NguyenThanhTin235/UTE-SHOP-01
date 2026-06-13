@@ -383,7 +383,7 @@ const Home = () => {
                       </div>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
-                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-xl font-bold text-xs hover:brightness-110 transition-all active:scale-95 shadow-md shadow-primary/30"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Add to Cart
@@ -452,7 +452,7 @@ const Home = () => {
                       </div>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
-                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-xl font-bold text-xs hover:brightness-110 transition-all active:scale-95 shadow-md shadow-primary/30"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Add to Cart
@@ -514,7 +514,7 @@ const Home = () => {
                       </div>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
-                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-xl font-bold text-xs hover:brightness-110 transition-all active:scale-95 shadow-md shadow-primary/30"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Add to Cart
@@ -572,7 +572,7 @@ const Home = () => {
                       </div>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
-                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all active:scale-95"
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-xl font-bold text-xs hover:brightness-110 transition-all active:scale-95 shadow-md shadow-primary/30"
                       >
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Add to Cart

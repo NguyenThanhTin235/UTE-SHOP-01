@@ -17,24 +17,30 @@ const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../ut
 const { toCamelCase } = require('../utils/formatter');
 
 const ThemeSetting = require('../models/ThemeSetting');
+const PlatformSetting = require('../models/PlatformSetting');
 
 // Cache lưu trữ lượt xem theo IP + Slug để tránh StrictMode gọi 2 lần hoặc spam refresh
 const viewedCache = new Map();
 
 exports.getUIConfig = async (req, res, next) => {
   try {
-    let theme = await ThemeSetting.findOne();
+    let theme = await ThemeSetting.findOne().lean();
     if (!theme) {
       theme = await ThemeSetting.create({});
+      theme = theme.toObject();
+    }
+
+    let platformSettings = await PlatformSetting.findOne().lean();
+    if (!platformSettings) {
+      platformSettings = await PlatformSetting.create({});
+      platformSettings = platformSettings.toObject();
     }
     
-    // We can also return active banners and active sections here if needed by the frontend dynamically, 
-    // but the homepage already fetches banners. We mainly need the theme here.
     res.status(200).json({
       success: true,
       code: 200,
       message: 'UI Configuration fetched successfully',
-      data: toCamelCase({ theme }),
+      data: toCamelCase({ theme, platformSettings }),
       timestamp: Math.floor(Date.now() / 1000)
     });
   } catch (error) {

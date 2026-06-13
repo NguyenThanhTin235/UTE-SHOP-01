@@ -84,4 +84,18 @@ router.put('/blog/:id', verifyToken, isAdmin, adminBlogController.updatePost);
 router.delete('/blog/:id', verifyToken, isAdmin, adminBlogController.deletePost);
 router.post('/blog/upload-image', verifyToken, isAdmin, upload.single('image'), adminBlogController.uploadBlogImage);
 
+// Category Management (Platform Settings)
+const adminCategoryController = require('../controllers/adminCategoryController');
+router.get('/categories', verifyToken, isAdmin, adminCategoryController.getCategories);
+router.post('/categories', verifyToken, isAdmin, adminCategoryController.createCategory);
+router.post('/categories/reorder', verifyToken, isAdmin, adminCategoryController.reorderCategories);
+router.put('/categories/:id', verifyToken, isAdmin, adminCategoryController.updateCategory);
+router.delete('/categories/:id', verifyToken, isAdmin, adminCategoryController.deleteCategory);
+
+// Platform Settings - General
+const adminPlatformSettingController = require('../controllers/adminPlatformSettingController');
+router.get('/platform/settings', verifyToken, isAdmin, adminPlatformSettingController.getSettings);
+router.put('/platform/settings', verifyToken, isAdmin, adminPlatformSettingController.updateSettings);
+router.post('/platform/settings/upload', verifyToken, isAdmin, upload.single('image'), adminPlatformSettingController.uploadImage);
+
 module.exports = router;

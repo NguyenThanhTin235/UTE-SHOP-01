@@ -22,6 +22,7 @@ import UIConfigTab from '../components/admin/UIConfigTab';
 import RBACTab from '../components/admin/RBACTab';
 import BlogManagementTab from '../components/admin/BlogManagementTab';
 import BlogEditor from '../components/admin/BlogEditor';
+import PlatformSettingsTab from '../components/admin/PlatformSettingsTab';
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -48,6 +49,7 @@ const AdminDashboard = () => {
   const [applyingState, setApplyingState] = useState(false);
   const [addPartnerTrigger, setAddPartnerTrigger] = useState(null);
   const [addRoleTrigger, setAddRoleTrigger] = useState(null);
+  const [activePlatformTab, setActivePlatformTab] = useState('general');
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -175,6 +177,9 @@ const AdminDashboard = () => {
             addPartnerTrigger={addPartnerTrigger}
             addRoleTrigger={addRoleTrigger}
             addPostTrigger={activeTab === 'blog' ? () => navigate('/admin/blog/create') : null}
+            activeTab={activeTab}
+            activePlatformTab={activePlatformTab}
+            setActivePlatformTab={setActivePlatformTab}
           />
         )}
 
@@ -192,6 +197,8 @@ const AdminDashboard = () => {
           ) : activeTab === 'blog' ? (
             <BlogEditor mode={pathParts[2] || 'create'} postId={pathParts[3]} />
           ) : null
+        ) : activeTab === 'platform_settings' ? (
+          <PlatformSettingsTab activeInnerTab={activePlatformTab} />
         ) : (
           <div className="p-[10px] max-w-[1280px] mx-auto w-full space-y-8">
             {activeTab === 'dashboard' && (
@@ -247,7 +254,7 @@ const AdminDashboard = () => {
               <BlogManagementTab searchTerm={searchTerm} navigate={navigate} />
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && (
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && activeTab !== 'platform_settings' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}

@@ -5,8 +5,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { logout } from '../redux/authSlice';
+import { usePlatform } from './ThemeProvider';
 
 const Header = () => {
+  const { platformSettings } = usePlatform() || {};
+  const storeName = platformSettings?.storeName || 'UTEShop';
+  const logoUrl = platformSettings?.logoUrl;
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,7 +106,10 @@ const Header = () => {
     <header className="bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.05)] sticky top-0 z-50 font-medium text-[#131b2e] font-sans">
       <div className="flex justify-between items-center w-full px-4 md:px-10 py-4 max-w-[1280px] mx-auto gap-8">
         <div className="flex items-center gap-8">
-          <Link className="font-sans text-2xl text-primary tracking-tight font-extrabold" to="/">UTEShop</Link>
+          <Link className="flex items-center gap-2 font-sans text-2xl text-primary tracking-tight font-extrabold" to="/">
+            {logoUrl && <img src={logoUrl} alt={storeName} className="h-8 w-8 object-contain rounded-lg" />}
+            {storeName}
+          </Link>
           <nav className="hidden md:flex gap-6">
             <Link className={`text-sm font-medium ${isActive('/') ? 'text-primary underline underline-offset-8 decoration-2 font-bold' : 'text-[#434655] hover:text-primary transition-colors'}`} to="/">Home</Link>
             <Link className={`text-sm font-medium ${isActive('/search') ? 'text-primary underline underline-offset-8 decoration-2 font-bold' : 'text-[#434655] hover:text-primary transition-colors'}`} to="/search">Shop</Link>
