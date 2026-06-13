@@ -22,6 +22,7 @@ import SellerDashboard from './pages/SellerDashboard';
 import SecuritySettings from './pages/SecuritySettings';
 import DashboardProfile from './pages/DashboardProfile';
 import DashboardSecurity from './pages/DashboardSecurity';
+import DashboardBankAccounts from './pages/DashboardBankAccounts';
 import UserStatistics from './pages/UserStatistics';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
@@ -116,6 +117,7 @@ function App() {
         
         <Route path="/seller/profile" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardProfile /></ProtectedRoute>} />
         <Route path="/seller/security" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardSecurity /></ProtectedRoute>} />
+        <Route path="/seller/bank-accounts" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardBankAccounts /></ProtectedRoute>} />
         <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
 
         <Route path="/" element={<Home />} />

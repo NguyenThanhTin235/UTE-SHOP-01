@@ -15,6 +15,7 @@ import PromotionsTab from '../components/admin/PromotionsTab';
 import CampaignEditor from '../components/admin/CampaignEditor';
 import CouponEditor from '../components/admin/CouponEditor';
 import FinanceSettingsTab from '../components/admin/FinanceSettingsTab';
+import WithdrawalApprovalTab from '../components/admin/WithdrawalApprovalTab';
 
 
 const AdminDashboard = () => {
@@ -209,7 +210,11 @@ const AdminDashboard = () => {
               />
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && (
+            {activeTab === 'withdrawals' && (
+              <WithdrawalApprovalTab searchTerm={searchTerm} />
+            )}
+
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}

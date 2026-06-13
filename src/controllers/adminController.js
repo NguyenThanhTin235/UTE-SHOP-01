@@ -16,6 +16,7 @@ const WithdrawalSetting = require('../models/WithdrawalSetting');
 const WithdrawRequest = require('../models/WithdrawRequest');
 const Shop = require('../models/Shop');
 const SellerWallet = require('../models/SellerWallet');
+const SellerBankAccount = require('../models/SellerBankAccount');
 const response = require('../utils/response');
 
 /**
@@ -789,6 +790,46 @@ const getWithdrawRequests = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Fetch actual bank details from DB for each request
+    const requestsWithBank = [];
+    for (const reqDoc of requests) {
+      const reqObj = reqDoc.toObject();
+      const shopId = reqDoc.shop_id?._id || reqDoc.shop_id;
+      
+      let bankDetails = null;
+      if (shopId) {
+        // Try to find in SellerBankAccount first
+        let bank = await SellerBankAccount.findOne({ shop_id: shopId, is_default: true });
+        if (!bank) {
+          bank = await SellerBankAccount.findOne({ shop_id: shopId });
+        }
+        
+        if (bank) {
+          bankDetails = {
+            bankName: bank.bank_name,
+            accountName: bank.account_name,
+            accountNumber: bank.account_number
+          };
+        } else {
+          // Fallback to SellerProfile of the shop owner
+          const shop = await Shop.findById(shopId);
+          if (shop && shop.owner_user_id) {
+            const profile = await SellerProfile.findOne({ user_id: shop.owner_user_id });
+            if (profile) {
+              bankDetails = {
+                bankName: profile.bank_name || 'N/A',
+                accountName: profile.bank_account_name || 'N/A',
+                accountNumber: profile.bank_account_number || 'N/A'
+              };
+            }
+          }
+        }
+      }
+      
+      reqObj.bankDetails = bankDetails;
+      requestsWithBank.push(reqObj);
+    }
+
     // Summary stats
     const allRequests = await WithdrawRequest.find();
     const today = new Date();
@@ -801,7 +842,7 @@ const getWithdrawRequests = async (req, res) => {
 
     return response.success(res, {
       data: {
-        requests,
+        requests: requestsWithBank,
         summary: {
           pendingCount,
           pendingAmount,

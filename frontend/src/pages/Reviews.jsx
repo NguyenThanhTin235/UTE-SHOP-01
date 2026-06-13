@@ -433,6 +433,26 @@ const Reviews = () => {
                       </div>
                     )}
 
+                    {/* Shop Response */}
+                    {rev.replyComment && (
+                      <div className="mb-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative text-left">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[#004ac6] text-sm">storefront</span>
+                            <span className="text-xs font-black text-[#131b2e]">Shop Response</span>
+                          </div>
+                          {rev.replyCreatedAt && (
+                            <span className="text-[10px] text-gray-400 font-medium">
+                              {new Date(rev.replyCreatedAt).toLocaleDateString('en-US')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#434655] leading-relaxed italic">
+                          "{rev.replyComment}"
+                        </p>
+                      </div>
+                    )}
+
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-3 border-t border-[#c3c6d7]/10">
                       <p className="text-[11px] text-[#737686] font-medium">

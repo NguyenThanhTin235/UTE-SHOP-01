@@ -17,6 +17,7 @@ const SellerProfile = require('../src/models/SellerProfile');
 const Shop = require('../src/models/Shop');
 const SellerWallet = require('../src/models/SellerWallet');
 const SellerWalletTransaction = require('../src/models/SellerWalletTransaction');
+const SellerBankAccount = require('../src/models/SellerBankAccount');
 const Category = require('../src/models/Category');
 const Product = require('../src/models/Product');
 const ProductVariant = require('../src/models/ProductVariant');
@@ -171,8 +172,8 @@ const seedFashionData = async () => {
     const hashedPassword = await bcrypt.hash('password123', 10);
 
     console.log('🧹 Clearing product-related and transactional collections...');
-    const modelsToClear = [
-      Shop, SellerWallet, SellerWalletTransaction, Category, Product, ProductVariant, ProductMedia, ProductApproval,
+     const modelsToClear = [
+      Shop, SellerWallet, SellerWalletTransaction, SellerBankAccount, Category, Product, ProductVariant, ProductMedia, ProductApproval,
       Campaign, CampaignTarget, Coupon, CouponRedemption, PaymentOrder, Payment, Order, OrderItem,
       OrderStatusHistory, OrderCancellation, Cart, CartItem, Wishlist, ShippingPartner, ProductReview, ProductReviewMedia,
       ShopReview, ShippingReview, Conversation, Message, ChatbotSession, ChatbotMessage, Notification,

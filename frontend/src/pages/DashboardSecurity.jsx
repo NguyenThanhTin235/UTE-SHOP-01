@@ -189,6 +189,15 @@ const DashboardSecurity = () => {
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
+            {(user?.role === 'seller' || user?.role === 'vendor') && (
+              <Link 
+                to="/seller/bank-accounts"
+                className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl"
+              >
+                <span className="material-symbols-outlined">account_balance</span>
+                <span>Bank Accounts</span>
+              </Link>
+            )}
             <Link to={user?.role === "manager" ? "/manager/security" : "/seller/security"} className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
               <span>Security Settings</span>

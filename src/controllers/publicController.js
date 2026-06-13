@@ -212,7 +212,9 @@ exports.getProductDetail = async (req, res, next) => {
           fullName: r.user_id.full_name,
           avatarUrl: r.user_id.avatar_url
         } : { fullName: 'Ẩn danh' },
-        media: reviewMedia.map(m => ({ url: m.media_url, type: m.media_type }))
+        media: reviewMedia.map(m => ({ url: m.media_url, type: m.media_type })),
+        replyComment: r.reply_comment,
+        replyCreatedAt: r.reply_createdAt
       };
     }));
 

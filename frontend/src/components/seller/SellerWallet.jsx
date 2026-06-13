@@ -30,7 +30,91 @@ const SellerWallet = () => {
 
     // Withdrawal form states
     const [withdrawAmount, setWithdrawAmount] = useState('');
-    const [bankAccount, setBankAccount] = useState('Vietcombank (***8829)');
+    const [bankAccount, setBankAccount] = useState('');
+    const [bankAccounts, setBankAccounts] = useState([]);
+    const [loadingBanks, setLoadingBanks] = useState(false);
+    const [bankModalOpen, setBankModalOpen] = useState(false);
+
+    // Add bank form states
+    const [newBankName, setNewBankName] = useState('');
+    const [newAccountName, setNewAccountName] = useState('');
+    const [newAccountNumber, setNewAccountNumber] = useState('');
+
+    const fetchBankAccounts = async () => {
+        setLoadingBanks(true);
+        try {
+            const res = await axios.get('http://localhost:5000/api/seller/wallet/bank-accounts', {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                setBankAccounts(res.data.data);
+                const defaultAcc = res.data.data.find(acc => acc.is_default);
+                if (defaultAcc) {
+                    setBankAccount(`${defaultAcc.bank_name} - ${defaultAcc.account_name} (${defaultAcc.account_number.slice(-4)})`);
+                } else if (res.data.data.length > 0) {
+                    const first = res.data.data[0];
+                    setBankAccount(`${first.bank_name} - ${first.account_name} (${first.account_number.slice(-4)})`);
+                } else {
+                    setBankAccount('');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch bank accounts:', error);
+        } finally {
+            setLoadingBanks(false);
+        }
+    };
+
+    const handleAddBank = async (e) => {
+        e.preventDefault();
+        if (!newBankName || !newAccountName || !newAccountNumber) {
+            toast.error('Please fill in all bank details');
+            return;
+        }
+        try {
+            const res = await axios.post('http://localhost:5000/api/seller/wallet/bank-accounts', 
+                { bank_name: newBankName, account_name: newAccountName, account_number: newAccountNumber },
+                { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
+            );
+            if (res.data.success) {
+                toast.success('Bank account added successfully');
+                setNewBankName('');
+                setNewAccountName('');
+                setNewAccountNumber('');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to add bank account');
+        }
+    };
+
+    const handleDeleteBank = async (id) => {
+        try {
+            const res = await axios.delete(`http://localhost:5000/api/seller/wallet/bank-accounts/${id}`, {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                toast.success('Bank account deleted successfully');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete bank account');
+        }
+    };
+
+    const handleSetDefaultBank = async (id) => {
+        try {
+            const res = await axios.put(`http://localhost:5000/api/seller/wallet/bank-accounts/${id}/default`, {}, {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                toast.success('Default bank account updated');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update default bank account');
+        }
+    };
 
     const handleViewDetail = async (trans) => {
         setSelectedTransaction(trans);
@@ -105,6 +189,7 @@ const SellerWallet = () => {
 
     useEffect(() => {
         fetchWalletInfo();
+        fetchBankAccounts();
     }, []);
 
     useEffect(() => {
@@ -248,9 +333,27 @@ const SellerWallet = () => {
                                     value={bankAccount}
                                     onChange={(e) => setBankAccount(e.target.value)}
                                 >
-                                    <option value="Vietcombank (***8829)">Vietcombank (***8829)</option>
-                                    <option value="Techcombank (***4412)">Techcombank (***4412)</option>
+                                    {bankAccounts.length > 0 ? (
+                                        bankAccounts.map(acc => (
+                                            <option 
+                                                key={acc._id} 
+                                                value={`${acc.bank_name} - ${acc.account_name} (${acc.account_number.slice(-4)})`}
+                                            >
+                                                {acc.bank_name} - {acc.account_name} (***{acc.account_number.slice(-4)}) {acc.is_default ? '[Mặc định]' : ''}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="">No bank accounts added</option>
+                                    )}
                                 </select>
+                                <button
+                                    type="button"
+                                    onClick={() => setBankModalOpen(true)}
+                                    className="mt-2 text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-xs">settings</span>
+                                    Manage Bank Accounts
+                                </button>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-secondary uppercase tracking-widest">Amount to Withdraw</label>
@@ -779,6 +882,147 @@ const SellerWallet = () => {
                             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
                         >
                             Close Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Bank Management Modal */}
+        {bankModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 max-w-[650px] w-full p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">Manage Bank Accounts</h3>
+                            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mt-1">
+                                Add or configure your store settlement accounts
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => setBankModalOpen(false)}
+                            className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-secondary hover:text-on-surface transition-all cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-lg">close</span>
+                        </button>
+                    </div>
+
+                    {/* Bank list */}
+                    <div className="space-y-4 mb-8">
+                        <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Your Bank Accounts</h4>
+                        {loadingBanks ? (
+                            <div className="py-6 flex flex-col items-center justify-center gap-2">
+                                <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-[9px] font-black text-secondary uppercase tracking-widest">Loading bank accounts...</p>
+                            </div>
+                        ) : bankAccounts.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {bankAccounts.map(acc => (
+                                    <div 
+                                        key={acc._id} 
+                                        className={`p-5 rounded-2xl border ${acc.is_default ? 'border-primary/30 bg-primary/5' : 'border-slate-200 bg-slate-50/50'} relative flex flex-col justify-between h-36`}
+                                    >
+                                        <div>
+                                            <div className="flex justify-between items-start">
+                                                <span className="text-xs font-black text-slate-800">{acc.bank_name}</span>
+                                                {acc.is_default && (
+                                                    <span className="bg-primary text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                                                        Default
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="font-mono text-sm font-black text-slate-900 mt-2 tracking-wide select-all">
+                                                {acc.account_number}
+                                            </p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                                                {acc.account_name}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-100/50">
+                                            {!acc.is_default && (
+                                                <button 
+                                                    onClick={() => handleSetDefaultBank(acc._id)}
+                                                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer"
+                                                >
+                                                    Set Default
+                                                </button>
+                                            )}
+                                            <button 
+                                                onClick={() => handleDeleteBank(acc._id)}
+                                                className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline cursor-pointer flex items-center gap-0.5"
+                                            >
+                                                <span className="material-symbols-outlined text-xs">delete</span>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-6 text-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/30">
+                                <span className="material-symbols-outlined text-slate-300 text-3xl mb-1">account_balance</span>
+                                <p className="text-xs text-slate-400 font-bold">No bank accounts added yet.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Add Bank Form */}
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                        <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Add New Bank Account</h4>
+                        <form onSubmit={handleAddBank} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Bank Name</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g., Vietcombank, Techcombank"
+                                        value={newBankName}
+                                        onChange={(e) => setNewBankName(e.target.value)}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Account Holder Name</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g., NGUYEN VAN A"
+                                        value={newAccountName}
+                                        onChange={(e) => setNewAccountName(e.target.value.toUpperCase())}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Account Number</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g., 0123456789"
+                                    value={newAccountNumber}
+                                    onChange={(e) => setNewAccountNumber(e.target.value.replace(/\D/g, ''))}
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                    required
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                className="w-full bg-primary hover:bg-[#004ac6] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-primary/10"
+                            >
+                                Add Bank Account
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end">
+                        <button 
+                            onClick={() => setBankModalOpen(false)}
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                        >
+                            Close
                         </button>
                     </div>
                 </div>

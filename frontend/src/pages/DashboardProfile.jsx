@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { updateProfile, uploadAvatar, logout, reset } from '../redux/authSlice';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const DashboardProfile = () => {
   const { user, isLoading, isError, isSuccess, message } = useSelector(
@@ -27,6 +28,8 @@ const DashboardProfile = () => {
     dob: formatDate(user?.dob),
     gender: user?.gender || '',
   });
+
+
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -136,6 +139,15 @@ const DashboardProfile = () => {
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
               <span>Personal Profile</span>
             </Link>
+            {(user?.role === 'seller' || user?.role === 'vendor') && (
+              <Link 
+                to="/seller/bank-accounts"
+                className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl"
+              >
+                <span className="material-symbols-outlined">account_balance</span>
+                <span>Bank Accounts</span>
+              </Link>
+            )}
             <Link to={user?.role === "manager" ? "/manager/security" : "/seller/security"} className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
@@ -264,6 +276,8 @@ const DashboardProfile = () => {
               </div>
             </div>
           </div>
+
+
 
           {/* Bento Card for Extra Info */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
