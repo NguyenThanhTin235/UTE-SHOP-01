@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
+import axios from 'axios';
 
 import SellerProducts from '../components/seller/SellerProducts';
 import SellerAddProduct from '../components/seller/SellerAddProduct';
@@ -28,6 +29,23 @@ const SellerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (!token) return;
+      const res = await axios.get('http://localhost:5000/api/seller/wallet', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setWalletBalance(res.data.data.total_balance ?? 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet balance for sidebar:', error);
+    }
+  };
 
   const getTabFromUrl = () => {
     const pathParts = location.pathname.split('/').filter(Boolean);
@@ -107,6 +125,12 @@ const SellerDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      fetchWalletBalance();
+    }
+  }, [user, location.pathname]);
+
   return (
     <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
       <SellerSidebar 
@@ -114,6 +138,7 @@ const SellerDashboard = () => {
         setActiveTab={setActiveTab} 
         navItems={navItems} 
         handleLogout={handleLogout} 
+        walletBalance={walletBalance}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">

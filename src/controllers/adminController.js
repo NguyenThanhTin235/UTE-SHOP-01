@@ -10,6 +10,12 @@ const Address = require('../models/Address');
 const AuditLog = require('../models/AuditLog');
 const OrderItem = require('../models/OrderItem');
 const Product = require('../models/Product');
+const PlatformFeeSetting = require('../models/PlatformFeeSetting');
+const CoinSetting = require('../models/CoinSetting');
+const WithdrawalSetting = require('../models/WithdrawalSetting');
+const WithdrawRequest = require('../models/WithdrawRequest');
+const Shop = require('../models/Shop');
+const SellerWallet = require('../models/SellerWallet');
 const response = require('../utils/response');
 
 /**
@@ -582,10 +588,338 @@ const getUserDetails = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/admin/finance/settings
+ */
+const getFinanceSettings = async (req, res) => {
+  try {
+    const feeSetting = await PlatformFeeSetting.findOne().sort({ effective_from: -1 });
+    const coinSetting = await CoinSetting.findOne().sort({ effective_from: -1 });
+    let withdrawSetting = await WithdrawalSetting.findOne().sort({ effective_from: -1 });
+
+    if (!withdrawSetting) {
+      withdrawSetting = {
+        min_withdrawal: 100000,
+        max_daily_withdrawal: 50000000,
+        payout_processing_time: 'T+1'
+      };
+    }
+
+    const auditLogs = await AuditLog.find({
+      action: 'UPDATE_FINANCE_SETTINGS'
+    })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .populate('actor_id', 'full_name');
+
+    const formattedLogs = auditLogs.map(log => ({
+      id: log._id,
+      admin: log.actor_id?.full_name || 'System',
+      action: log.metadata?.action || 'Updated Settings',
+      oldValue: log.metadata?.oldValue || '',
+      newValue: log.metadata?.newValue || '',
+      timestamp: log.createdAt
+    }));
+
+    return response.success(res, {
+      message: 'Finance settings retrieved successfully',
+      data: {
+        feeSetting: {
+          fee_percent: feeSetting?.fee_percent ?? 3.0,
+          gateway_fee_percent: feeSetting?.gateway_fee_percent ?? 1.5,
+        },
+        coinSetting: {
+          earn_rate: coinSetting?.earn_rate ?? 0.01,
+          spend_rate: coinSetting?.spend_rate ?? 1,
+          max_usage_percent: coinSetting?.max_usage_percent ?? 50,
+          expiry_duration: coinSetting?.expiry_duration ?? 'End of Current Year'
+        },
+        withdrawSetting: {
+          min_withdrawal: withdrawSetting.min_withdrawal,
+          max_daily_withdrawal: withdrawSetting.max_daily_withdrawal,
+          payout_processing_time: withdrawSetting.payout_processing_time
+        },
+        logs: formattedLogs
+      }
+    });
+  } catch (error) {
+    console.error('getFinanceSettings error:', error);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Failed to retrieve finance settings'
+    });
+  }
+};
+
+/**
+ * PUT /api/admin/finance/settings
+ */
+const updateFinanceSettings = async (req, res) => {
+  try {
+    const {
+      fee_percent,
+      gateway_fee_percent,
+      earn_rate,
+      spend_rate,
+      max_usage_percent,
+      expiry_duration,
+      min_withdrawal,
+      max_daily_withdrawal,
+      payout_processing_time
+    } = req.body;
+
+    const actorId = req.user._id;
+
+    // Fetch current settings to check what changed
+    const prevFee = await PlatformFeeSetting.findOne().sort({ effective_from: -1 });
+    const prevCoin = await CoinSetting.findOne().sort({ effective_from: -1 });
+    const prevWithdraw = await WithdrawalSetting.findOne().sort({ effective_from: -1 });
+
+    const changes = [];
+
+    // 1. Platform Fee Setting
+    if (fee_percent !== undefined || gateway_fee_percent !== undefined) {
+      const targetFee = fee_percent !== undefined ? Number(fee_percent) : (prevFee?.fee_percent ?? 3.0);
+      const targetGateway = gateway_fee_percent !== undefined ? Number(gateway_fee_percent) : (prevFee?.gateway_fee_percent ?? 1.5);
+
+      if (!prevFee || prevFee.fee_percent !== targetFee || prevFee.gateway_fee_percent !== targetGateway) {
+        if (prevFee && prevFee.fee_percent !== targetFee) changes.push(`Fee Rate: ${prevFee.fee_percent}% -> ${targetFee}%`);
+        if (prevFee && prevFee.gateway_fee_percent !== targetGateway) changes.push(`Gateway Fee: ${prevFee.gateway_fee_percent}% -> ${targetGateway}%`);
+
+        const newFee = new PlatformFeeSetting({
+          fee_percent: targetFee,
+          gateway_fee_percent: targetGateway,
+          effective_from: new Date(),
+          created_by: actorId
+        });
+        await newFee.save();
+      }
+    }
+
+    // 2. Coin Setting
+    if (earn_rate !== undefined || spend_rate !== undefined || max_usage_percent !== undefined || expiry_duration !== undefined) {
+      const targetEarn = earn_rate !== undefined ? Number(earn_rate) : (prevCoin?.earn_rate ?? 0.01);
+      const targetSpend = spend_rate !== undefined ? Number(spend_rate) : (prevCoin?.spend_rate ?? 1);
+      const targetMaxUsage = max_usage_percent !== undefined ? Number(max_usage_percent) : (prevCoin?.max_usage_percent ?? 50);
+      const targetExpiry = expiry_duration !== undefined ? expiry_duration : (prevCoin?.expiry_duration ?? 'End of Current Year');
+
+      if (!prevCoin || prevCoin.earn_rate !== targetEarn || prevCoin.spend_rate !== targetSpend || prevCoin.max_usage_percent !== targetMaxUsage || prevCoin.expiry_duration !== targetExpiry) {
+        if (prevCoin && prevCoin.earn_rate !== targetEarn) changes.push(`Coin Earn Rate: 10,000đ = ${Math.round(10000 * prevCoin.earn_rate)} coins -> ${Math.round(10000 * targetEarn)} coins`);
+        if (prevCoin && prevCoin.max_usage_percent !== targetMaxUsage) changes.push(`Coin Spending Cap: ${prevCoin.max_usage_percent}% -> ${targetMaxUsage}%`);
+        if (prevCoin && prevCoin.expiry_duration !== targetExpiry) changes.push(`Coin Expiration: ${prevCoin.expiry_duration} -> ${targetExpiry}`);
+
+        const newCoin = new CoinSetting({
+          earn_rate: targetEarn,
+          spend_rate: targetSpend,
+          max_usage_percent: targetMaxUsage,
+          expiry_duration: targetExpiry,
+          effective_from: new Date(),
+          created_by: actorId
+        });
+        await newCoin.save();
+      }
+    }
+
+    // 3. Withdrawal Setting
+    if (min_withdrawal !== undefined || max_daily_withdrawal !== undefined || payout_processing_time !== undefined) {
+      const targetMin = min_withdrawal !== undefined ? Number(min_withdrawal) : (prevWithdraw?.min_withdrawal ?? 100000);
+      const targetMax = max_daily_withdrawal !== undefined ? Number(max_daily_withdrawal) : (prevWithdraw?.max_daily_withdrawal ?? 50000000);
+      const targetPayoutTime = payout_processing_time !== undefined ? payout_processing_time : (prevWithdraw?.payout_processing_time ?? 'T+1');
+
+      if (!prevWithdraw || prevWithdraw.min_withdrawal !== targetMin || prevWithdraw.max_daily_withdrawal !== targetMax || prevWithdraw.payout_processing_time !== targetPayoutTime) {
+        if (prevWithdraw && prevWithdraw.min_withdrawal !== targetMin) changes.push(`Min Withdraw: ${prevWithdraw.min_withdrawal.toLocaleString()}₫ -> ${targetMin.toLocaleString()}₫`);
+        if (prevWithdraw && prevWithdraw.max_daily_withdrawal !== targetMax) changes.push(`Max Withdraw: ${prevWithdraw.max_daily_withdrawal.toLocaleString()}₫ -> ${targetMax.toLocaleString()}₫`);
+        if (prevWithdraw && prevWithdraw.payout_processing_time !== targetPayoutTime) changes.push(`Payout Time: ${prevWithdraw.payout_processing_time} -> ${targetPayoutTime}`);
+
+        const newWithdraw = new WithdrawalSetting({
+          min_withdrawal: targetMin,
+          max_daily_withdrawal: targetMax,
+          payout_processing_time: targetPayoutTime,
+          effective_from: new Date(),
+          created_by: actorId
+        });
+        await newWithdraw.save();
+      }
+    }
+
+    if (changes.length > 0) {
+      await AuditLog.create({
+        actor_id: actorId,
+        action: 'UPDATE_FINANCE_SETTINGS',
+        entity_type: 'FinanceSetting',
+        metadata: {
+          action: 'Updated Settings',
+          oldValue: 'Previous Configs',
+          newValue: changes.join(', ')
+        }
+      });
+    }
+
+    return response.success(res, {
+      message: 'Finance settings updated successfully'
+    });
+  } catch (error) {
+    console.error('updateFinanceSettings error:', error);
+    return response.error(res, {
+      statusCode: 500,
+      message: 'Failed to update finance settings'
+    });
+  }
+};
+
+// ==================== Withdrawal Approval ====================
+
+const getWithdrawRequests = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const statusFilter = req.query.status; // 'pending', 'approved', 'rejected', 'paid'
+
+    const filter = {};
+    if (statusFilter && statusFilter !== 'all') {
+      filter.status = statusFilter;
+    }
+
+    const total = await WithdrawRequest.countDocuments(filter);
+    const requests = await WithdrawRequest.find(filter)
+      .populate({ path: 'shop_id', select: 'name logo_url slug' })
+      .populate({ path: 'approved_by', select: 'name email' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Summary stats
+    const allRequests = await WithdrawRequest.find();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const pendingCount = allRequests.filter(r => r.status === 'pending').length;
+    const pendingAmount = allRequests.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.amount, 0);
+    const approvedToday = allRequests.filter(r => r.status === 'approved' && r.approved_at && new Date(r.approved_at) >= today).length;
+    const rejectedToday = allRequests.filter(r => r.status === 'rejected' && r.updatedAt && new Date(r.updatedAt) >= today).length;
+
+    return response.success(res, {
+      data: {
+        requests,
+        summary: {
+          pendingCount,
+          pendingAmount,
+          approvedToday,
+          rejectedToday
+        }
+      },
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      message: 'Withdrawal requests retrieved'
+    });
+  } catch (error) {
+    console.error('getWithdrawRequests error:', error);
+    return response.error(res, { statusCode: 500, message: 'Failed to fetch withdrawal requests' });
+  }
+};
+
+const approveWithdraw = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.id;
+
+    const request = await WithdrawRequest.findById(id);
+    if (!request) {
+      return response.error(res, { statusCode: 404, message: 'Withdrawal request not found' });
+    }
+    if (request.status !== 'pending') {
+      return response.error(res, { statusCode: 400, message: `Cannot approve a request with status "${request.status}"` });
+    }
+
+    request.status = 'approved';
+    request.approved_by = adminId;
+    request.approved_at = new Date();
+    await request.save();
+
+    // Log audit
+    await AuditLog.create({
+      actor_id: adminId,
+      action: 'APPROVE_WITHDRAWAL',
+      entity_type: 'WithdrawRequest',
+      entity_id: request._id,
+      metadata: {
+        shop_id: request.shop_id,
+        amount: request.amount
+      }
+    });
+
+    return response.success(res, {
+      data: request,
+      message: 'Withdrawal request approved successfully'
+    });
+  } catch (error) {
+    console.error('approveWithdraw error:', error);
+    return response.error(res, { statusCode: 500, message: 'Failed to approve withdrawal' });
+  }
+};
+
+const rejectWithdraw = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reject_reason } = req.body;
+    const adminId = req.user.id;
+
+    if (!reject_reason || !reject_reason.trim()) {
+      return response.error(res, { statusCode: 400, message: 'Rejection reason is required' });
+    }
+
+    const request = await WithdrawRequest.findById(id);
+    if (!request) {
+      return response.error(res, { statusCode: 404, message: 'Withdrawal request not found' });
+    }
+    if (request.status !== 'pending') {
+      return response.error(res, { statusCode: 400, message: `Cannot reject a request with status "${request.status}"` });
+    }
+
+    // Refund the amount back to seller's available balance
+    const wallet = await SellerWallet.findOne({ shop_id: request.shop_id });
+    if (wallet) {
+      wallet.pending_balance = Math.max(0, wallet.pending_balance - request.amount);
+      wallet.available_balance += request.amount;
+      await wallet.save();
+    }
+
+    request.status = 'rejected';
+    request.reject_reason = reject_reason.trim();
+    await request.save();
+
+    // Log audit
+    await AuditLog.create({
+      actor_id: adminId,
+      action: 'REJECT_WITHDRAWAL',
+      entity_type: 'WithdrawRequest',
+      entity_id: request._id,
+      metadata: {
+        shop_id: request.shop_id,
+        amount: request.amount,
+        reason: reject_reason.trim()
+      }
+    });
+
+    return response.success(res, {
+      data: request,
+      message: 'Withdrawal request rejected successfully'
+    });
+  } catch (error) {
+    console.error('rejectWithdraw error:', error);
+    return response.error(res, { statusCode: 500, message: 'Failed to reject withdrawal' });
+  }
+};
+
 module.exports = {
   getAdminDashboard,
   getUsers,
   updateUserStatus,
   updateUserRole,
-  getUserDetails
+  getUserDetails,
+  getFinanceSettings,
+  updateFinanceSettings,
+  getWithdrawRequests,
+  approveWithdraw,
+  rejectWithdraw
 };

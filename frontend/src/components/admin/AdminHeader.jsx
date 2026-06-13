@@ -5,7 +5,10 @@ const AdminHeader = ({
   setSearchTerm,
   unreadCount,
   user,
-  navigate
+  navigate,
+  showApplyButton,
+  onApplyChanges,
+  applying
 }) => {
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-40 shrink-0 shadow-sm">
@@ -26,6 +29,16 @@ const AdminHeader = ({
       </div>
 
       <div className="flex items-center gap-4">
+        {showApplyButton && (
+          <button 
+            onClick={onApplyChanges}
+            disabled={applying}
+            className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm">save</span>
+            {applying ? 'Applying...' : 'Apply Changes'}
+          </button>
+        )}
         <button 
           onClick={() => navigate('/notifications')}
           className="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-xl transition-all relative cursor-pointer border border-slate-100"

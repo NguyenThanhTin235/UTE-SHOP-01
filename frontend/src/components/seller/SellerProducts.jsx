@@ -68,7 +68,7 @@ const SellerProducts = ({ setActiveTab }) => {
                     sortBy
                 },
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -86,7 +86,7 @@ const SellerProducts = ({ setActiveTab }) => {
         try {
             const res = await axios.delete(`http://localhost:5000/api/seller/products/${deleteModal.productId}`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -107,7 +107,7 @@ const SellerProducts = ({ setActiveTab }) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/seller/products/export`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 },
                 responseType: 'blob'
             });

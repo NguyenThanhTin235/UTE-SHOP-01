@@ -15,6 +15,8 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const CoinTransaction = require('../models/CoinTransaction');
+const CoinSetting = require('../models/CoinSetting');
+const PlatformFeeSetting = require('../models/PlatformFeeSetting');
 const Notification = require('../models/Notification');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
@@ -248,8 +250,12 @@ class CheckoutController {
       const userCoins = user ? user.coin_balance : 0;
 
       if (useCoins && userCoins > 0) {
-        // Capped at 100% of the overall total (including shipping)
-        const maxCoinSpend = overallSubtotal + overallShipping;
+        // Fetch dynamic coin settings
+        const coinSetting = await CoinSetting.findOne().sort({ effective_from: -1 });
+        const maxUsagePercent = coinSetting ? coinSetting.max_usage_percent : 50; // Fallback to 50%
+
+        // Capped at maxUsagePercent% of the overall subtotal (order value, excluding shipping)
+        const maxCoinSpend = Math.round(overallSubtotal * (maxUsagePercent / 100));
         const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(userCoins, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
@@ -505,7 +511,11 @@ class CheckoutController {
       // Handle Coins
       let coinDiscount = 0;
       if (useCoins && user.coin_balance > 0) {
-        const maxCoinSpend = overallSubtotal + overallShipping;
+        // Fetch dynamic coin settings
+        const coinSetting = await CoinSetting.findOne().sort({ effective_from: -1 });
+        const maxUsagePercent = coinSetting ? coinSetting.max_usage_percent : 50; // Fallback to 50%
+
+        const maxCoinSpend = Math.round(overallSubtotal * (maxUsagePercent / 100));
         const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(user.coin_balance, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
@@ -593,14 +603,22 @@ class CheckoutController {
         payment_date: new Date()
       });
 
+      // Fetch dynamic platform fee settings
+      const feeSetting = await PlatformFeeSetting.findOne().sort({ effective_from: -1 });
+      const feePercent = feeSetting ? feeSetting.fee_percent : 3.0; // fallback 3%
+      const gatewayFeePercentSetting = feeSetting ? feeSetting.gateway_fee_percent : 1.5; // fallback 1.5%
+
       // 8. Create Sub-Orders and OrderItems
       const createdOrders = [];
       for (const s of shopsArray) {
         const orderCode = `ORD-${Date.now()}-${s.shopId.substring(Math.max(0, s.shopId.length - 6))}-${Math.floor(Math.random() * 100)}`;
         
-        // Calculate platform fee (simulated 2%)
-        const platformFeeRate = 2;
-        const platformFeeAmount = Math.round((s.subtotal * 2) / 100);
+        // Calculate platform fee and gateway fee dynamically
+        const platformFeeRate = feePercent;
+        const platformFeeAmount = Math.round((s.subtotal * feePercent) / 100);
+
+        const gatewayFeeRate = (paymentMethod === 'vnpay') ? gatewayFeePercentSetting : 0;
+        const gatewayFeeAmount = (paymentMethod === 'vnpay') ? Math.round((s.subtotal * gatewayFeePercentSetting) / 100) : 0;
 
         // Calculate coin earned (0% - Disabled)
         const coinEarned = 0;
@@ -617,6 +635,8 @@ class CheckoutController {
           coin_discount: s.coinDiscount,
           platform_fee_rate: platformFeeRate,
           platform_fee_amount: platformFeeAmount,
+          gateway_fee_rate: gatewayFeeRate,
+          gateway_fee_amount: gatewayFeeAmount,
           total_final: s.totalFinal,
           payment_status: isFreeOrder ? 'success' : 'pending',
           coin_earned: coinEarned

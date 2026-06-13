@@ -12,7 +12,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/seller/orders/${orderId}`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -43,7 +43,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
         try {
             const res = await axios.put(`http://localhost:5000/api/seller/orders/${orderId}/status`, { status: newStatus }, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {

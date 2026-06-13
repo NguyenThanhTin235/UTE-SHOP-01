@@ -27,7 +27,7 @@ const SellerSettings = ({ setActiveTab }) => {
         setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/seller/settings', {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}` }
             });
             if (res.data.success && res.data.data) {
                 const data = res.data.data;
@@ -71,7 +71,7 @@ const SellerSettings = ({ setActiveTab }) => {
     const handleSaveAll = async () => {
         try {
             const res = await axios.put('http://localhost:5000/api/seller/settings', shopData, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}` }
             });
             if (res.data.success) {
                 toast.success('Settings saved successfully!');
@@ -97,7 +97,7 @@ const SellerSettings = ({ setActiveTab }) => {
         setShowDeleteModal(false);
         try {
             const res = await axios.delete('http://localhost:5000/api/seller/settings', {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}` }
             });
             if (res.data.success) {
                 toast.success('Shop closed successfully.');
@@ -117,7 +117,7 @@ const SellerSettings = ({ setActiveTab }) => {
 
         const uploadPromise = axios.post('http://localhost:5000/api/seller/settings/upload', formData, {
             headers: {
-                Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+                Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`,
                 'Content-Type': 'multipart/form-data'
             }
         });

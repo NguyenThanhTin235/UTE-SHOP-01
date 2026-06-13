@@ -14,6 +14,7 @@ const Shipment = require('../models/Shipment');
 const SellerWallet = require('../models/SellerWallet');
 const SellerWalletTransaction = require('../models/SellerWalletTransaction');
 const WithdrawRequest = require('../models/WithdrawRequest');
+const WithdrawalSetting = require('../models/WithdrawalSetting');
 const excelJS = require('exceljs');
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
@@ -1060,6 +1061,66 @@ const deleteShop = async (req, res, next) => {
     }
 };
 
+const recalculateWallet = async (shopId) => {
+    // 1. Get all delivered orders for this shop
+    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
+    
+    // 2. Sum up total earnings and pending earnings
+    let totalEarnings = 0;
+    let pendingEarnings = 0;
+    
+    const escrowLimit = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    
+    for (const order of orders) {
+        const platformFee = order.platform_fee_amount || 0;
+        const gatewayFee = order.gateway_fee_amount || 0;
+        const payout = order.subtotal_amount - platformFee - gatewayFee;
+        
+        totalEarnings += payout;
+        
+        // If order was delivered/updated within the last 7 days, it's still frozen/pending
+        if (order.updatedAt > escrowLimit) {
+            pendingEarnings += payout;
+        }
+    }
+    
+    // 3. Get all withdrawal requests for this shop
+    const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
+    let pendingWithdrawals = 0;
+    let completedWithdrawals = 0;
+    
+    for (const w of withdrawals) {
+        if (w.status === 'pending' || w.status === 'approved') {
+            pendingWithdrawals += w.amount;
+        } else if (w.status === 'paid') {
+            completedWithdrawals += w.amount;
+        }
+    }
+    
+    // 4. Calculate final balances
+    const totalBalance = totalEarnings - completedWithdrawals;
+    const pendingBalance = pendingEarnings + pendingWithdrawals;
+    const availableBalance = totalBalance - pendingBalance;
+    
+    // 5. Find or create the wallet and update it
+    let wallet = await SellerWallet.findOne({ shop_id: shopId });
+    if (!wallet) {
+        wallet = new SellerWallet({
+            shop_id: shopId,
+            total_balance: totalBalance,
+            pending_balance: pendingBalance,
+            available_balance: availableBalance
+        });
+    } else {
+        wallet.total_balance = totalBalance;
+        wallet.pending_balance = pendingBalance;
+        wallet.available_balance = availableBalance;
+    }
+    
+    await wallet.save();
+    return wallet;
+};
+
 // Wallet APIs
 const getWalletInfo = async (req, res, next) => {
     try {
@@ -1069,11 +1130,7 @@ const getWalletInfo = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
-        if (!wallet) {
-            wallet = new SellerWallet({ shop_id: shop._id, total_balance: 0, pending_balance: 0, available_balance: 0 });
-            await wallet.save();
-        }
+        const wallet = await recalculateWallet(shop._id);
 
         res.status(200).json({
             success: true,
@@ -1085,6 +1142,43 @@ const getWalletInfo = async (req, res, next) => {
         next(error);
     }
 };
+const getDynamicTransactions = async (shopId) => {
+    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
+    const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
+
+    const orderTransactions = orders.map(order => {
+        const platformFee = order.platform_fee_amount || 0;
+        const gatewayFee = order.gateway_fee_amount || 0;
+        const payout = order.subtotal_amount - platformFee - gatewayFee;
+        return {
+            _id: order._id,
+            createdAt: order.updatedAt,
+            order_id: {
+                _id: order._id,
+                order_code: order.order_code
+            },
+            type: 'earning',
+            amount: payout,
+            status: 'Completed'
+        };
+    });
+
+    const withdrawalTransactions = withdrawals.map(w => {
+        return {
+            _id: w._id,
+            createdAt: w.createdAt,
+            order_id: null,
+            type: 'withdraw',
+            amount: -w.amount,
+            status: w.status === 'paid' ? 'Completed' : w.status,
+            reject_reason: w.reject_reason || null,
+            bank_account: w.bank_account || null,
+            approved_at: w.approved_at || null
+        };
+    });
+
+    return [...orderTransactions, ...withdrawalTransactions].sort((a, b) => b.createdAt - a.createdAt);
+};
 
 const getWalletTransactions = async (req, res, next) => {
     try {
@@ -1095,22 +1189,18 @@ const getWalletTransactions = async (req, res, next) => {
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
-        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
-            .populate('order_id', 'order_code')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-
-        const total = await SellerWalletTransaction.countDocuments({ shop_id: shop._id });
+        const allTransactions = await getDynamicTransactions(shop._id);
+        const paginatedTransactions = allTransactions.slice(skip, skip + limit);
+        const total = allTransactions.length;
 
         res.status(200).json({
             success: true,
             code: 200,
             message: 'Transactions retrieved successfully',
-            data: transactions,
+            data: paginatedTransactions,
             meta: {
                 total,
                 page,
@@ -1133,13 +1223,21 @@ const requestWithdrawal = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
+        const wallet = await recalculateWallet(shop._id);
         if (!wallet || wallet.available_balance < amount) {
-            return res.status(400).json({ success: false, code: 400, message: 'Insufficient balance' });
+            return res.status(400).json({ success: false, code: 400, message: 'Số dư khả dụng không đủ' });
         }
 
-        if (amount < 100000) {
-            return res.status(400).json({ success: false, code: 400, message: 'Minimum withdrawal amount is 100,000' });
+        const withdrawSetting = await WithdrawalSetting.findOne().sort({ effective_from: -1 });
+        const minWithdrawLimit = withdrawSetting ? withdrawSetting.min_withdrawal : 100000;
+        const maxDailyLimit = withdrawSetting ? withdrawSetting.max_daily_withdrawal : 50000000;
+
+        if (amount < minWithdrawLimit) {
+            return res.status(400).json({ success: false, code: 400, message: `Số tiền rút tối thiểu là ${minWithdrawLimit.toLocaleString()}₫` });
+        }
+
+        if (amount > maxDailyLimit) {
+            return res.status(400).json({ success: false, code: 400, message: `Số tiền rút tối đa trong ngày là ${maxDailyLimit.toLocaleString()}₫` });
         }
 
         // Deduct from available, add to pending
@@ -1152,7 +1250,8 @@ const requestWithdrawal = async (req, res, next) => {
             shop_id: shop._id,
             amount: amount,
             status: 'pending',
-            note: `Withdraw to ${bank_account}`
+            note: `Withdraw to ${bank_account}`,
+            bank_account: bank_account
         });
         await withdrawReq.save();
 
@@ -1186,7 +1285,7 @@ const getWithdrawalRequests = async (req, res, next) => {
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
         const withdrawals = await WithdrawRequest.find({ shop_id: shop._id })
@@ -1219,9 +1318,7 @@ const exportTransactions = async (req, res, next) => {
         const shop = await Shop.findOne({ owner_user_id: userId });
         if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
 
-        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
-            .populate('order_id', 'order_code')
-            .sort({ createdAt: -1 });
+        const transactions = await getDynamicTransactions(shop._id);
 
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('Transactions');
@@ -1240,7 +1337,7 @@ const exportTransactions = async (req, res, next) => {
                 order: t.order_id ? t.order_id.order_code : '---',
                 type: t.type,
                 amount: t.amount,
-                status: 'Completed'
+                status: t.status
             });
         });
 

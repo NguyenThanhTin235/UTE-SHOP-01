@@ -14,6 +14,7 @@ import UserManagementTab from '../components/admin/UserManagementTab';
 import PromotionsTab from '../components/admin/PromotionsTab';
 import CampaignEditor from '../components/admin/CampaignEditor';
 import CouponEditor from '../components/admin/CouponEditor';
+import FinanceSettingsTab from '../components/admin/FinanceSettingsTab';
 
 
 const AdminDashboard = () => {
@@ -36,6 +37,8 @@ const AdminDashboard = () => {
   };
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [applyChangesHandler, setApplyChangesHandler] = useState(null);
+  const [applyingState, setApplyingState] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -156,6 +159,9 @@ const AdminDashboard = () => {
             unreadCount={unreadCount}
             user={user}
             navigate={navigate}
+            showApplyButton={!!applyChangesHandler}
+            onApplyChanges={applyChangesHandler}
+            applying={applyingState}
           />
         )}
 
@@ -195,7 +201,15 @@ const AdminDashboard = () => {
               </>
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && (
+            {activeTab === 'finance_config' && (
+              <FinanceSettingsTab 
+                searchTerm={searchTerm} 
+                setApplyChangesHandler={setApplyChangesHandler}
+                setApplyingState={setApplyingState}
+              />
+            )}
+
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}

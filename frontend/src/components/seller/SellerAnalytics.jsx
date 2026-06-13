@@ -37,7 +37,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
     const fetchAnalytics = async () => {
         setLoading(true);
         try {
-            const token = sessionStorage.getItem('token');
+            const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '');
             const params = { range };
             if (range === 'custom') {
                 if (!startDate || !endDate) {
@@ -306,7 +306,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
     // Export Excel Handler
     const handleExportReport = async () => {
         try {
-            const token = sessionStorage.getItem('token');
+            const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '');
             const res = await axios.get('http://localhost:5000/api/seller/analytics/export', {
                 headers: {
                     Authorization: `Bearer ${token}`

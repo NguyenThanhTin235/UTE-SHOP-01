@@ -37,5 +37,14 @@ router.delete('/promotions/campaigns/:id', verifyToken, isAdmin, adminPromotionC
 router.get('/promotions/products', verifyToken, isAdmin, adminPromotionController.searchProducts);
 router.post('/promotions/upload-banner', verifyToken, isAdmin, uploadProduct.single('banner'), adminPromotionController.uploadBanner);
 
+// Finance Settings Routes
+router.get('/finance/settings', verifyToken, isAdmin, adminController.getFinanceSettings);
+router.put('/finance/settings', verifyToken, isAdmin, adminController.updateFinanceSettings);
+
+// Withdrawal Approval Routes
+router.get('/withdrawals', verifyToken, isAdmin, adminController.getWithdrawRequests);
+router.put('/withdrawals/:id/approve', verifyToken, isAdmin, adminController.approveWithdraw);
+router.put('/withdrawals/:id/reject', verifyToken, isAdmin, adminController.rejectWithdraw);
+
 module.exports = router;
 

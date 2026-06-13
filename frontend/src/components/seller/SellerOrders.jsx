@@ -84,7 +84,7 @@ const SellerOrders = ({ onViewDetails }) => {
                     ...(dateTo && { dateTo }),
                 },
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -122,7 +122,7 @@ const SellerOrders = ({ onViewDetails }) => {
         try {
             const res = await axios.put(`http://localhost:5000/api/seller/orders/${orderId}/status`, { status: newStatus }, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -137,7 +137,7 @@ const SellerOrders = ({ onViewDetails }) => {
     const handleExport = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/seller/orders/export', {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
+                headers: { Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}` },
                 responseType: 'blob'
             });
             const url = window.URL.createObjectURL(new Blob([res.data]));

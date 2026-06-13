@@ -12,7 +12,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
   const fetchDashboardData = async () => {
     setDashboardLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '');
       // 1. Fetch 7 days analytics data
       const analyticsRes = await axios.get('http://localhost:5000/api/seller/analytics?range=last7days', {
         headers: { Authorization: `Bearer ${token}` }

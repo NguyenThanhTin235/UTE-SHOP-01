@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout }) => {
+const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, walletBalance }) => {
   return (
     <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shrink-0 z-50 shadow-sm">
       {/* Seller Identity */}
@@ -58,7 +58,7 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout }) => {
           <div className="relative z-10">
             <p className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Total Balance</p>
             <h3 className="text-lg font-black mb-4 flex items-baseline gap-1">
-              45,820,000 <span className="text-[10px] font-medium opacity-80">₫</span>
+              {walletBalance !== undefined ? walletBalance.toLocaleString('vi-VN') : '0'} <span className="text-[10px] font-medium opacity-80">₫</span>
             </h3>
             <button
               onClick={() => setActiveTab('wallet')}

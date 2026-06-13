@@ -51,7 +51,7 @@ const SellerCancellations = ({ setActiveTab }) => {
                     limit
                 },
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -94,7 +94,7 @@ const SellerCancellations = ({ setActiveTab }) => {
         try {
             const res = await axios.put(`http://localhost:5000/api/seller/cancellations/${id}/status`, { status: type }, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
 
