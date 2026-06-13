@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const adminPromotionController = require('../controllers/adminPromotionController');
+const adminLogisticsController = require('../controllers/adminLogisticsController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/roleMiddleware');
-const { uploadProduct } = require('../config/cloudinary');
+const { uploadProduct, upload } = require('../config/cloudinary');
 
 // GET /api/admin/dashboard
 router.get('/dashboard', verifyToken, isAdmin, adminController.getAdminDashboard);
@@ -45,6 +46,13 @@ router.put('/finance/settings', verifyToken, isAdmin, adminController.updateFina
 router.get('/withdrawals', verifyToken, isAdmin, adminController.getWithdrawRequests);
 router.put('/withdrawals/:id/approve', verifyToken, isAdmin, adminController.approveWithdraw);
 router.put('/withdrawals/:id/reject', verifyToken, isAdmin, adminController.rejectWithdraw);
+
+// Logistics Partners Routes
+router.get('/logistics', verifyToken, isAdmin, adminLogisticsController.getShippingPartners);
+router.post('/logistics', verifyToken, isAdmin, adminLogisticsController.createShippingPartner);
+router.put('/logistics/:id', verifyToken, isAdmin, adminLogisticsController.updateShippingPartner);
+router.delete('/logistics/:id', verifyToken, isAdmin, adminLogisticsController.deleteShippingPartner);
+router.post('/logistics/upload', verifyToken, isAdmin, upload.single('avatar'), adminLogisticsController.uploadAvatar);
 
 module.exports = router;
 

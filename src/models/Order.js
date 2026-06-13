@@ -24,7 +24,8 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'success', 'failed', 'refunded'],
     default: 'pending'
   },
-  coin_earned: { type: Number, default: 0 }
+  coin_earned: { type: Number, default: 0 },
+  shipping_partner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner' }
 }, {
   timestamps: true
 });

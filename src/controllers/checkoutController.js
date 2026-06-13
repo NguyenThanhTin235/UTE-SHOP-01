@@ -18,6 +18,7 @@ const CoinTransaction = require('../models/CoinTransaction');
 const CoinSetting = require('../models/CoinSetting');
 const PlatformFeeSetting = require('../models/PlatformFeeSetting');
 const Notification = require('../models/Notification');
+const ShippingPartner = require('../models/ShippingPartner');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
@@ -60,7 +61,23 @@ class CheckoutController {
   async previewCheckout(req, res) {
     try {
       const userId = req.user.id;
-      const { itemIds, couponCode, useCoins } = req.body;
+      const { itemIds, couponCode, useCoins, shippingPartnerId } = req.body;
+
+      const activePartners = await ShippingPartner.find({ is_active: true });
+
+      // Resolve selected shipping partner fee
+      let selectedPartner = null;
+      let partnerShippingFee = 35000; // default
+      if (shippingPartnerId) {
+        selectedPartner = activePartners.find(p => p._id.toString() === shippingPartnerId);
+        if (selectedPartner) {
+          partnerShippingFee = selectedPartner.shipping_fee || 0;
+        }
+      } else if (activePartners.length > 0) {
+        // Auto-select first active partner
+        selectedPartner = activePartners[0];
+        partnerShippingFee = selectedPartner.shipping_fee || 0;
+      }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(422).json({
@@ -150,7 +167,7 @@ class CheckoutController {
             },
             items: [],
             subtotal: 0,
-            shippingFee: 35000, // Default shipping fee per shop
+            shippingFee: partnerShippingFee,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -177,8 +194,8 @@ class CheckoutController {
 
       const shopsArray = Object.values(shopsMap);
 
-      // Shipping total
-      const overallShipping = shopsArray.length * 35000;
+      // Shipping total using selected partner fee
+      const overallShipping = shopsArray.length * partnerShippingFee;
 
       // Handle Coupon
       let couponDiscount = 0;
@@ -299,7 +316,15 @@ class CheckoutController {
           couponError,
           coinDiscount,
           coinBalance: userCoins,
-          finalAmount: overallFinal
+          finalAmount: overallFinal,
+          shippingPartners: activePartners.map(p => ({
+            id: p._id.toString(),
+            name: p.name,
+            code: p.code,
+            shipping_fee: p.shipping_fee,
+            avatar_url: p.avatar_url || ''
+          })),
+          selectedPartnerId: selectedPartner ? selectedPartner._id.toString() : null
         }),
         timestamp: Math.floor(Date.now() / 1000)
       });
@@ -321,7 +346,22 @@ class CheckoutController {
   async placeOrder(req, res) {
     try {
       const userId = req.user.id;
-      const { itemIds, addressId, couponCode, useCoins, paymentMethod } = req.body;
+      const { itemIds, addressId, couponCode, useCoins, paymentMethod, shippingPartnerId } = req.body;
+
+      // Resolve shipping partner fee
+      let partnerShippingFee = 35000; // default
+      if (shippingPartnerId) {
+        const partner = await ShippingPartner.findOne({ _id: shippingPartnerId, is_active: true });
+        if (partner) {
+          partnerShippingFee = partner.shipping_fee || 0;
+        }
+      } else {
+        // Try to use first active partner
+        const firstPartner = await ShippingPartner.findOne({ is_active: true });
+        if (firstPartner) {
+          partnerShippingFee = firstPartner.shipping_fee || 0;
+        }
+      }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(422).json({
@@ -438,7 +478,7 @@ class CheckoutController {
             shopId: shopIdStr,
             items: [],
             subtotal: 0,
-            shippingFee: 35000,
+            shippingFee: partnerShippingFee,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -455,7 +495,7 @@ class CheckoutController {
       }
 
       const shopsArray = Object.values(shopsMap);
-      const overallShipping = shopsArray.length * 35000;
+      const overallShipping = shopsArray.length * partnerShippingFee;
 
       // Handle Coupon
       let couponDiscount = 0;

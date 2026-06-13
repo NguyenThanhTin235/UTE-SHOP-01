@@ -16,6 +16,7 @@ import CampaignEditor from '../components/admin/CampaignEditor';
 import CouponEditor from '../components/admin/CouponEditor';
 import FinanceSettingsTab from '../components/admin/FinanceSettingsTab';
 import WithdrawalApprovalTab from '../components/admin/WithdrawalApprovalTab';
+import LogisticsPartnersTab from '../components/admin/LogisticsPartnersTab';
 
 
 const AdminDashboard = () => {
@@ -40,6 +41,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [applyChangesHandler, setApplyChangesHandler] = useState(null);
   const [applyingState, setApplyingState] = useState(false);
+  const [addPartnerTrigger, setAddPartnerTrigger] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -163,6 +165,7 @@ const AdminDashboard = () => {
             showApplyButton={!!applyChangesHandler}
             onApplyChanges={applyChangesHandler}
             applying={applyingState}
+            addPartnerTrigger={addPartnerTrigger}
           />
         )}
 
@@ -214,7 +217,11 @@ const AdminDashboard = () => {
               <WithdrawalApprovalTab searchTerm={searchTerm} />
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && (
+            {activeTab === 'logistics' && (
+              <LogisticsPartnersTab searchTerm={searchTerm} setAddPartnerTrigger={setAddPartnerTrigger} />
+            )}
+
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}

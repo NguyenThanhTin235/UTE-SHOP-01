@@ -46,6 +46,7 @@ const Checkout = () => {
   const [couponAppliedCode, setCouponAppliedCode] = useState('');
   const [useCoins, setUseCoins] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [shippingPartnerId, setShippingPartnerId] = useState('');
 
   // Preview data state
   const [previewData, setPreviewData] = useState(null);
@@ -110,13 +111,18 @@ const Checkout = () => {
         {
           itemIds: selectedItemIds,
           couponCode: couponAppliedCode || undefined,
-          useCoins
+          useCoins,
+          shippingPartnerId: shippingPartnerId || undefined
         },
         config
       );
 
       if (response.data && response.data.success) {
         setPreviewData(response.data.data);
+        // Auto-select the partner returned by backend if we don't have one yet
+        if (!shippingPartnerId && response.data.data.selectedPartnerId) {
+          setShippingPartnerId(response.data.data.selectedPartnerId);
+        }
         if (response.data.data.couponError) {
           toast.error(response.data.data.couponError);
           setCouponAppliedCode('');
@@ -134,7 +140,7 @@ const Checkout = () => {
     if (user && selectedItemIds.length > 0) {
       fetchPreview();
     }
-  }, [user, selectedItemIds, couponAppliedCode, useCoins]);
+  }, [user, selectedItemIds, couponAppliedCode, useCoins, shippingPartnerId]);
 
   // Apply Coupon Action
   const handleApplyCoupon = () => {
@@ -218,7 +224,8 @@ const Checkout = () => {
           addressId: selectedAddressId,
           couponCode: couponAppliedCode || undefined,
           useCoins,
-          paymentMethod
+          paymentMethod,
+          shippingPartnerId: shippingPartnerId || undefined
         },
         config
       );
@@ -295,6 +302,58 @@ const Checkout = () => {
                 </div>
               )}
             </section>
+
+            {/* Shipping Partner Selector */}
+            {previewData && previewData.shippingPartners && previewData.shippingPartners.length > 0 && (
+              <section className="bg-white rounded-2xl p-6 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-[#004ac6]">local_shipping</span>
+                  <h2 className="text-lg font-bold">Shipping Partner</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {previewData.shippingPartners.map((partner) => {
+                    const isSelected = shippingPartnerId === partner.id;
+                    return (
+                      <button
+                        key={partner.id}
+                        type="button"
+                        onClick={() => setShippingPartnerId(partner.id)}
+                        className={`relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                          isSelected
+                            ? 'border-[#004ac6] bg-[#f2f3ff]/60 shadow-md shadow-blue-100'
+                            : 'border-[#c3c6d7]/40 hover:border-[#c3c6d7] hover:bg-[#faf8ff]'
+                        }`}
+                      >
+                        {/* Logo */}
+                        <div className="size-12 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center text-slate-400 shrink-0">
+                          {partner.avatarUrl ? (
+                            <img src={partner.avatarUrl} alt={partner.name} className="size-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-black text-slate-400">{partner.code?.substr(0,2)}</span>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-grow min-w-0">
+                          <p className="font-bold text-sm text-[#131b2e] truncate">{partner.name}</p>
+                          <p className="text-xs font-semibold text-[#004ac6] mt-0.5">
+                            {partner.shippingFee?.toLocaleString()}₫
+                          </p>
+                        </div>
+                        {/* Check icon */}
+                        {isSelected && (
+                          <span
+                            className="material-symbols-outlined text-[#004ac6] text-[20px] shrink-0"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            check_circle
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {/* Vendor split items list */}
             {loadingPreview ? (

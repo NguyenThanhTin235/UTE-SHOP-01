@@ -109,6 +109,8 @@ function App() {
         <Route path="/promotions" element={<Promotions />} />
         
         {/* Protected Dashboard Routes */}
+        <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />
+        <Route path="/admin/security" element={<ProtectedRoute allowedRoles={['admin']}><DashboardSecurity /></ProtectedRoute>} />
         <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
         
         <Route path="/manager/profile" element={<ProtectedRoute allowedRoles={['manager']}><DashboardProfile /></ProtectedRoute>} />
