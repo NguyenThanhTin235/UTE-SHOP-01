@@ -242,7 +242,9 @@ exports.getMyReviews = async (req, res, next) => {
           quantity: r.order_item_id.quantity,
           priceAtBuy: r.order_item_id.price_at_buy
         } : null,
-        media: media.map(m => ({ id: m._id, url: m.media_url, type: m.media_type }))
+        media: media.map(m => ({ id: m._id, url: m.media_url, type: m.media_type })),
+        replyComment: r.reply_comment,
+        replyCreatedAt: r.reply_createdAt
       };
     }));
 

@@ -126,7 +126,7 @@ const Register = () => {
           {/* Right Side: Form */}
           <div className="p-8 md:p-12 bg-white flex flex-col justify-center">
             <div className="mb-10 text-left">
-              <h1 className="text-3xl font-bold text-[#004ac6] mb-2">Create Account</h1>
+              <h1 className="text-3xl font-bold text-primary mb-2">Create Account</h1>
               <p className="text-sm text-[#434655]">Please fill in the information below to start shopping at UTEShop marketplace.</p>
             </div>
 
@@ -137,7 +137,7 @@ const Register = () => {
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">person</span>
                   <input 
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all" 
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                     id="fullName" 
                     name="fullName"
                     placeholder="John Doe" 
@@ -155,7 +155,7 @@ const Register = () => {
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">mail</span>
                   <input 
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all" 
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                     id="email" 
                     name="email"
                     placeholder="example@student.hcmute.edu.vn" 
@@ -174,7 +174,7 @@ const Register = () => {
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">lock</span>
                     <input 
-                      className="w-full pl-11 pr-11 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all" 
+                      className="w-full pl-11 pr-11 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                       id="password" 
                       name="password"
                       placeholder="••••••••" 
@@ -184,7 +184,7 @@ const Register = () => {
                       required
                     />
                     <button 
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors flex items-center justify-center cursor-pointer" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors flex items-center justify-center cursor-pointer" 
                       type="button" 
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -198,7 +198,7 @@ const Register = () => {
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">lock_reset</span>
                     <input 
-                      className="w-full pl-11 pr-11 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all" 
+                      className="w-full pl-11 pr-11 py-3 bg-white border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                       id="confirmPassword" 
                       name="confirmPassword"
                       placeholder="••••••••" 
@@ -208,7 +208,7 @@ const Register = () => {
                       required
                     />
                     <button 
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors flex items-center justify-center cursor-pointer" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors flex items-center justify-center cursor-pointer" 
                       type="button" 
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
@@ -221,20 +221,20 @@ const Register = () => {
               {/* Terms */}
               <div className="flex items-start gap-3 pt-2 px-1">
                 <input 
-                  className="mt-1 w-4 h-4 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]/20 cursor-pointer" 
+                  className="mt-1 w-4 h-4 rounded border-[#c3c6d7] text-primary focus:ring-primary/20 cursor-pointer" 
                   id="terms" 
                   type="checkbox"
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <label className="text-sm text-[#434655]" htmlFor="terms">
-                  I agree to the <a className="text-[#004ac6] hover:underline font-medium" href="#">Terms of Service</a> and <a className="text-[#004ac6] hover:underline font-medium" href="#">Privacy Policy</a>.
+                  I agree to the <a className="text-primary hover:underline font-medium" href="#">Terms of Service</a> and <a className="text-primary hover:underline font-medium" href="#">Privacy Policy</a>.
                 </label>
               </div>
 
               {/* Submit Button */}
               <button 
-                className="w-full bg-[#004ac6] text-white py-3.5 rounded-lg font-bold text-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
+                className="w-full bg-primary text-white py-3.5 rounded-lg font-bold text-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
                 type="submit"
                 disabled={isLoading}
               >
@@ -248,7 +248,7 @@ const Register = () => {
 
             <div className="mt-8 pt-8 border-t border-[#c3c6d7]/40 text-center">
               <p className="text-sm text-[#434655]">
-                Already have an account? <Link className="text-[#004ac6] font-bold hover:underline ml-1" to="/login">Login</Link>
+                Already have an account? <Link className="text-primary font-bold hover:underline ml-1" to="/login">Login</Link>
               </p>
             </div>
           </div>

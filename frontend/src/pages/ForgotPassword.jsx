@@ -45,7 +45,7 @@ const ForgotPassword = () => {
         <div className="w-full max-w-[480px] bg-white rounded-xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] p-8 md:p-12 border border-[#c3c6d7]/30">
           <div className="flex flex-col items-center text-center mb-8">
             <div className="w-16 h-16 bg-[#dbe1ff] rounded-full flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-[#004ac6] text-[32px]">lock_reset</span>
+              <span className="material-symbols-outlined text-primary text-[32px]">lock_reset</span>
             </div>
             <h1 className="text-3xl font-bold text-[#131b2e] mb-2">
               Forgot Password - Step 1
@@ -69,7 +69,7 @@ const ForgotPassword = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="username@example.com" 
                   required 
-                  className="w-full pl-12 pr-4 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all outline-none placeholder:text-[#737686]"
+                  className="w-full pl-12 pr-4 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none placeholder:text-[#737686]"
                 />
               </div>
             </div>
@@ -77,7 +77,7 @@ const ForgotPassword = () => {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-[#004ac6] text-white font-bold text-lg py-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+              className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
@@ -93,7 +93,7 @@ const ForgotPassword = () => {
           <div className="mt-8 pt-6 border-t border-[#c3c6d7]/30 text-center">
             <p className="text-sm text-[#434655]">
               Remember your password? 
-              <Link to="/login" className="text-[#004ac6] font-bold hover:underline ml-1">Back to Login</Link>
+              <Link to="/login" className="text-primary font-bold hover:underline ml-1">Back to Login</Link>
             </p>
           </div>
         </div>

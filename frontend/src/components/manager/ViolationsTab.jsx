@@ -149,7 +149,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
               params.set('page', 1);
               setSearchParams(params);
             }}
-            className="pl-4 pr-10 py-2 min-w-[140px] bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-[#004ac6] focus:border-[#004ac6] cursor-pointer shadow-sm outline-none"
+            className="pl-4 pr-10 py-2 min-w-[140px] bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-primary focus:border-primary cursor-pointer shadow-sm outline-none"
           >
             <option value="all">All Severities</option>
             <option value="high">High Priority</option>
@@ -192,7 +192,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
                 iconBg = 'bg-orange-100 text-[#f59e0b]';
               } else if (violation.severity === 'low') {
                 iconName = 'info';
-                iconBg = 'bg-blue-100 text-[#004ac6]';
+                iconBg = 'bg-blue-100 text-primary';
               }
 
               const targetShopId = violation.shopId?.id || violation.shopId;
@@ -202,7 +202,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
                 <div
                   key={violation.id}
                   onClick={() => navigate(`/manager/violation_detail/${violation.id}`)}
-                  className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 hover:border-[#004ac6]/20 hover:shadow-md transition-all group cursor-pointer"
+                  className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 hover:border-primary/20 hover:shadow-md transition-all group cursor-pointer"
                 >
                   <div className="flex flex-col xl:flex-row items-start justify-between gap-6">
                     <div className="flex gap-6">
@@ -230,7 +230,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
                         <div className="flex flex-wrap items-center gap-4 mt-2">
                           {violation.shopId?.name && (
                             <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-lg">
-                              <span className="material-symbols-outlined text-[16px] text-[#004ac6]">storefront</span>
+                              <span className="material-symbols-outlined text-[16px] text-primary">storefront</span>
                               {violation.shopId.name}
                             </div>
                           )}
@@ -356,7 +356,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
                         setRowsDropdownOpen(false);
                       }}
                       className={`w-full px-3 py-1.5 text-left text-xs font-black transition-colors block cursor-pointer ${limit === option
-                        ? 'bg-[#E8EFFF] text-[#004ac6]'
+                        ? 'bg-[#E8EFFF] text-primary'
                         : 'text-slate-600 hover:bg-slate-50'
                         }`}
                     >
@@ -373,7 +373,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
             <button
               onClick={() => setPage(page - 1)}
               disabled={page <= 1}
-              className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:pointer-events-none disabled:opacity-40 transition-all shadow-sm cursor-pointer"
+              className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:pointer-events-none disabled:opacity-40 transition-all shadow-sm cursor-pointer"
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
@@ -385,8 +385,8 @@ const ViolationsTab = ({ searchTerm = '' }) => {
                   key={idx}
                   onClick={() => setPage(idx + 1)}
                   className={`size-10 rounded-xl flex items-center justify-center font-black transition-all cursor-pointer shadow-sm ${active
-                    ? 'bg-[#004ac6] text-white shadow-md shadow-blue-100'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:text-[#004ac6]'
+                    ? 'bg-primary text-white shadow-md shadow-blue-100'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:text-primary'
                     }`}
                 >
                   {idx + 1}
@@ -397,7 +397,7 @@ const ViolationsTab = ({ searchTerm = '' }) => {
             <button
               onClick={() => setPage(page + 1)}
               disabled={page >= totalPages}
-              className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:pointer-events-none disabled:opacity-40 transition-all shadow-sm cursor-pointer"
+              className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:pointer-events-none disabled:opacity-40 transition-all shadow-sm cursor-pointer"
             >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>

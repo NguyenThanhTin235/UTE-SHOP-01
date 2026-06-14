@@ -122,17 +122,17 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
             <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 onClick={() => setFilterStatus('pending')}
-                className={`px-4 py-2 text-xs font-black rounded-lg transition-all ${filterStatus === 'pending' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                className={`px-4 py-2 text-xs font-black rounded-lg transition-all ${filterStatus === 'pending' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 Pending
               </button>
               <button
                 onClick={() => setFilterStatus('approved')}
-                className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'approved' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'approved' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 Approved
               </button>
               <button
                 onClick={() => setFilterStatus('rejected')}
-                className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'rejected' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${filterStatus === 'rejected' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 Rejected
               </button>
             </div>
@@ -190,7 +190,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
                       <p className="text-[10px] text-[#16a34a] font-bold uppercase">{p.sellerStatus}</p>
                     </td>
                     <td className="px-8 py-6">
-                      <span className={`px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${filterStatus === 'pending' ? 'bg-blue-50 text-[#004ac6]' :
+                      <span className={`px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${filterStatus === 'pending' ? 'bg-blue-50 text-primary' :
                         filterStatus === 'approved' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                         }`}>
                         {p.category}
@@ -218,7 +218,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
                         )}
                         <button
                           onClick={() => navigate('/manager/product_detail/' + p.id)}
-                          className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
+                          className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer"
                           title="View Detail"
                         >
                           <span className="material-symbols-outlined text-xl">visibility</span>
@@ -237,7 +237,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
           <div className={`p-6 bg-white border-t border-slate-100 flex items-center justify-between relative z-20 transition-opacity duration-200 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
             <div className="flex items-center gap-4">
               <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, meta?.pagination?.total || products.length)}</span> of <span className="text-slate-800">{meta?.pagination?.total || products.length}</span> products
+                Showing <span className="text-primary">{(page - 1) * limit + 1} - {Math.min(page * limit, meta?.pagination?.total || products.length)}</span> of <span className="text-slate-800">{meta?.pagination?.total || products.length}</span> products
               </p>
               <div className="w-px h-4 bg-slate-200"></div>
               <div className="flex items-center gap-2">
@@ -266,7 +266,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
                           }}
                           className={`w-full text-center py-2 text-xs font-bold transition-colors block ${
                             limit === val
-                              ? 'bg-[#004ac6] text-white'
+                              ? 'bg-primary text-white'
                               : 'text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -283,14 +283,14 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
               <button
                 disabled={loading || page <= 1}
                 onClick={() => setPage(1)}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
               </button>
               <button
                 disabled={loading || page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">chevron_left</span>
               </button>
@@ -312,7 +312,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
                         disabled={loading}
                         onClick={() => setPage(i)}
                         className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${page === i
-                            ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                            ? 'bg-primary text-white shadow-md shadow-blue-200'
                             : 'text-slate-600 hover:bg-slate-100'
                           }`}
                       >
@@ -327,14 +327,14 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
               <button
                 disabled={loading || page >= (meta?.pagination?.totalPages || 1)}
                 onClick={() => setPage(page + 1)}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">chevron_right</span>
               </button>
               <button
                 disabled={loading || page >= (meta?.pagination?.totalPages || 1)}
                 onClick={() => setPage(meta?.pagination?.totalPages || 1)}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
               </button>

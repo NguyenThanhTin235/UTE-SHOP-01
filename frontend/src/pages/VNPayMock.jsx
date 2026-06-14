@@ -55,7 +55,7 @@ const VNPayMock = () => {
   };
 
   return (
-    <div className="bg-[#f2f4f7] min-h-screen flex items-center justify-center font-['Manrope'] p-4">
+    <div className="bg-[#f2f4f7] min-h-screen flex items-center justify-center font-sans p-4">
       <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-200 overflow-hidden text-left">
         
         {/* VNPAY Brand Header */}

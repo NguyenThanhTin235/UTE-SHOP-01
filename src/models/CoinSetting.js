@@ -4,6 +4,7 @@ const coinSettingSchema = new mongoose.Schema({
      earn_rate: { type: Number, required: true },
      spend_rate: { type: Number, required: true },
      max_usage_percent: { type: Number, required: true },
+     expiry_duration: { type: String, default: 'End of Current Year' },
      effective_from: { type: Date, required: true },
      effective_to: { type: Date },
      created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }

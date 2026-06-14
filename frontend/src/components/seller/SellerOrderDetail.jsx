@@ -12,7 +12,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/seller/orders/${orderId}`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -43,7 +43,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
         try {
             const res = await axios.put(`http://localhost:5000/api/seller/orders/${orderId}/status`, { status: newStatus }, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -142,7 +142,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         <button onClick={() => handleStatusUpdate('canceled')} className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-sm">
                             Cancel Order
                         </button>
-                        <button onClick={() => handleStatusUpdate('confirmed')} className="px-8 py-4 bg-[#004ac6] text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-[#004ac6]/20 cursor-pointer">
+                        <button onClick={() => handleStatusUpdate('confirmed')} className="px-8 py-4 bg-primary text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20 cursor-pointer">
                             Confirm Order
                         </button>
                     </div>
@@ -152,14 +152,14 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
 
         if (order.status === 'confirmed') {
             return (
-                <div className="bg-[#004ac6]/5 border border-[#004ac6]/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
-                        <div className="size-20 rounded-3xl bg-[#004ac6] flex items-center justify-center text-white shadow-2xl shadow-[#004ac6]/30">
+                        <div className="size-20 rounded-3xl bg-primary flex items-center justify-center text-white shadow-2xl shadow-primary/30">
                             <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>package_2</span>
                         </div>
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="px-4 py-1 bg-[#004ac6] text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">To Ship</span>
+                                <span className="px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">To Ship</span>
                                 <span className="text-sm font-bold text-slate-500">Placed on {formatDate(order.createdAt)}</span>
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is ready to be processed</h2>
@@ -237,8 +237,8 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
 
                             {getTimelineSteps().map((step, idx) => (
                                 <div key={idx} className="flex-1 flex flex-col items-center relative z-10">
-                                    <div className={`size-10 rounded-full flex items-center justify-center mb-4 ${step.status === 'completed' ? 'bg-[#004ac6] text-white ring-8 ring-[#004ac6]/10' :
-                                            step.status === 'current' ? 'bg-[#004ac6]/20 text-[#004ac6] ring-8 ring-[#004ac6]/5 animate-pulse' :
+                                    <div className={`size-10 rounded-full flex items-center justify-center mb-4 ${step.status === 'completed' ? 'bg-primary text-white ring-8 ring-primary/10' :
+                                            step.status === 'current' ? 'bg-primary/20 text-primary ring-8 ring-primary/5 animate-pulse' :
                                                 'bg-slate-100 text-slate-500'
                                         }`}>
                                         <span className="material-symbols-outlined text-xl">{step.icon}</span>
@@ -258,7 +258,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                             <div className="p-8 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
                                 <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[#004ac6]">inventory_2</span>
+                                    <span className="material-symbols-outlined text-primary">inventory_2</span>
                                     Order Items ({order.items?.length || 0})
                                 </h3>
                             </div>
@@ -269,7 +269,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                             <img src={item.product_id?.media_url || 'https://placehold.co/200x200?text=No+Image'} className="w-full h-full object-cover" alt="Product" />
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="text-lg font-black text-slate-900 mb-1 group-hover:text-[#004ac6] transition-colors">{item.product_id?.name}</h4>
+                                            <h4 className="text-lg font-black text-slate-900 mb-1 group-hover:text-primary transition-colors">{item.product_id?.name}</h4>
                                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-3">SKU: {item.variant_id?.sku || item.product_id?.sku || 'N/A'}</p>
                                             {item.variant_id?.attributes && (
                                                 <div className="flex items-center gap-4">
@@ -292,7 +292,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         {/* Summary */}
                         <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-8 space-y-4">
                             <h3 className="font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[#004ac6]">receipt_long</span>
+                                <span className="material-symbols-outlined text-primary">receipt_long</span>
                                 Order Summary
                             </h3>
                             <div className="flex justify-between items-center text-sm">
@@ -323,12 +323,12 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                             )}
                             <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
                                 <span className="text-lg font-black text-slate-900 tracking-tight">Total Amount</span>
-                                <span className="text-2xl font-black text-[#004ac6] tracking-tighter">{formatPrice(order.total_final)}</span>
+                                <span className="text-2xl font-black text-primary tracking-tighter">{formatPrice(order.total_final)}</span>
                             </div>
-                            <div className="mt-4 p-4 bg-[#004ac6]/5 rounded-2xl flex items-center gap-3">
-                                <span className="material-symbols-outlined text-[#004ac6]">payments</span>
+                            <div className="mt-4 p-4 bg-primary/5 rounded-2xl flex items-center gap-3">
+                                <span className="material-symbols-outlined text-primary">payments</span>
                                 <div className="flex-1">
-                                    <span className="text-[10px] font-bold text-[#004ac6] uppercase tracking-widest block">Payment Method</span>
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest block">Payment Method</span>
                                     <span className="text-xs font-black text-slate-900">{order.payment_order_id?.payment_method?.toUpperCase() || 'COD'}</span>
                                 </div>
                                 <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${order.payment_status === 'success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
@@ -346,7 +346,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                 <span className="material-symbols-outlined text-9xl">location_on</span>
                             </div>
                             <h3 className="font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[#004ac6]">local_shipping</span>
+                                <span className="material-symbols-outlined text-primary">local_shipping</span>
                                 Shipping Information
                             </h3>
                             <div className="space-y-6 relative z-10">
@@ -364,9 +364,9 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                 </div>
                                 {order.shipment && (
                                     <div className="pt-6 border-t border-slate-200">
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-2 text-[#004ac6]">Shipping Service</span>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-2 text-primary">Shipping Service</span>
                                         <div className="flex items-center gap-3">
-                                            <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center font-black text-xs text-[#004ac6]">GHN</div>
+                                            <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center font-black text-xs text-primary">GHN</div>
                                             <div>
                                                 <p className="text-sm font-black text-slate-900">{order.shipment.shipping_partner_id?.name || 'Standard'}</p>
                                                 <p className="text-[10px] font-bold text-slate-500">Tracking: {order.shipment.tracking_code || 'Pending'}</p>
@@ -380,7 +380,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         {/* Buyer Profile */}
                         <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-8 relative overflow-hidden group">
                             <h3 className="font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[#004ac6]">person</span>
+                                <span className="material-symbols-outlined text-primary">person</span>
                                 Buyer Profile
                             </h3>
                             <div className="flex items-center gap-4 mb-6">
@@ -414,11 +414,11 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2 ml-1">Tracking Number</label>
-                                <input type="text" placeholder="e.g., VN123456789" className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-[#004ac6]/20 outline-none" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
+                                <input type="text" placeholder="e.g., VN123456789" className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
                             </div>
                             <div className="flex gap-4 pt-4">
                                 <button onClick={() => setShowShipmentModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all cursor-pointer">Cancel</button>
-                                <button onClick={() => handleStatusUpdate('shipped')} className="flex-1 py-4 bg-[#004ac6] text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-[#004ac6]/20 cursor-pointer">Confirm</button>
+                                <button onClick={() => handleStatusUpdate('shipped')} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-primary/20 cursor-pointer">Confirm</button>
                             </div>
                         </div>
                     </div>

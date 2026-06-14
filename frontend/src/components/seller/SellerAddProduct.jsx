@@ -57,7 +57,7 @@ const SellerAddProduct = ({ setActiveTab }) => {
             const res = await axios.post('http://localhost:5000/api/seller/products/upload', uploadData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
 
@@ -253,12 +253,12 @@ const SellerAddProduct = ({ setActiveTab }) => {
             const res = editProduct
                 ? await axios.put(`http://localhost:5000/api/seller/products/${editProduct._id}`, payload, {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                        Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                     }
                 })
                 : await axios.post('http://localhost:5000/api/seller/products', payload, {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                        Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                     }
                 });
 

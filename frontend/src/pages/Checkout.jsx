@@ -46,6 +46,7 @@ const Checkout = () => {
   const [couponAppliedCode, setCouponAppliedCode] = useState('');
   const [useCoins, setUseCoins] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [shippingPartnerId, setShippingPartnerId] = useState('');
 
   // Preview data state
   const [previewData, setPreviewData] = useState(null);
@@ -110,13 +111,18 @@ const Checkout = () => {
         {
           itemIds: selectedItemIds,
           couponCode: couponAppliedCode || undefined,
-          useCoins
+          useCoins,
+          shippingPartnerId: shippingPartnerId || undefined
         },
         config
       );
 
       if (response.data && response.data.success) {
         setPreviewData(response.data.data);
+        // Auto-select the partner returned by backend if we don't have one yet
+        if (!shippingPartnerId && response.data.data.selectedPartnerId) {
+          setShippingPartnerId(response.data.data.selectedPartnerId);
+        }
         if (response.data.data.couponError) {
           toast.error(response.data.data.couponError);
           setCouponAppliedCode('');
@@ -134,7 +140,7 @@ const Checkout = () => {
     if (user && selectedItemIds.length > 0) {
       fetchPreview();
     }
-  }, [user, selectedItemIds, couponAppliedCode, useCoins]);
+  }, [user, selectedItemIds, couponAppliedCode, useCoins, shippingPartnerId]);
 
   // Apply Coupon Action
   const handleApplyCoupon = () => {
@@ -218,7 +224,8 @@ const Checkout = () => {
           addressId: selectedAddressId,
           couponCode: couponAppliedCode || undefined,
           useCoins,
-          paymentMethod
+          paymentMethod,
+          shippingPartnerId: shippingPartnerId || undefined
         },
         config
       );
@@ -246,7 +253,7 @@ const Checkout = () => {
   const activeAddress = addresses.find(a => a.id === selectedAddressId);
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 pt-24 pb-32">
@@ -261,12 +268,12 @@ const Checkout = () => {
             <section className="bg-white rounded-2xl p-6 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#004ac6]">location_on</span>
+                  <span className="material-symbols-outlined text-primary">location_on</span>
                   <h2 className="text-lg font-bold">Shipping Address</h2>
                 </div>
                 <button 
                   onClick={() => setShowAddressModal(true)}
-                  className="text-[#004ac6] font-bold text-sm hover:underline cursor-pointer"
+                  className="text-primary font-bold text-sm hover:underline cursor-pointer"
                 >
                   Change
                 </button>
@@ -277,7 +284,7 @@ const Checkout = () => {
                   <p className="font-bold text-base">{activeAddress.recipientName} | {activeAddress.recipientPhone}</p>
                   <p className="text-[#505f76] text-sm leading-relaxed">{activeAddress.streetAddress}, {activeAddress.city}</p>
                   {activeAddress.isDefault && (
-                    <span className="inline-block mt-2 bg-[#d0e1fb] text-[#004ac6] px-3 py-0.5 rounded-full text-xs font-bold">Default</span>
+                    <span className="inline-block mt-2 bg-[#d0e1fb] text-primary px-3 py-0.5 rounded-full text-xs font-bold">Default</span>
                   )}
                 </div>
               ) : (
@@ -288,7 +295,7 @@ const Checkout = () => {
                       setShowAddressModal(true);
                       setShowAddAddressForm(true);
                     }}
-                    className="bg-[#004ac6] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-all cursor-pointer"
+                    className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-all cursor-pointer"
                   >
                     Add Shipping Address
                   </button>
@@ -296,10 +303,62 @@ const Checkout = () => {
               )}
             </section>
 
+            {/* Shipping Partner Selector */}
+            {previewData && previewData.shippingPartners && previewData.shippingPartners.length > 0 && (
+              <section className="bg-white rounded-2xl p-6 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-primary">local_shipping</span>
+                  <h2 className="text-lg font-bold">Shipping Partner</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {previewData.shippingPartners.map((partner) => {
+                    const isSelected = shippingPartnerId === partner.id;
+                    return (
+                      <button
+                        key={partner.id}
+                        type="button"
+                        onClick={() => setShippingPartnerId(partner.id)}
+                        className={`relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                          isSelected
+                            ? 'border-primary bg-[#f2f3ff]/60 shadow-md shadow-blue-100'
+                            : 'border-[#c3c6d7]/40 hover:border-[#c3c6d7] hover:bg-[#faf8ff]'
+                        }`}
+                      >
+                        {/* Logo */}
+                        <div className="size-12 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center text-slate-400 shrink-0">
+                          {partner.avatarUrl ? (
+                            <img src={partner.avatarUrl} alt={partner.name} className="size-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-black text-slate-400">{partner.code?.substr(0,2)}</span>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-grow min-w-0">
+                          <p className="font-bold text-sm text-[#131b2e] truncate">{partner.name}</p>
+                          <p className="text-xs font-semibold text-primary mt-0.5">
+                            {partner.shippingFee?.toLocaleString()}₫
+                          </p>
+                        </div>
+                        {/* Check icon */}
+                        {isSelected && (
+                          <span
+                            className="material-symbols-outlined text-primary text-[20px] shrink-0"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            check_circle
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             {/* Vendor split items list */}
             {loadingPreview ? (
               <div className="bg-white rounded-2xl p-12 border border-[#c3c6d7]/30 flex justify-center items-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#004ac6]"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : previewData ? (
               <div className="flex flex-col gap-6">
@@ -328,7 +387,12 @@ const Checkout = () => {
                               <p className="text-[11px] text-[#737686] mt-1">Variant: {item.variantName}</p>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                              <p className="font-bold text-sm text-[#004ac6]">{item.price?.toLocaleString()}₫</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-sm text-primary">{item.price?.toLocaleString()}₫</p>
+                                {item.mrpPrice > item.price && (
+                                  <p className="text-[10px] text-[#737686] line-through">{item.mrpPrice?.toLocaleString()}₫</p>
+                                )}
+                              </div>
                               <p className="text-xs text-[#505f76] font-medium">x{item.quantity}</p>
                             </div>
                           </div>
@@ -359,7 +423,7 @@ const Checkout = () => {
                 <label 
                   className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
                     paymentMethod === 'vnpay' 
-                      ? 'border-[#004ac6] bg-[#f2f3ff]/40 text-[#004ac6]' 
+                      ? 'border-primary bg-[#f2f3ff]/40 text-primary' 
                       : 'border-[#outline-variant] hover:bg-[#faf8ff] text-[#505f76]'
                   }`}
                 >
@@ -374,7 +438,7 @@ const Checkout = () => {
                   <span className="font-bold text-sm">VNPAY Payment Gateway</span>
                   {paymentMethod === 'vnpay' && (
                     <div className="absolute top-2 right-2">
-                      <span className="material-symbols-outlined text-[#004ac6] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                     </div>
                   )}
                 </label>
@@ -383,7 +447,7 @@ const Checkout = () => {
                 <label 
                   className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all ${
                     paymentMethod === 'cod' 
-                      ? 'border-[#004ac6] bg-[#f2f3ff]/40 text-[#004ac6]' 
+                      ? 'border-primary bg-[#f2f3ff]/40 text-primary' 
                       : 'border-[#outline-variant] hover:bg-[#faf8ff] text-[#505f76]'
                   }`}
                 >
@@ -398,7 +462,7 @@ const Checkout = () => {
                   <span className="font-bold text-sm">Cash on Delivery (COD)</span>
                   {paymentMethod === 'cod' && (
                     <div className="absolute top-2 right-2">
-                      <span className="material-symbols-outlined text-[#004ac6] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                     </div>
                   )}
                 </label>
@@ -414,7 +478,7 @@ const Checkout = () => {
             {/* Promotion & Coin Toggle */}
             <section className="bg-white rounded-2xl p-6 border border-[#c3c6d7]/30 shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-[#004ac6]">confirmation_number</span>
+                <span className="material-symbols-outlined text-primary">confirmation_number</span>
                 <h2 className="text-base font-bold">Promotions & Coins</h2>
               </div>
 
@@ -439,11 +503,11 @@ const Checkout = () => {
                     placeholder="Enter coupon code..."
                     value={couponCodeInput}
                     onChange={(e) => setCouponCodeInput(e.target.value)}
-                    className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 py-2.5 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e]"
+                    className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-[#131b2e]"
                   />
                   <button 
                     onClick={handleApplyCoupon}
-                    className="bg-[#004ac6] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#003ea8] transition-all cursor-pointer"
+                    className="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#003ea8] transition-all cursor-pointer"
                   >
                     Apply
                   </button>
@@ -468,7 +532,7 @@ const Checkout = () => {
                       disabled={previewData.coinBalance === 0}
                       className="sr-only peer"
                     />
-                    <div className="relative w-11 h-6 bg-[#outline-variant] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#004ac6] peer-disabled:opacity-55"></div>
+                    <div className="relative w-11 h-6 bg-[#outline-variant] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-disabled:opacity-55"></div>
                   </label>
                 </div>
               )}
@@ -480,7 +544,7 @@ const Checkout = () => {
 
               {loadingPreview ? (
                 <div className="py-6 flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#004ac6]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                 </div>
               ) : previewData ? (
                 <div className="space-y-3 mb-6 font-semibold text-sm">
@@ -513,7 +577,7 @@ const Checkout = () => {
 
                   <div className="flex justify-between items-center pt-2">
                     <span className="font-extrabold text-[#131b2e]">Total Payment</span>
-                    <span className="font-extrabold text-2xl text-[#004ac6]">{previewData.finalAmount?.toLocaleString()}₫</span>
+                    <span className="font-extrabold text-2xl text-primary">{previewData.finalAmount?.toLocaleString()}₫</span>
                   </div>
 
                 </div>
@@ -522,7 +586,7 @@ const Checkout = () => {
               <button 
                 onClick={handlePlaceOrder}
                 disabled={submitting || loadingPreview || !selectedAddressId}
-                className="w-full bg-[#004ac6] text-white py-4 rounded-xl font-bold text-base shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex justify-center items-center gap-2"
+                className="w-full bg-primary text-white py-4 rounded-xl font-bold text-base shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex justify-center items-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -555,7 +619,7 @@ const Checkout = () => {
             {/* Modal Header */}
             <div className="p-6 border-b border-[#c3c6d7]/30 flex justify-between items-center">
               <h3 className="text-xl font-bold text-[#131b2e] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#004ac6]">location_on</span>
+                <span className="material-symbols-outlined text-primary">location_on</span>
                 Select Shipping Address
               </h3>
               <button 
@@ -575,7 +639,7 @@ const Checkout = () => {
               {showAddAddressForm ? (
                 /* Add New Address Form */
                 <form onSubmit={handleAddAddress} className="space-y-4">
-                  <h4 className="font-bold text-sm text-[#004ac6] border-b border-[#c3c6d7]/30 pb-2">Add New Address</h4>
+                  <h4 className="font-bold text-sm text-primary border-b border-[#c3c6d7]/30 pb-2">Add New Address</h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -583,7 +647,7 @@ const Checkout = () => {
                       <select 
                         value={addressFormData.label} 
                         onChange={(e) => setAddressFormData({ ...addressFormData, label: e.target.value })}
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004ac6] outline-none transition-all"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                       >
                         <option value="Home">Home</option>
                         <option value="Office">Office</option>
@@ -599,7 +663,7 @@ const Checkout = () => {
                         placeholder="Recipient name"
                         value={addressFormData.recipient_name}
                         onChange={(e) => setAddressFormData({ ...addressFormData, recipient_name: e.target.value })}
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004ac6] outline-none transition-all"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                       />
                     </div>
 
@@ -611,7 +675,7 @@ const Checkout = () => {
                         placeholder="0xxx xxx xxx"
                         value={addressFormData.recipient_phone}
                         onChange={(e) => setAddressFormData({ ...addressFormData, recipient_phone: e.target.value })}
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004ac6] outline-none transition-all"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                       />
                     </div>
 
@@ -621,7 +685,7 @@ const Checkout = () => {
                         required
                         value={addressFormData.city}
                         onChange={(e) => setAddressFormData({ ...addressFormData, city: e.target.value })}
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004ac6] outline-none transition-all"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                       >
                         <option value="">Select Province/City</option>
                         {VIETNAM_PROVINCES.map(province => (
@@ -638,7 +702,7 @@ const Checkout = () => {
                         placeholder="Street address, ward, district..."
                         value={addressFormData.street_address}
                         onChange={(e) => setAddressFormData({ ...addressFormData, street_address: e.target.value })}
-                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004ac6] outline-none transition-all"
+                        className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -649,7 +713,7 @@ const Checkout = () => {
                       id="modal_set_default"
                       checked={addressFormData.is_default}
                       onChange={(e) => setAddressFormData({ ...addressFormData, is_default: e.target.checked })}
-                      className="w-4 h-4 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]"
+                      className="w-4 h-4 rounded border-[#c3c6d7] text-primary focus:ring-primary"
                     />
                     <label htmlFor="modal_set_default" className="text-xs text-[#131b2e] cursor-pointer">Set as default address</label>
                   </div>
@@ -664,7 +728,7 @@ const Checkout = () => {
                     </button>
                     <button 
                       type="submit"
-                      className="px-6 py-2 rounded-lg bg-[#004ac6] text-white text-xs font-bold hover:opacity-90 transition-all shadow-sm"
+                      className="px-6 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:opacity-90 transition-all shadow-sm"
                     >
                       Save Address
                     </button>
@@ -683,7 +747,7 @@ const Checkout = () => {
                           onClick={() => setSelectedAddressId(addr.id)}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                             selectedAddressId === addr.id
-                              ? 'border-[#004ac6] bg-[#f2f3ff]/30'
+                              ? 'border-primary bg-[#f2f3ff]/30'
                               : 'border-[#c3c6d7]/50 hover:bg-[#faf8ff]'
                           }`}
                         >
@@ -692,7 +756,7 @@ const Checkout = () => {
                               {addr.label || 'Address'}
                             </span>
                             {selectedAddressId === addr.id && (
-                              <span className="material-symbols-outlined text-[#004ac6] text-[18px]">check_circle</span>
+                              <span className="material-symbols-outlined text-primary text-[18px]">check_circle</span>
                             )}
                           </div>
                           <p className="font-bold text-sm text-[#131b2e]">{addr.recipientName} | {addr.recipientPhone}</p>
@@ -705,7 +769,7 @@ const Checkout = () => {
                   <div className="flex justify-between items-center pt-4 border-t border-[#c3c6d7]/30">
                     <button 
                       onClick={() => setShowAddAddressForm(true)}
-                      className="text-[#004ac6] font-bold text-xs hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      className="text-primary font-bold text-xs hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">add_location</span>
                       Add New Address
@@ -713,7 +777,7 @@ const Checkout = () => {
                     
                     <button 
                       onClick={() => setShowAddressModal(false)}
-                      className="bg-[#004ac6] text-white px-6 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-all cursor-pointer shadow-sm"
+                      className="bg-primary text-white px-6 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-all cursor-pointer shadow-sm"
                     >
                       Confirm
                     </button>

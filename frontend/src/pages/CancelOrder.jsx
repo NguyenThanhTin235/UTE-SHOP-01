@@ -106,7 +106,7 @@ const CancelOrder = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center py-40 w-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </Layout>
     );
@@ -128,7 +128,7 @@ const CancelOrder = () => {
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -139,43 +139,43 @@ const CancelOrder = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -192,7 +192,7 @@ const CancelOrder = () => {
         {/* Cancellation Form Content */}
         <div className="flex-grow min-w-0 w-full space-y-8 lg:pl-4 text-left">
           <div className="flex items-center gap-3">
-            <Link to={`/order-history/${orderId}`} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-colors text-[#004ac6]">
+            <Link to={`/order-history/${orderId}`} className="p-2 hover:bg-[#f2f3ff] rounded-full transition-colors text-primary">
               <span className="material-symbols-outlined font-bold">arrow_back</span>
             </Link>
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#131b2e] tracking-tight">Cancel Order</h1>
@@ -201,7 +201,7 @@ const CancelOrder = () => {
           {/* Order Brief */}
           <div className="bg-white border border-[#c3c6d7]/30 rounded-3xl p-6 shadow-sm space-y-4">
             <div className="pb-3 border-b border-[#c3c6d7]/20 flex items-center justify-between">
-              <p className="text-[10px] font-black text-[#004ac6] uppercase tracking-wider">Order #{order.orderCode}</p>
+              <p className="text-[10px] font-black text-primary uppercase tracking-wider">Order #{order.orderCode}</p>
               <p className="text-xs text-[#737686] font-medium">Ordered on {new Date(order.createdAt).toLocaleDateString()}</p>
             </div>
             
@@ -222,7 +222,7 @@ const CancelOrder = () => {
                     <p className="text-xs text-[#434655] font-semibold mt-1">Quantity: {item.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-extrabold text-[#004ac6]">{item.price?.toLocaleString()}₫</p>
+                    <p className="text-sm font-extrabold text-primary">{item.price?.toLocaleString()}₫</p>
                   </div>
                 </div>
               ))}
@@ -230,7 +230,7 @@ const CancelOrder = () => {
 
             <div className="pt-3 border-t border-[#c3c6d7]/20 flex justify-between items-center">
               <span className="text-xs text-[#434655] font-bold">Total Payment:</span>
-              <span className="text-lg font-black text-[#004ac6]">{order.totalFinal?.toLocaleString()}₫</span>
+              <span className="text-lg font-black text-primary">{order.totalFinal?.toLocaleString()}₫</span>
             </div>
           </div>
 
@@ -243,7 +243,7 @@ const CancelOrder = () => {
                   <label 
                     key={index}
                     className={`flex items-center gap-4 p-4 border rounded-2xl cursor-pointer hover:bg-[#f2f3ff]/40 transition-all group ${
-                      selectedReason === reason ? 'border-[#004ac6] bg-[#f2f3ff]/20' : 'border-[#c3c6d7]/30'
+                      selectedReason === reason ? 'border-primary bg-[#f2f3ff]/20' : 'border-[#c3c6d7]/30'
                     }`}
                   >
                     <input 
@@ -252,10 +252,10 @@ const CancelOrder = () => {
                       value={reason}
                       checked={selectedReason === reason}
                       onChange={(e) => setSelectedReason(e.target.value)}
-                      className="w-5 h-5 text-[#004ac6] border-[#c3c6d7] focus:ring-[#004ac6]/20 cursor-pointer"
+                      className="w-5 h-5 text-primary border-[#c3c6d7] focus:ring-primary/20 cursor-pointer"
                     />
                     <span className={`font-bold text-sm transition-colors ${
-                      selectedReason === reason ? 'text-[#004ac6]' : 'text-[#434655] group-hover:text-[#131b2e]'
+                      selectedReason === reason ? 'text-primary' : 'text-[#434655] group-hover:text-[#131b2e]'
                     }`}>
                       {reason}
                     </span>
@@ -270,7 +270,7 @@ const CancelOrder = () => {
                 placeholder="Please tell us more about why you are cancelling your order..." 
                 value={otherReasonText}
                 onChange={(e) => setOtherReasonText(e.target.value)}
-                className="w-full bg-[#f2f3ff]/30 border border-[#c3c6d7]/30 rounded-2xl p-5 h-32 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all outline-none text-sm font-medium text-[#131b2e]"
+                className="w-full bg-[#f2f3ff]/30 border border-[#c3c6d7]/30 rounded-2xl p-5 h-32 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none text-sm font-medium text-[#131b2e]"
               ></textarea>
             </div>
 

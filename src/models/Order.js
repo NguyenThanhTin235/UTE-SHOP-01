@@ -18,13 +18,16 @@ const orderSchema = new mongoose.Schema({
   coin_discount: { type: Number, default: 0 },
   platform_fee_rate: { type: Number },
   platform_fee_amount: { type: Number },
+  gateway_fee_rate: { type: Number, default: 0 },
+  gateway_fee_amount: { type: Number, default: 0 },
   total_final: { type: Number, required: true },
   payment_status: {
     type: String,
     enum: ['pending', 'success', 'failed', 'refunded'],
     default: 'pending'
   },
-  coin_earned: { type: Number, default: 0 }
+  coin_earned: { type: Number, default: 0 },
+  shipping_partner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner' }
 }, {
   timestamps: true
 });

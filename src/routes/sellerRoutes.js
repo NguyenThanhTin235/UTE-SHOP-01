@@ -60,4 +60,13 @@ router.get('/wallet/withdrawals', verifyToken, sellerController.getWithdrawalReq
 router.get('/wallet/withdrawals/export', verifyToken, sellerController.exportWithdrawals);
 router.post('/wallet/withdraw', verifyToken, sellerController.requestWithdrawal);
 
+// Bank Accounts
+router.get('/wallet/bank-accounts', verifyToken, sellerController.getBankAccounts);
+router.post('/wallet/bank-accounts', verifyToken, sellerController.addBankAccount);
+router.put('/wallet/bank-accounts/:id', verifyToken, sellerController.updateBankAccount);
+router.put('/wallet/bank-accounts/:id/default', verifyToken, sellerController.setDefaultBankAccount);
+// Reviews
+router.get('/reviews', verifyToken, sellerController.getSellerReviews);
+router.post('/reviews/:id/reply', verifyToken, sellerController.replyToReview);
+
 module.exports = router;

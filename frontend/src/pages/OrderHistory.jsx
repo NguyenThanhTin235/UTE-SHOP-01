@@ -152,7 +152,7 @@ const OrderHistory = () => {
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -163,43 +163,43 @@ const OrderHistory = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -224,7 +224,7 @@ const OrderHistory = () => {
                   onClick={() => handleTabChange(tab.key)}
                   className={`flex-shrink-0 px-8 py-5 text-sm font-bold transition-all ${
                     activeTab === tab.key
-                      ? 'text-[#004ac6] border-b-2 border-[#004ac6]'
+                      ? 'text-primary border-b-2 border-primary'
                       : 'text-[#434655] hover:bg-[#f2f3ff]/50'
                   }`}
                 >
@@ -244,11 +244,11 @@ const OrderHistory = () => {
                   placeholder="Search by order code, product name or shop name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full bg-[#f2f3ff]/50 border-none rounded-2xl py-3.5 pl-12 pr-24 text-sm focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-[#131b2e] font-medium"
+                  className="w-full bg-[#f2f3ff]/50 border-none rounded-2xl py-3.5 pl-12 pr-24 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none text-[#131b2e] font-medium"
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#004ac6] text-white px-5 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-all"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-all"
                 >
                   Search
                 </button>
@@ -257,12 +257,12 @@ const OrderHistory = () => {
               {/* Loader */}
               {loading ? (
                 <div className="flex justify-center items-center py-20">
-                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#004ac6]"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
                 </div>
               ) : orders.length === 0 ? (
                 /* Empty state */
                 <div className="text-center py-16 space-y-4 max-w-md mx-auto">
-                  <div className="w-20 h-20 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2 text-[#004ac6]">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 text-primary">
                     <span className="material-symbols-outlined text-4xl">history_toggle_off</span>
                   </div>
                   <h3 className="text-xl font-bold text-[#131b2e]">No orders found</h3>
@@ -272,7 +272,7 @@ const OrderHistory = () => {
                   <div className="pt-2">
                     <Link
                       to="/search"
-                      className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-6 py-3 rounded-xl font-bold text-sm hover:opacity-90 shadow-md shadow-[#004ac6]/10"
+                      className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm hover:opacity-90 shadow-md shadow-primary/10"
                     >
                       Continue Shopping
                     </Link>
@@ -286,16 +286,16 @@ const OrderHistory = () => {
                     return (
                       <div
                         key={order.id}
-                        className="p-6 border border-[#c3c6d7]/40 rounded-3xl hover:border-[#004ac6]/20 transition-all bg-white"
+                        className="p-6 border border-[#c3c6d7]/40 rounded-3xl hover:border-primary/20 transition-all bg-white"
                       >
                         {/* Header của Đơn hàng */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#c3c6d7]/20 gap-3">
                           <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-[#004ac6] font-semibold">store</span>
+                            <span className="material-symbols-outlined text-primary font-semibold">store</span>
                             <span className="font-extrabold text-[#131b2e] tracking-tight">
                               {order.shopId?.name || 'UTEShop Store'}
                             </span>
-                            <button className="px-3 py-1 bg-[#004ac6]/10 text-[#004ac6] rounded-full text-[10px] font-bold flex items-center gap-1.5 hover:bg-[#004ac6]/20 transition-colors">
+                            <button className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors">
                               <span className="material-symbols-outlined text-[12px]">chat_bubble</span> Chat
                             </button>
                           </div>
@@ -321,7 +321,7 @@ const OrderHistory = () => {
                                 alt={item.name}
                               />
                               <div className="flex-grow min-w-0">
-                                <h4 className="font-bold text-[#131b2e] text-base group-hover:text-[#004ac6] transition-colors truncate">
+                                <h4 className="font-bold text-[#131b2e] text-base group-hover:text-primary transition-colors truncate">
                                   {item.name}
                                 </h4>
                                 <p className="text-xs text-[#434655] mt-1 font-medium truncate">
@@ -330,7 +330,7 @@ const OrderHistory = () => {
                                 <p className="text-xs text-[#131b2e] mt-2 font-bold">x{item.quantity}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-base text-[#004ac6] font-extrabold">
+                                <p className="text-base text-primary font-extrabold">
                                   {item.price?.toLocaleString()}₫
                                 </p>
                               </div>
@@ -363,14 +363,14 @@ const OrderHistory = () => {
                           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-end">
                             <div className="text-right">
                               <span className="text-[#434655] text-xs font-medium">Total: </span>
-                              <span className="text-lg text-[#004ac6] font-black">
+                              <span className="text-lg text-primary font-black">
                                 {order.totalFinal?.toLocaleString()}₫
                               </span>
                             </div>
                             <div className="flex gap-2 shrink-0">
                               <Link
                                 to={`/order-history/${order.id}`}
-                                className="border border-[#c3c6d7] text-[#434655] hover:bg-[#f2f3ff] hover:text-[#004ac6] px-5 py-2 rounded-xl font-bold text-xs transition-all text-center"
+                                className="border border-[#c3c6d7] text-[#434655] hover:bg-[#f2f3ff] hover:text-primary px-5 py-2 rounded-xl font-bold text-xs transition-all text-center"
                               >
                                 Details
                               </Link>
@@ -380,7 +380,7 @@ const OrderHistory = () => {
                                ['pending', 'failed'].includes(order.paymentOrderId?.paymentStatus) && (
                                  <button
                                    onClick={() => handleRepay(order.paymentOrderId.paymentCode)}
-                                   className="bg-[#004ac6] text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center cursor-pointer"
+                                   className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center cursor-pointer"
                                  >
                                    Pay Now
                                  </button>
@@ -410,7 +410,7 @@ const OrderHistory = () => {
                                     toast.success('Added items to cart to reorder!');
                                     navigate('/cart');
                                   }}
-                                  className="bg-[#004ac6] text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center"
+                                  className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center"
                                 >
                                   Reorder
                                 </button>
@@ -442,7 +442,7 @@ const OrderHistory = () => {
                         onClick={() => setCurrentPage(index + 1)}
                         className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all ${
                           currentPage === index + 1
-                            ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/10'
+                            ? 'bg-primary text-white shadow-md shadow-primary/10'
                             : 'hover:bg-[#f2f3ff] text-[#434655]'
                         }`}
                       >

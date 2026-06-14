@@ -44,8 +44,8 @@ const VNPayReturn = () => {
         );
 
         if (response.data && response.data.success && response.data.data?.paymentStatus === 'success') {
-          setStatus('success');
           toast.success('Thanh toán qua VNPAY thành công!');
+          navigate(`/order-success?paymentCode=${txRef}`);
         } else {
           setStatus('failed');
           setErrorMessage(response.data?.message || 'Xác thực thanh toán thất bại');
@@ -82,7 +82,7 @@ const VNPayReturn = () => {
   }, [status, countdown, navigate, paymentCode]);
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen flex items-center justify-center font-['Manrope'] p-4 md:p-8 relative overflow-hidden">
+    <div className="bg-[#f8fafc] min-h-screen flex items-center justify-center font-sans p-4 md:p-8 relative overflow-hidden">
       {/* Background Decorative Blobs */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-100/50 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-50/50 blur-3xl pointer-events-none"></div>

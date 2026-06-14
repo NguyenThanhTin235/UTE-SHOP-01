@@ -9,6 +9,8 @@ const Shop = require('../models/Shop');
 const User = require('../models/User');
 const Address = require('../models/Address');
 const Shipment = require('../models/Shipment');
+const SellerWallet = require('../models/SellerWallet');
+const SellerWalletTransaction = require('../models/SellerWalletTransaction');
 
 const getOrders = async (req, res, next) => {
     try {
@@ -170,10 +172,36 @@ const updateOrderStatus = async (req, res, next) => {
 
         if (status === 'delivered' && !isAlreadyDelivered) {
             // Add funds to seller's wallet
+            let wallet = await SellerWallet.findOne({ shop_id: shop._id });
+            if (!wallet) {
+                wallet = new SellerWallet({ shop_id: shop._id, total_balance: 0, pending_balance: 0, available_balance: 0 });
+            }
+
+            // Payout calculation: subtotal - platform_fee - gateway_fee (promotions borne by platform, shipping fee paid to carrier)
+            const platformFee = order.platform_fee_amount || 0;
+            const gatewayFee = order.gateway_fee_amount || 0;
+            const payoutAmount = order.subtotal_amount - platformFee - gatewayFee;
+
+            const beforeAvailable = wallet.available_balance;
+            wallet.pending_balance += payoutAmount;
+            wallet.total_balance += payoutAmount;
+            wallet.available_balance = wallet.total_balance - wallet.pending_balance;
+            await wallet.save();
+
+            // Create seller wallet transaction
+            await SellerWalletTransaction.create({
+                shop_id: shop._id,
+                order_id: order._id,
+                type: 'earning',
+                amount: payoutAmount,
+                balance_before: beforeAvailable,
+                balance_after: wallet.available_balance
+            });
+
+            // Sync with legacy User.wallet_balance for safety
             const shopOwner = await User.findById(shop.owner_user_id);
             if (shopOwner) {
-                const finalAmount = order.total_final - (order.platform_fee_amount || 0);
-                shopOwner.wallet_balance = (shopOwner.wallet_balance || 0) + finalAmount;
+                shopOwner.wallet_balance = (shopOwner.wallet_balance || 0) + payoutAmount;
                 await shopOwner.save();
             }
 
