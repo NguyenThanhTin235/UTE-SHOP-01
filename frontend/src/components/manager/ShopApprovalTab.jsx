@@ -252,7 +252,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); navigate(`/manager/shop_detail/${shop.id}`); }}
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer"
                         title="View Documents"
                       >
                         <span className="material-symbols-outlined text-xl">visibility</span>
@@ -270,7 +270,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
         <div className="p-6 bg-white border-t border-slate-100 flex flex-col md:flex-row items-center justify-between rounded-b-3xl relative z-20">
           <div className="flex items-center gap-4 mb-4 md:mb-0">
             <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, filteredShops.length)}</span> of <span className="text-slate-800">{filteredShops.length}</span> shops
+                Showing <span className="text-primary">{(page - 1) * limit + 1} - {Math.min(page * limit, filteredShops.length)}</span> of <span className="text-slate-800">{filteredShops.length}</span> shops
             </p>
             <div className="w-px h-4 bg-slate-200"></div>
             <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                           }}
                           className={`w-full text-center py-2 text-xs font-bold transition-colors block ${
                             limit === val
-                              ? 'bg-[#004ac6] text-white'
+                              ? 'bg-primary text-white'
                               : 'text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -315,14 +315,14 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
               <button
                   disabled={page <= 1}
                   onClick={() => setPage(1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
               </button>
               <button
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">chevron_left</span>
               </button>
@@ -343,7 +343,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                                   onClick={() => setPage(i)}
                                   className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                                       page === i
-                                          ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                          ? 'bg-primary text-white shadow-md shadow-blue-200'
                                           : 'text-slate-600 hover:bg-slate-100'
                                   }`}
                               >
@@ -358,14 +358,14 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
               <button
                   disabled={page >= totalPages || totalPages === 0}
                   onClick={() => setPage(page + 1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">chevron_right</span>
               </button>
               <button
                   disabled={page >= totalPages || totalPages === 0}
                   onClick={() => setPage(totalPages)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
               </button>

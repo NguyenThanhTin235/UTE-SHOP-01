@@ -14,6 +14,10 @@ const Shipment = require('../models/Shipment');
 const SellerWallet = require('../models/SellerWallet');
 const SellerWalletTransaction = require('../models/SellerWalletTransaction');
 const WithdrawRequest = require('../models/WithdrawRequest');
+const WithdrawalSetting = require('../models/WithdrawalSetting');
+const SellerBankAccount = require('../models/SellerBankAccount');
+const ProductReview = require('../models/ProductReview');
+const ProductReviewMedia = require('../models/ProductReviewMedia');
 const excelJS = require('exceljs');
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
@@ -1060,6 +1064,63 @@ const deleteShop = async (req, res, next) => {
     }
 };
 
+const recalculateWallet = async (shopId) => {
+    // 1. Get all delivered orders for this shop
+    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
+    
+    // 2. Sum up total earnings and pending earnings
+    let totalEarnings = 0;
+    let pendingEarnings = 0;
+    
+    const escrowLimit = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    
+    for (const order of orders) {
+        const platformFee = order.platform_fee_amount || 0;
+        const gatewayFee = order.gateway_fee_amount || 0;
+        const payout = order.subtotal_amount - platformFee - gatewayFee;
+        
+        totalEarnings += payout;
+        
+        // If order was delivered/updated within the last 7 days, it's still frozen/pending
+        if (order.updatedAt > escrowLimit) {
+            pendingEarnings += payout;
+        }
+    }
+    
+    // 3. Get all withdrawal requests for this shop
+    const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
+    let totalWithdrawals = 0;
+    
+    for (const w of withdrawals) {
+        if (w.status !== 'rejected') {
+            totalWithdrawals += w.amount;
+        }
+    }
+    
+    // 4. Calculate final balances
+    const totalBalance = totalEarnings - totalWithdrawals;
+    const pendingBalance = pendingEarnings; // Only track escrow/pending order earnings
+    const availableBalance = totalBalance - pendingBalance;
+    
+    // 5. Find or create the wallet and update it
+    let wallet = await SellerWallet.findOne({ shop_id: shopId });
+    if (!wallet) {
+        wallet = new SellerWallet({
+            shop_id: shopId,
+            total_balance: totalBalance,
+            pending_balance: pendingBalance,
+            available_balance: availableBalance
+        });
+    } else {
+        wallet.total_balance = totalBalance;
+        wallet.pending_balance = pendingBalance;
+        wallet.available_balance = availableBalance;
+    }
+    
+    await wallet.save();
+    return wallet;
+};
+
 // Wallet APIs
 const getWalletInfo = async (req, res, next) => {
     try {
@@ -1069,11 +1130,7 @@ const getWalletInfo = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
-        if (!wallet) {
-            wallet = new SellerWallet({ shop_id: shop._id, total_balance: 0, pending_balance: 0, available_balance: 0 });
-            await wallet.save();
-        }
+        const wallet = await recalculateWallet(shop._id);
 
         res.status(200).json({
             success: true,
@@ -1085,6 +1142,43 @@ const getWalletInfo = async (req, res, next) => {
         next(error);
     }
 };
+const getDynamicTransactions = async (shopId) => {
+    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
+    const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
+
+    const orderTransactions = orders.map(order => {
+        const platformFee = order.platform_fee_amount || 0;
+        const gatewayFee = order.gateway_fee_amount || 0;
+        const payout = order.subtotal_amount - platformFee - gatewayFee;
+        return {
+            _id: order._id,
+            createdAt: order.updatedAt,
+            order_id: {
+                _id: order._id,
+                order_code: order.order_code
+            },
+            type: 'earning',
+            amount: payout,
+            status: 'Completed'
+        };
+    });
+
+    const withdrawalTransactions = withdrawals.map(w => {
+        return {
+            _id: w._id,
+            createdAt: w.createdAt,
+            order_id: null,
+            type: 'withdraw',
+            amount: -w.amount,
+            status: w.status === 'paid' ? 'Completed' : w.status,
+            reject_reason: w.reject_reason || null,
+            bank_account: w.bank_account || null,
+            approved_at: w.approved_at || null
+        };
+    });
+
+    return [...orderTransactions, ...withdrawalTransactions].sort((a, b) => b.createdAt - a.createdAt);
+};
 
 const getWalletTransactions = async (req, res, next) => {
     try {
@@ -1095,22 +1189,18 @@ const getWalletTransactions = async (req, res, next) => {
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
-        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
-            .populate('order_id', 'order_code')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-
-        const total = await SellerWalletTransaction.countDocuments({ shop_id: shop._id });
+        const allTransactions = await getDynamicTransactions(shop._id);
+        const paginatedTransactions = allTransactions.slice(skip, skip + limit);
+        const total = allTransactions.length;
 
         res.status(200).json({
             success: true,
             code: 200,
             message: 'Transactions retrieved successfully',
-            data: transactions,
+            data: paginatedTransactions,
             meta: {
                 total,
                 page,
@@ -1133,26 +1223,35 @@ const requestWithdrawal = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        let wallet = await SellerWallet.findOne({ shop_id: shop._id });
+        const wallet = await recalculateWallet(shop._id);
         if (!wallet || wallet.available_balance < amount) {
-            return res.status(400).json({ success: false, code: 400, message: 'Insufficient balance' });
+            return res.status(400).json({ success: false, code: 400, message: 'Số dư khả dụng không đủ' });
         }
 
-        if (amount < 100000) {
-            return res.status(400).json({ success: false, code: 400, message: 'Minimum withdrawal amount is 100,000' });
+        const withdrawSetting = await WithdrawalSetting.findOne().sort({ effective_from: -1 });
+        const minWithdrawLimit = withdrawSetting ? withdrawSetting.min_withdrawal : 100000;
+        const maxDailyLimit = withdrawSetting ? withdrawSetting.max_daily_withdrawal : 50000000;
+
+        if (amount < minWithdrawLimit) {
+            return res.status(400).json({ success: false, code: 400, message: `Số tiền rút tối thiểu là ${minWithdrawLimit.toLocaleString()}₫` });
         }
 
-        // Deduct from available, add to pending
+        if (amount > maxDailyLimit) {
+            return res.status(400).json({ success: false, code: 400, message: `Số tiền rút tối đa trong ngày là ${maxDailyLimit.toLocaleString()}₫` });
+        }
+
+        // Deduct from total and available balances
         const beforeAvailable = wallet.available_balance;
+        wallet.total_balance -= amount;
         wallet.available_balance -= amount;
-        wallet.pending_balance += amount;
         await wallet.save();
 
         const withdrawReq = new WithdrawRequest({
             shop_id: shop._id,
             amount: amount,
             status: 'pending',
-            note: `Withdraw to ${bank_account}`
+            note: `Withdraw to ${bank_account}`,
+            bank_account: bank_account
         });
         await withdrawReq.save();
 
@@ -1186,7 +1285,7 @@ const getWithdrawalRequests = async (req, res, next) => {
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
         const withdrawals = await WithdrawRequest.find({ shop_id: shop._id })
@@ -1219,9 +1318,7 @@ const exportTransactions = async (req, res, next) => {
         const shop = await Shop.findOne({ owner_user_id: userId });
         if (!shop) return res.status(404).json({ success: false, message: 'Shop not found' });
 
-        const transactions = await SellerWalletTransaction.find({ shop_id: shop._id })
-            .populate('order_id', 'order_code')
-            .sort({ createdAt: -1 });
+        const transactions = await getDynamicTransactions(shop._id);
 
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('Transactions');
@@ -1240,7 +1337,7 @@ const exportTransactions = async (req, res, next) => {
                 order: t.order_id ? t.order_id.order_code : '---',
                 type: t.type,
                 amount: t.amount,
-                status: 'Completed'
+                status: t.status
             });
         });
 
@@ -1426,6 +1523,452 @@ const updateProduct = async (req, res, next) => {
     }
 };
 
+const getBankAccounts = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const accounts = await SellerBankAccount.find({ shop_id: shop._id }).sort({ is_default: -1, createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Bank accounts retrieved successfully',
+            data: accounts
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const addBankAccount = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { bank_name, account_name, account_number, is_default } = req.body;
+
+        if (!bank_name || !account_name || !account_number) {
+            return res.status(400).json({ success: false, code: 400, message: 'Vui lòng điền đầy đủ thông tin tài khoản ngân hàng' });
+        }
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        // Check if this is the first bank account
+        const existingCount = await SellerBankAccount.countDocuments({ shop_id: shop._id });
+        const makeDefault = existingCount === 0 ? true : !!is_default;
+
+        if (makeDefault) {
+            // Set all other accounts of this shop to non-default
+            await SellerBankAccount.updateMany({ shop_id: shop._id }, { is_default: false });
+        }
+
+        const newAccount = new SellerBankAccount({
+            shop_id: shop._id,
+            bank_name,
+            account_name,
+            account_number,
+            is_default: makeDefault
+        });
+
+        await newAccount.save();
+
+        res.status(201).json({
+            success: true,
+            code: 201,
+            message: 'Thêm tài khoản ngân hàng thành công',
+            data: newAccount
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const setDefaultBankAccount = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const accountId = req.params.id;
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const account = await SellerBankAccount.findOne({ _id: accountId, shop_id: shop._id });
+        if (!account) {
+            return res.status(404).json({ success: false, code: 404, message: 'Tài khoản ngân hàng không tồn tại' });
+        }
+
+        // Set all other accounts of this shop to non-default
+        await SellerBankAccount.updateMany({ shop_id: shop._id }, { is_default: false });
+
+        account.is_default = true;
+        await account.save();
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Đặt làm tài khoản mặc định thành công',
+            data: account
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteBankAccount = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const accountId = req.params.id;
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const account = await SellerBankAccount.findOne({ _id: accountId, shop_id: shop._id });
+        if (!account) {
+            return res.status(404).json({ success: false, code: 404, message: 'Tài khoản ngân hàng không tồn tại' });
+        }
+
+        const wasDefault = account.is_default;
+        await SellerBankAccount.deleteOne({ _id: accountId });
+
+        // If we deleted the default account, set another account as default if exists
+        if (wasDefault) {
+            const anotherAccount = await SellerBankAccount.findOne({ shop_id: shop._id });
+            if (anotherAccount) {
+                anotherAccount.is_default = true;
+                await anotherAccount.save();
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Xóa tài khoản ngân hàng thành công'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateBankAccount = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const accountId = req.params.id;
+        const { bank_name, account_name, account_number, is_default } = req.body;
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const account = await SellerBankAccount.findOne({ _id: accountId, shop_id: shop._id });
+        if (!account) {
+            return res.status(404).json({ success: false, code: 404, message: 'Tài khoản ngân hàng không tồn tại' });
+        }
+
+        if (bank_name) account.bank_name = bank_name;
+        if (account_name) account.account_name = account_name;
+        if (account_number) account.account_number = account_number;
+
+        if (is_default !== undefined && is_default && !account.is_default) {
+            // Set all other accounts of this shop to non-default
+            await SellerBankAccount.updateMany({ shop_id: shop._id }, { is_default: false });
+            account.is_default = true;
+        }
+
+        await account.save();
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Cập nhật tài khoản ngân hàng thành công',
+            data: account
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getSellerReviews = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const { rating, categoryId, replied, hasMedia, sort, search } = req.query;
+
+        // Find all products for this shop to extract products list and categories
+        const shopProducts = await Product.find({ shop_id: shop._id }).populate('category_id', 'name parent_id');
+        const shopProductIds = shopProducts.map(p => p._id);
+
+        // Fetch all categories to build parent-child relationships
+        const allCategories = await Category.find().lean();
+        const productCategoryIds = shopProducts
+            .filter(p => p.category_id)
+            .map(p => p.category_id._id?.toString() || p.category_id.toString());
+
+        // Trace ancestors for hierarchical dropdown list
+        const activeCategoryIds = new Set();
+        productCategoryIds.forEach(catId => {
+            let currentId = catId;
+            while (currentId) {
+                activeCategoryIds.add(currentId);
+                const cat = allCategories.find(c => c._id.toString() === currentId);
+                currentId = cat?.parent_id ? cat.parent_id.toString() : null;
+            }
+        });
+
+        // Build hierarchical categories list
+        const buildCategoryHierarchy = (parentId = null, depth = 0) => {
+            let result = [];
+            const children = allCategories.filter(c => 
+                (parentId === null && !c.parent_id) || 
+                (parentId !== null && c.parent_id && c.parent_id.toString() === parentId.toString())
+            );
+
+            children.forEach(cat => {
+                result.push({
+                    _id: cat._id,
+                    name: cat.name,
+                    depth,
+                    indentName: '\u00A0\u00A0'.repeat(depth) + (depth > 0 ? '— ' : '') + cat.name
+                });
+                const subHierarchy = buildCategoryHierarchy(cat._id, depth + 1);
+                result = result.concat(subHierarchy);
+            });
+            return result;
+        };
+        const shopCategories = buildCategoryHierarchy(null, 0);
+
+        // Build query
+        const query = { product_id: { $in: shopProductIds } };
+
+        if (rating) {
+            if (rating === 'critical') {
+                query.rating = { $lte: 2 };
+            } else {
+                query.rating = parseInt(rating);
+            }
+        }
+
+        if (categoryId) {
+            // Find category and all its descendants recursively
+            let filterCategoryIds = [categoryId];
+            const getDescendants = (parentId) => {
+                const children = allCategories.filter(c => c.parent_id && c.parent_id.toString() === parentId.toString());
+                children.forEach(child => {
+                    filterCategoryIds.push(child._id.toString());
+                    getDescendants(child._id);
+                });
+            };
+            getDescendants(categoryId);
+
+            const categoryProductIds = shopProducts
+                .filter(p => p.category_id && filterCategoryIds.includes(p.category_id._id?.toString() || p.category_id.toString()))
+                .map(p => p._id);
+            query.product_id = { $in: categoryProductIds };
+        }
+
+        if (replied === 'true') {
+            query.reply_comment = { $exists: true, $ne: '' };
+        } else if (replied === 'false') {
+            query.$or = [
+                { reply_comment: { $exists: false } },
+                { reply_comment: '' },
+                { reply_comment: null }
+            ];
+        }
+
+        if (hasMedia === 'true') {
+            const reviewsWithMedia = await ProductReviewMedia.find().select('product_review_id');
+            const reviewIds = reviewsWithMedia.map(m => m.product_review_id);
+            query._id = { $in: reviewIds };
+        }
+
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            const matchingProductIds = shopProducts
+                .filter(p => searchRegex.test(p.name))
+                .map(p => p._id);
+            const matchingUsers = await User.find({ fullName: searchRegex }).select('_id');
+            const matchingUserIds = matchingUsers.map(u => u._id);
+
+            const searchOr = [
+                { comment: searchRegex },
+                { product_id: { $in: matchingProductIds } },
+                { user_id: { $in: matchingUserIds } }
+            ];
+
+            if (query.$or) {
+                const existingOr = query.$or;
+                delete query.$or;
+                query.$and = [
+                    { $or: existingOr },
+                    { $or: searchOr }
+                ];
+            } else {
+                query.$or = searchOr;
+            }
+        }
+
+        // Sort option
+        let sortOption = { createdAt: -1 };
+        if (sort === 'highest') {
+            sortOption = { rating: -1, createdAt: -1 };
+        } else if (sort === 'lowest') {
+            sortOption = { rating: 1, createdAt: -1 };
+        }
+
+        // Fetch counts for statistics
+        const allShopReviews = await ProductReview.find({ product_id: { $in: shopProductIds } }).select('rating');
+        const totalReviewsCount = allShopReviews.length;
+
+        let satisfactionRate = 0;
+        let starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        let totalRatingSum = 0;
+
+        allShopReviews.forEach(r => {
+            totalRatingSum += r.rating;
+            if (starCounts[r.rating] !== undefined) {
+                starCounts[r.rating]++;
+            }
+        });
+
+        const satisfiedCount = starCounts[5] + starCounts[4];
+        satisfactionRate = totalReviewsCount > 0 ? Math.round((satisfiedCount / totalReviewsCount) * 100) : 0;
+        const averageRating = totalReviewsCount > 0 ? parseFloat((totalRatingSum / totalReviewsCount).toFixed(1)) : 0;
+
+        // Fetch paginated reviews
+        const total = await ProductReview.countDocuments(query);
+        const totalPages = Math.ceil(total / limit);
+
+        const reviews = await ProductReview.find(query)
+            .populate('user_id', 'full_name avatar_url')
+            .populate('product_id', 'name slug')
+            .populate('order_item_id', 'quantity price_at_buy variant_id')
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limit);
+
+        // Fetch media for these reviews
+        const reviewIdsList = reviews.map(r => r._id);
+        const reviewMedia = await ProductReviewMedia.find({ product_review_id: { $in: reviewIdsList } });
+
+        // Fetch first image for these products
+        const productIdsInReviews = reviews.map(r => r.product_id?._id).filter(id => id);
+        const productMedias = await ProductMedia.find({ 
+            product_id: { $in: productIdsInReviews }, 
+            media_type: 'image' 
+        }).sort({ sort_order: 1 });
+
+        // Map media and format response
+        const reviewsWithDetails = reviews.map(r => {
+            const media = reviewMedia
+                .filter(m => m.product_review_id.toString() === r._id.toString())
+                .map(m => ({ id: m._id, url: m.media_url, type: m.media_type }));
+
+            const userObj = r.user_id ? {
+                _id: r.user_id._id,
+                fullName: r.user_id.full_name,
+                avatarUrl: r.user_id.avatar_url
+            } : null;
+
+            const productMediaObj = productMedias.find(pm => pm.product_id.toString() === r.product_id?._id.toString());
+            const productObj = r.product_id ? {
+                ...r.product_id.toObject(),
+                image: productMediaObj ? productMediaObj.media_url : null
+            } : null;
+
+            return {
+                ...r.toObject(),
+                id: r._id,
+                user_id: userObj,
+                product_id: productObj,
+                media
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: 'Reviews retrieved successfully',
+            data: reviewsWithDetails,
+            stats: {
+                totalReviews: totalReviewsCount,
+                averageRating,
+                satisfactionRate,
+                starCounts: {
+                    5: starCounts[5],
+                    4: starCounts[4],
+                    3: starCounts[3],
+                    1_2: starCounts[2] + starCounts[1]
+                }
+            },
+            shopProducts: shopProducts.map(p => ({ _id: p._id, name: p.name, slug: p.slug, category_id: p.category_id?._id || p.category_id })),
+            shopCategories,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const replyToReview = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const reviewId = req.params.id;
+        const { reply_comment } = req.body;
+
+        const shop = await Shop.findOne({ owner_user_id: userId });
+        if (!shop) {
+            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+        }
+
+        const review = await ProductReview.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ success: false, code: 404, message: 'Review not found' });
+        }
+
+        // Verify product belongs to shop
+        const product = await Product.findOne({ _id: review.product_id, shop_id: shop._id });
+        if (!product) {
+            return res.status(403).json({ success: false, code: 403, message: 'You do not have permission to reply to this review' });
+        }
+
+        review.reply_comment = reply_comment || '';
+        review.reply_createdAt = reply_comment ? new Date() : null;
+        await review.save();
+
+        res.status(200).json({
+            success: true,
+            code: 200,
+            message: reply_comment ? 'Gửi phản hồi thành công' : 'Xóa phản hồi thành công',
+            data: review
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAnalytics,
     exportAnalytics,
@@ -1450,5 +1993,12 @@ module.exports = {
     exportWithdrawals,
     exportOrders,
     deleteProduct,
-    updateProduct
+    updateProduct,
+    getBankAccounts,
+    addBankAccount,
+    setDefaultBankAccount,
+    deleteBankAccount,
+    updateBankAccount,
+    getSellerReviews,
+    replyToReview
 };

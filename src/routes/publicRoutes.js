@@ -5,6 +5,7 @@ const publicController = require('../controllers/publicController');
 const { getOTPTemplate, getAlertTemplate } = require('../utils/emailTemplates');
 
 router.get('/homepage', publicController.getHomepageData);
+router.get('/ui-config', publicController.getUIConfig);
 router.get('/categories', publicController.getCategories);
 router.get('/products', publicController.searchProducts);
 router.get('/product/:slug', publicController.getProductDetail);
@@ -65,5 +66,12 @@ router.get('/preview-email', (req, res) => {
   }
   return res.status(400).send('Invalid preview type');
 });
+
+router.get('/campaigns', publicController.getCampaigns);
+router.get('/coupons', publicController.getCoupons);
+
+// Blog Routes
+router.get('/blog', publicController.getBlogPosts);
+router.get('/blog/:slug', publicController.getBlogPostBySlug);
 
 module.exports = router;

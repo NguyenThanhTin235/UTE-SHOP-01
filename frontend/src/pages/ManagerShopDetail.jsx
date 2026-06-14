@@ -134,7 +134,7 @@ const ManagerShopDetail = ({ shopId }) => {
   if (loading) {
     return (
       <div className="p-10 flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -163,7 +163,7 @@ const ManagerShopDetail = ({ shopId }) => {
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">{shopDetail.shopName}</h2>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="px-3 py-1 bg-blue-50 text-[#004ac6] text-[10px] font-black rounded-lg uppercase">Standard Shop</span>
+                    <span className="px-3 py-1 bg-blue-50 text-primary text-[10px] font-black rounded-lg uppercase">Standard Shop</span>
                     <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
                       Applied: {new Date(shopDetail.appliedAt).toLocaleDateString()}
                     </span>
@@ -210,7 +210,7 @@ const ManagerShopDetail = ({ shopId }) => {
           <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-lg font-black text-slate-900 tracking-tight">Legal Documents</h3>
-              <button onClick={handleDownloadPDF} className="text-[#004ac6] text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Download All (PDF)</button>
+              <button onClick={handleDownloadPDF} className="text-primary text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Download All (PDF)</button>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div 
@@ -265,7 +265,7 @@ const ManagerShopDetail = ({ shopId }) => {
                   iconBg = 'bg-green-50 text-[#16a34a]';
                   iconName = 'description';
                 } else if (isInfoReq) {
-                  iconBg = 'bg-blue-50 text-[#004ac6]';
+                  iconBg = 'bg-blue-50 text-primary';
                   iconName = 'edit_note';
                 } else if (isAppOpened) {
                   iconBg = 'bg-slate-50 text-slate-400';
@@ -286,7 +286,7 @@ const ManagerShopDetail = ({ shopId }) => {
                       </div>
                       <p className="text-xs text-slate-500 leading-relaxed font-medium">"{evt.note}"</p>
                       {!isDocSubmitted && (
-                        <p className={`text-[10px] font-black uppercase mt-2 ${isInfoReq ? 'text-[#004ac6]' : 'text-slate-400'}`}>By {evt.actorName}</p>
+                        <p className={`text-[10px] font-black uppercase mt-2 ${isInfoReq ? 'text-primary' : 'text-slate-400'}`}>By {evt.actorName}</p>
                       )}
                     </div>
                   </div>
@@ -336,12 +336,12 @@ const ManagerShopDetail = ({ shopId }) => {
               </div>
 
               {/* AI Insights Footer */}
-              <div className="p-8 bg-blue-50/50 border-t border-[#004ac6]/10">
+              <div className="p-8 bg-blue-50/50 border-t border-primary/10">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-[#004ac6] text-white rounded-xl flex items-center justify-center">
+                  <div className="w-8 h-8 bg-primary text-white rounded-xl flex items-center justify-center">
                     <span className="material-symbols-outlined text-lg">smart_toy</span>
                   </div>
-                  <h3 className="font-black text-[#004ac6] text-sm tracking-tight">AI Audit Result</h3>
+                  <h3 className="font-black text-primary text-sm tracking-tight">AI Audit Result</h3>
                 </div>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">

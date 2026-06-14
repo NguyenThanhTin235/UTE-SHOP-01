@@ -15,7 +15,11 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const CoinTransaction = require('../models/CoinTransaction');
+const CoinSetting = require('../models/CoinSetting');
+const PlatformFeeSetting = require('../models/PlatformFeeSetting');
 const Notification = require('../models/Notification');
+const ShippingPartner = require('../models/ShippingPartner');
+const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 const { toCamelCase } = require('../utils/formatter');
 
 function sortObject(obj) {
@@ -57,7 +61,23 @@ class CheckoutController {
   async previewCheckout(req, res) {
     try {
       const userId = req.user.id;
-      const { itemIds, couponCode, useCoins } = req.body;
+      const { itemIds, couponCode, useCoins, shippingPartnerId } = req.body;
+
+      const activePartners = await ShippingPartner.find({ is_active: true });
+
+      // Resolve selected shipping partner fee
+      let selectedPartner = null;
+      let partnerShippingFee = 35000; // default
+      if (shippingPartnerId) {
+        selectedPartner = activePartners.find(p => p._id.toString() === shippingPartnerId);
+        if (selectedPartner) {
+          partnerShippingFee = selectedPartner.shipping_fee || 0;
+        }
+      } else if (activePartners.length > 0) {
+        // Auto-select first active partner
+        selectedPartner = activePartners[0];
+        partnerShippingFee = selectedPartner.shipping_fee || 0;
+      }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(422).json({
@@ -93,6 +113,13 @@ class CheckoutController {
         });
       }
 
+      const productDiscounts = await getActiveCampaignsWithProducts();
+      for (const item of cartItems) {
+        if (item.product_id) {
+          await applyCampaignDiscount(item.product_id, productDiscounts, false);
+        }
+      }
+
       // Group products by Shop
       const shopsMap = {};
       let overallSubtotal = 0;
@@ -119,7 +146,11 @@ class CheckoutController {
           }
         }
 
-        const price = product.selling_price + additionalPrice;
+        const campDiscount = product.campaign_discount_percent || 0;
+        const origSelling = campDiscount > 0
+          ? Math.round(product.selling_price / (1 - campDiscount / 100))
+          : product.selling_price;
+        const price = Math.round((origSelling + additionalPrice) * (1 - campDiscount / 100));
         const itemSubtotal = price * item.quantity;
         overallSubtotal += itemSubtotal;
 
@@ -136,7 +167,7 @@ class CheckoutController {
             },
             items: [],
             subtotal: 0,
-            shippingFee: 35000, // Default shipping fee per shop
+            shippingFee: partnerShippingFee,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -152,6 +183,7 @@ class CheckoutController {
           variantName,
           imageUrl,
           price,
+          mrpPrice: (campDiscount > 0 ? Math.max(product.mrp_price, origSelling) : product.mrp_price) + additionalPrice,
           quantity: item.quantity,
           stock: stockQuantity,
           itemSubtotal
@@ -162,8 +194,8 @@ class CheckoutController {
 
       const shopsArray = Object.values(shopsMap);
 
-      // Shipping total
-      const overallShipping = shopsArray.length * 35000;
+      // Shipping total using selected partner fee
+      const overallShipping = shopsArray.length * partnerShippingFee;
 
       // Handle Coupon
       let couponDiscount = 0;
@@ -210,14 +242,18 @@ class CheckoutController {
             } else {
               // Calculate discount
               if (coupon.type === 'fixed_amount') {
-                couponDiscount = coupon.value;
+                couponDiscount = Math.min(coupon.value, overallSubtotal);
               } else if (coupon.type === 'percent') {
                 couponDiscount = (overallSubtotal * coupon.value) / 100;
                 if (coupon.max_discount) {
                   couponDiscount = Math.min(couponDiscount, coupon.max_discount);
                 }
+                couponDiscount = Math.min(couponDiscount, overallSubtotal);
+              } else if (coupon.type === 'free_shipping') {
+                couponDiscount = overallShipping;
+              } else if (coupon.type === 'fixed_shipping') {
+                couponDiscount = Math.min(coupon.value, overallShipping);
               }
-              couponDiscount = Math.min(couponDiscount, overallSubtotal);
             }
           }
         } else {
@@ -231,8 +267,12 @@ class CheckoutController {
       const userCoins = user ? user.coin_balance : 0;
 
       if (useCoins && userCoins > 0) {
-        // Capped at 100% of the overall total (including shipping)
-        const maxCoinSpend = overallSubtotal + overallShipping;
+        // Fetch dynamic coin settings
+        const coinSetting = await CoinSetting.findOne().sort({ effective_from: -1 });
+        const maxUsagePercent = coinSetting ? coinSetting.max_usage_percent : 50; // Fallback to 50%
+
+        // Capped at maxUsagePercent% of the overall subtotal (order value, excluding shipping)
+        const maxCoinSpend = Math.round(overallSubtotal * (maxUsagePercent / 100));
         const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(userCoins, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
@@ -276,7 +316,15 @@ class CheckoutController {
           couponError,
           coinDiscount,
           coinBalance: userCoins,
-          finalAmount: overallFinal
+          finalAmount: overallFinal,
+          shippingPartners: activePartners.map(p => ({
+            id: p._id.toString(),
+            name: p.name,
+            code: p.code,
+            shipping_fee: p.shipping_fee,
+            avatar_url: p.avatar_url || ''
+          })),
+          selectedPartnerId: selectedPartner ? selectedPartner._id.toString() : null
         }),
         timestamp: Math.floor(Date.now() / 1000)
       });
@@ -298,7 +346,22 @@ class CheckoutController {
   async placeOrder(req, res) {
     try {
       const userId = req.user.id;
-      const { itemIds, addressId, couponCode, useCoins, paymentMethod } = req.body;
+      const { itemIds, addressId, couponCode, useCoins, paymentMethod, shippingPartnerId } = req.body;
+
+      // Resolve shipping partner fee
+      let partnerShippingFee = 35000; // default
+      if (shippingPartnerId) {
+        const partner = await ShippingPartner.findOne({ _id: shippingPartnerId, is_active: true });
+        if (partner) {
+          partnerShippingFee = partner.shipping_fee || 0;
+        }
+      } else {
+        // Try to use first active partner
+        const firstPartner = await ShippingPartner.findOne({ is_active: true });
+        if (firstPartner) {
+          partnerShippingFee = firstPartner.shipping_fee || 0;
+        }
+      }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(422).json({
@@ -366,6 +429,13 @@ class CheckoutController {
         });
       }
 
+      const productDiscounts = await getActiveCampaignsWithProducts();
+      for (const item of cartItems) {
+        if (item.product_id) {
+          await applyCampaignDiscount(item.product_id, productDiscounts, false);
+        }
+      }
+
       // 3. Stock Check & Calculations
       const shopsMap = {};
       let overallSubtotal = 0;
@@ -393,7 +463,11 @@ class CheckoutController {
           additionalPrice = v.additional_price || 0;
         }
 
-        const price = product.selling_price + additionalPrice;
+        const campDiscount = product.campaign_discount_percent || 0;
+        const origSelling = campDiscount > 0
+          ? Math.round(product.selling_price / (1 - campDiscount / 100))
+          : product.selling_price;
+        const price = Math.round((origSelling + additionalPrice) * (1 - campDiscount / 100));
         const itemSubtotal = price * item.quantity;
         overallSubtotal += itemSubtotal;
 
@@ -404,7 +478,7 @@ class CheckoutController {
             shopId: shopIdStr,
             items: [],
             subtotal: 0,
-            shippingFee: 35000,
+            shippingFee: partnerShippingFee,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -421,7 +495,7 @@ class CheckoutController {
       }
 
       const shopsArray = Object.values(shopsMap);
-      const overallShipping = shopsArray.length * 35000;
+      const overallShipping = shopsArray.length * partnerShippingFee;
 
       // Handle Coupon
       let couponDiscount = 0;
@@ -457,14 +531,18 @@ class CheckoutController {
             const isRedeemed = await CouponRedemption.findOne({ coupon_id: coupon._id, user_id: userId });
             if (!isRedeemed) {
               if (coupon.type === 'fixed_amount') {
-                couponDiscount = coupon.value;
+                couponDiscount = Math.min(coupon.value, overallSubtotal);
               } else if (coupon.type === 'percent') {
                 couponDiscount = (overallSubtotal * coupon.value) / 100;
                 if (coupon.max_discount) {
                   couponDiscount = Math.min(couponDiscount, coupon.max_discount);
                 }
+                couponDiscount = Math.min(couponDiscount, overallSubtotal);
+              } else if (coupon.type === 'free_shipping') {
+                couponDiscount = overallShipping;
+              } else if (coupon.type === 'fixed_shipping') {
+                couponDiscount = Math.min(coupon.value, overallShipping);
               }
-              couponDiscount = Math.min(couponDiscount, overallSubtotal);
             }
           }
         }
@@ -473,7 +551,11 @@ class CheckoutController {
       // Handle Coins
       let coinDiscount = 0;
       if (useCoins && user.coin_balance > 0) {
-        const maxCoinSpend = overallSubtotal + overallShipping;
+        // Fetch dynamic coin settings
+        const coinSetting = await CoinSetting.findOne().sort({ effective_from: -1 });
+        const maxUsagePercent = coinSetting ? coinSetting.max_usage_percent : 50; // Fallback to 50%
+
+        const maxCoinSpend = Math.round(overallSubtotal * (maxUsagePercent / 100));
         const remainingToDiscount = overallSubtotal + overallShipping - couponDiscount;
         coinDiscount = Math.min(user.coin_balance, maxCoinSpend, remainingToDiscount);
         coinDiscount = Math.max(0, coinDiscount);
@@ -561,14 +643,22 @@ class CheckoutController {
         payment_date: new Date()
       });
 
+      // Fetch dynamic platform fee settings
+      const feeSetting = await PlatformFeeSetting.findOne().sort({ effective_from: -1 });
+      const feePercent = feeSetting ? feeSetting.fee_percent : 3.0; // fallback 3%
+      const gatewayFeePercentSetting = feeSetting ? feeSetting.gateway_fee_percent : 1.5; // fallback 1.5%
+
       // 8. Create Sub-Orders and OrderItems
       const createdOrders = [];
       for (const s of shopsArray) {
         const orderCode = `ORD-${Date.now()}-${s.shopId.substring(Math.max(0, s.shopId.length - 6))}-${Math.floor(Math.random() * 100)}`;
         
-        // Calculate platform fee (simulated 2%)
-        const platformFeeRate = 2;
-        const platformFeeAmount = Math.round((s.subtotal * 2) / 100);
+        // Calculate platform fee and gateway fee dynamically
+        const platformFeeRate = feePercent;
+        const platformFeeAmount = Math.round((s.subtotal * feePercent) / 100);
+
+        const gatewayFeeRate = (paymentMethod === 'vnpay') ? gatewayFeePercentSetting : 0;
+        const gatewayFeeAmount = (paymentMethod === 'vnpay') ? Math.round((s.subtotal * gatewayFeePercentSetting) / 100) : 0;
 
         // Calculate coin earned (0% - Disabled)
         const coinEarned = 0;
@@ -585,6 +675,8 @@ class CheckoutController {
           coin_discount: s.coinDiscount,
           platform_fee_rate: platformFeeRate,
           platform_fee_amount: platformFeeAmount,
+          gateway_fee_rate: gatewayFeeRate,
+          gateway_fee_amount: gatewayFeeAmount,
           total_final: s.totalFinal,
           payment_status: isFreeOrder ? 'success' : 'pending',
           coin_earned: coinEarned

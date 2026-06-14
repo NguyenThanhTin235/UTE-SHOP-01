@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
+import axios from 'axios';
 
 import SellerProducts from '../components/seller/SellerProducts';
 import SellerAddProduct from '../components/seller/SellerAddProduct';
@@ -11,6 +12,7 @@ import SellerCancellations from '../components/seller/SellerCancellations';
 import SellerAnalytics from '../components/seller/SellerAnalytics';
 import SellerSettings from '../components/seller/SellerSettings';
 import SellerWallet from '../components/seller/SellerWallet';
+import SellerReviews from '../components/seller/SellerReviews';
 
 import SellerSidebar from '../components/seller/SellerSidebar';
 import SellerHeader from '../components/seller/SellerHeader';
@@ -28,6 +30,23 @@ const SellerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (!token) return;
+      const res = await axios.get('http://localhost:5000/api/seller/wallet', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setWalletBalance(res.data.data.total_balance ?? 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet balance for sidebar:', error);
+    }
+  };
 
   const getTabFromUrl = () => {
     const pathParts = location.pathname.split('/').filter(Boolean);
@@ -107,13 +126,20 @@ const SellerDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      fetchWalletBalance();
+    }
+  }, [user, location.pathname]);
+
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-['Manrope'] overflow-hidden">
+    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
       <SellerSidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         navItems={navItems} 
         handleLogout={handleLogout} 
+        walletBalance={walletBalance}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
@@ -136,12 +162,13 @@ const SellerDashboard = () => {
           <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} />} />
           <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
           <Route path="wallet" element={<SellerWallet />} />
+          <Route path="reviews" element={<SellerReviews />} />
           <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
           
           <Route path="*" element={
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-                <span className="material-symbols-outlined text-6xl text-[#004ac6] mb-4 animate-bounce">
+                <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                   {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
                 </span>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">

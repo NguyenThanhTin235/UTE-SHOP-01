@@ -1,5 +1,6 @@
 const userService = require('../services/userService');
 const { toCamelCase } = require('../utils/formatter');
+const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../utils/promotionHelper');
 
 class UserController {
   /**
@@ -254,12 +255,17 @@ class UserController {
 
       const wishlistItems = await Wishlist.find({ user_id: userId }).sort({ createdAt: -1 });
 
+      const productDiscounts = await getActiveCampaignsWithProducts();
+
       const itemsWithDetails = await Promise.all(wishlistItems.map(async (item) => {
         const product = await Product.findById(item.product_id).lean();
         if (!product) return null;
 
         const media = await ProductMedia.find({ product_id: product._id }).sort({ sort_order: 1 });
         const category = await Category.findById(product.category_id);
+
+        // Apply campaign discount with variant adjustment (same as listing cards)
+        await applyCampaignDiscount(product, productDiscounts, true);
 
         return {
           id: item._id.toString(),
@@ -555,6 +561,10 @@ class UserController {
 
         const media = await ProductMedia.find({ product_id: product._id }).sort({ sort_order: 1 });
         const category = await Category.findById(product.category_id);
+
+        // Apply campaign discount with variant adjustment (same as listing cards)
+        const productDiscounts = await getActiveCampaignsWithProducts();
+        await applyCampaignDiscount(product, productDiscounts, true);
 
         return {
           id: item._id.toString(),

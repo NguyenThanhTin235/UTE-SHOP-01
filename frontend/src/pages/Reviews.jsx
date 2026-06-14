@@ -229,7 +229,7 @@ const Reviews = () => {
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -240,43 +240,43 @@ const Reviews = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -295,11 +295,11 @@ const Reviews = () => {
           {/* Search & Filter Bar */}
           <div className="p-6 flex flex-col md:flex-row gap-4 items-center justify-between bg-white rounded-3xl shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30">
             <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[350px] group">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#004ac6] transition-colors">search</span>
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
               <input
                 type="text"
                 placeholder="Search by product name..."
-                className="w-full pl-11 pr-4 py-3 bg-[#f2f3ff]/40 border-none rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#004ac6]/10 placeholder:text-gray-400 transition-all outline-none"
+                className="w-full pl-11 pr-4 py-3 bg-[#f2f3ff]/40 border-none rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder:text-gray-400 transition-all outline-none"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
@@ -309,7 +309,7 @@ const Reviews = () => {
               <select
                 value={shopId}
                 onChange={(e) => { setShopId(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-3 bg-[#f2f3ff]/40 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#004ac6]/10 transition-all cursor-pointer w-full md:w-44"
+                className="px-4 py-3 bg-[#f2f3ff]/40 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer w-full md:w-44"
               >
                 <option value="">All Shops</option>
                 {availableShops.map(s => (
@@ -321,7 +321,7 @@ const Reviews = () => {
               <select
                 value={ratingFilter}
                 onChange={(e) => { setRatingFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-3 bg-[#f2f3ff]/40 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#004ac6]/10 transition-all cursor-pointer w-full md:w-36"
+                className="px-4 py-3 bg-[#f2f3ff]/40 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer w-full md:w-36"
               >
                 <option value="">All Ratings</option>
                 {[5, 4, 3, 2, 1].map(star => (
@@ -337,7 +337,7 @@ const Reviews = () => {
             <div className="p-6 border-b border-[#c3c6d7]/20 flex justify-between items-center bg-slate-50/50">
               <h2 className="font-extrabold text-[#131b2e] text-lg tracking-tight">Reviews List</h2>
               {!loading && pagination.total > 0 && (
-                <span className="bg-[#004ac6]/10 text-[#004ac6] font-bold text-xs px-3 py-1.5 rounded-full">
+                <span className="bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-full">
                   {pagination.total} reviews
                 </span>
               )}
@@ -345,13 +345,13 @@ const Reviews = () => {
 
             {loading ? (
               <div className="flex justify-center items-center py-24">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : reviews.length === 0 ? (
               /* Empty State */
               <div className="p-12 md:p-16 text-center max-w-xl mx-auto my-8 space-y-6">
-                <div className="w-20 h-20 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="material-symbols-outlined text-[#004ac6] text-[40px]">rate_review</span>
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <span className="material-symbols-outlined text-primary text-[40px]">rate_review</span>
                 </div>
                 <h3 className="text-xl font-bold text-[#131b2e]">No reviews found</h3>
                 <p className="text-[#434655] text-sm leading-relaxed max-w-md mx-auto">
@@ -360,7 +360,7 @@ const Reviews = () => {
                 <div className="pt-4">
                   <Link
                     to="/order-history"
-                    className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-6 py-3.5 rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3.5 rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
                   >
                     <span className="material-symbols-outlined">shopping_bag</span>
                     View Orders
@@ -381,7 +381,7 @@ const Reviews = () => {
                       />
                       <div className="flex-grow min-w-0">
                         {rev.product?.slug ? (
-                          <Link to={`/product/${rev.product.slug}`} className="font-bold text-sm text-[#131b2e] hover:text-[#004ac6] transition-colors truncate block">
+                          <Link to={`/product/${rev.product.slug}`} className="font-bold text-sm text-[#131b2e] hover:text-primary transition-colors truncate block">
                             {rev.product.name}
                           </Link>
                         ) : (
@@ -389,7 +389,7 @@ const Reviews = () => {
                         )}
                         <p className="text-[11px] text-[#737686] font-medium mt-0.5 flex items-center gap-1.5">
                           {rev.product?.shop?.name && (
-                            <span className="text-[#004ac6] font-bold">Shop: {rev.product.shop.name}</span>
+                            <span className="text-primary font-bold">Shop: {rev.product.shop.name}</span>
                           )}
                           {rev.orderItem && (
                             <>
@@ -430,6 +430,26 @@ const Reviews = () => {
                             />
                           </a>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Shop Response */}
+                    {rev.replyComment && (
+                      <div className="mb-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative text-left">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary text-sm">storefront</span>
+                            <span className="text-xs font-black text-[#131b2e]">Shop Response</span>
+                          </div>
+                          {rev.replyCreatedAt && (
+                            <span className="text-[10px] text-gray-400 font-medium">
+                              {new Date(rev.replyCreatedAt).toLocaleDateString('en-US')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#434655] leading-relaxed italic">
+                          "{rev.replyComment}"
+                        </p>
                       </div>
                     )}
 
@@ -482,7 +502,7 @@ const Reviews = () => {
                       onClick={() => setCurrentPage(index + 1)}
                       className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all cursor-pointer ${
                         currentPage === index + 1
-                          ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/10'
+                          ? 'bg-primary text-white shadow-md shadow-primary/10'
                           : 'hover:bg-[#f2f3ff] text-[#434655] bg-white border border-[#c3c6d7]/30'
                       }`}
                     >
@@ -563,7 +583,7 @@ const Reviews = () => {
                   placeholder="Share your experience about this product..."
                   maxLength={500}
                   rows={4}
-                  className="w-full border border-[#c3c6d7]/40 rounded-2xl p-4 text-sm text-[#131b2e] placeholder-[#b0b3c1] focus:outline-none focus:border-[#004ac6]/50 focus:ring-2 focus:ring-[#004ac6]/10 resize-none transition-all"
+                  className="w-full border border-[#c3c6d7]/40 rounded-2xl p-4 text-sm text-[#131b2e] placeholder-[#b0b3c1] focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 resize-none transition-all"
                 />
                 <p className="text-[10px] text-right text-[#737686] mt-1">{reviewComment.length}/500</p>
               </div>
@@ -601,7 +621,7 @@ const Reviews = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl border-2 border-dashed border-[#c3c6d7]/60 flex flex-col items-center justify-center hover:border-[#004ac6]/40 hover:bg-[#f2f3ff]/60 transition-all cursor-pointer"
+                      className="w-16 h-16 rounded-xl border-2 border-dashed border-[#c3c6d7]/60 flex flex-col items-center justify-center hover:border-primary/40 hover:bg-[#f2f3ff]/60 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[#737686] text-[22px]">add_photo_alternate</span>
                     </button>
@@ -619,7 +639,7 @@ const Reviews = () => {
                 <button
                   onClick={handleSubmitReview}
                   disabled={submittingReview || !reviewRating}
-                  className="flex-1 py-3 rounded-xl bg-[#004ac6] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submittingReview ? (
                     <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>&nbsp;Saving...</>

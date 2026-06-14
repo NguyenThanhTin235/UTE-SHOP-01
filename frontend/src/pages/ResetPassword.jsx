@@ -112,7 +112,7 @@ const ResetPassword = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-[#2563eb] rounded-full mb-4 text-white shadow-md">
                 <span className="material-symbols-outlined text-[32px]">verified_user</span>
               </div>
-              <h1 className="text-3xl font-bold text-[#004ac6] mb-2">Forgot Password - OTP Verification</h1>
+              <h1 className="text-3xl font-bold text-primary mb-2">Forgot Password - OTP Verification</h1>
               <p className="text-base text-[#434655]">
                 A verification code has been sent to <span className="font-bold text-[#131b2e]">{email}</span>
               </p>
@@ -126,7 +126,7 @@ const ResetPassword = () => {
                     key={index}
                     ref={inputRefs[index]}
                     type="text"
-                    className="w-12 h-14 md:w-14 md:h-16 text-center font-bold text-xl md:text-2xl border border-[#c3c6d7] rounded-xl bg-white focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 outline-none transition-all text-[#131b2e]"
+                    className="w-12 h-14 md:w-14 md:h-16 text-center font-bold text-xl md:text-2xl border border-[#c3c6d7] rounded-xl bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-[#131b2e]"
                     value={digit}
                     maxLength={1}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -139,14 +139,14 @@ const ResetPassword = () => {
               <div className="flex flex-col items-center gap-4 pt-2">
                 <button 
                   type="submit"
-                  className="w-full py-4 bg-[#004ac6] text-white rounded-lg font-bold text-lg hover:brightness-110 transition-all shadow-sm flex items-center justify-center active:scale-[0.98] cursor-pointer"
+                  className="w-full py-4 bg-primary text-white rounded-lg font-bold text-lg hover:brightness-110 transition-all shadow-sm flex items-center justify-center active:scale-[0.98] cursor-pointer"
                 >
                   Confirm OTP
                 </button>
                 <div className="flex items-center gap-2 text-sm text-[#434655]">
                   <span>Didn't receive the code?</span>
                   <button 
-                    className="flex items-center gap-1 text-[#004ac6] font-bold hover:underline disabled:text-[#737686] disabled:no-underline transition-all group cursor-pointer" 
+                    className="flex items-center gap-1 text-primary font-bold hover:underline disabled:text-[#737686] disabled:no-underline transition-all group cursor-pointer" 
                     disabled 
                     type="button"
                   >
@@ -161,7 +161,7 @@ const ResetPassword = () => {
             <div className="mt-8 pt-8 border-t border-[#c3c6d7]/30 text-left">
               <div className="flex items-center gap-4 p-4 bg-[#f2f3ff] rounded-xl border border-[#c3c6d7]/20">
                 <div className="flex-shrink-0">
-                  <span className="material-symbols-outlined text-[#004ac6]">security</span>
+                  <span className="material-symbols-outlined text-primary">security</span>
                 </div>
                 <div className="flex-1">
                   <h4 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-0.5">Account Security</h4>
@@ -171,7 +171,7 @@ const ResetPassword = () => {
             </div>
 
             <div className="mt-6 pt-6 border-t border-[#c3c6d7]/30 text-center">
-              <Link to="/forgot-password" className="inline-flex items-center gap-2 text-[#434655] hover:text-[#004ac6] transition-colors text-xs font-medium">
+              <Link to="/forgot-password" className="inline-flex items-center gap-2 text-[#434655] hover:text-primary transition-colors text-xs font-medium">
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                 Change Email
               </Link>
@@ -183,7 +183,7 @@ const ResetPassword = () => {
             <div className="bg-white rounded-xl p-8 md:p-12 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-[#c3c6d7]/30">
               {/* Branding/Icon Section */}
               <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-16 h-16 bg-[#d0e1fb] text-[#004ac6] rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-[#d0e1fb] text-primary rounded-full flex items-center justify-center mb-4">
                   <span className="material-symbols-outlined text-[32px]">lock_reset</span>
                 </div>
                 <h1 className="text-3xl font-bold text-[#131b2e] mb-2">Reset Password</h1>
@@ -201,12 +201,12 @@ const ResetPassword = () => {
                       name="newPassword"
                       value={newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full pl-12 pr-11 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all placeholder:text-[#737686]" 
+                      className="w-full pl-12 pr-11 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-[#737686]" 
                       placeholder="Enter new password" 
                       required
                     />
                     <button 
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors flex items-center justify-center cursor-pointer" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors flex items-center justify-center cursor-pointer" 
                       type="button" 
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
@@ -225,12 +225,12 @@ const ResetPassword = () => {
                       name="confirmPassword"
                       value={confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full pl-12 pr-11 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] transition-all placeholder:text-[#737686]" 
+                      className="w-full pl-12 pr-11 py-3 bg-[#faf8ff] border border-[#c3c6d7] rounded-lg text-base text-[#131b2e] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-[#737686]" 
                       placeholder="Confirm new password" 
                       required
                     />
                     <button 
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-[#004ac6] transition-colors flex items-center justify-center cursor-pointer" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737686] hover:text-primary transition-colors flex items-center justify-center cursor-pointer" 
                       type="button" 
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
@@ -241,13 +241,13 @@ const ResetPassword = () => {
 
                 {/* Password Requirements Visual Guide */}
                 <div className="grid grid-cols-2 gap-2 pt-1 text-left">
-                  <div className={`flex items-center gap-1 text-xs ${hasUpperAndLower ? 'text-[#004ac6] font-bold' : 'text-[#737686]'}`}>
+                  <div className={`flex items-center gap-1 text-xs ${hasUpperAndLower ? 'text-primary font-bold' : 'text-[#737686]'}`}>
                     <span className="material-symbols-outlined text-[16px]">
                       {hasUpperAndLower ? 'check_circle' : 'radio_button_unchecked'}
                     </span>
                     <span>Upper & lower case</span>
                   </div>
-                  <div className={`flex items-center gap-1 text-xs ${hasSpecial ? 'text-[#004ac6] font-bold' : 'text-[#737686]'}`}>
+                  <div className={`flex items-center gap-1 text-xs ${hasSpecial ? 'text-primary font-bold' : 'text-[#737686]'}`}>
                     <span className="material-symbols-outlined text-[16px]">
                       {hasSpecial ? 'check_circle' : 'radio_button_unchecked'}
                     </span>
@@ -259,7 +259,7 @@ const ResetPassword = () => {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full mt-4 bg-[#004ac6] text-white py-4 rounded-lg font-bold text-lg hover:brightness-110 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full mt-4 bg-primary text-white py-4 rounded-lg font-bold text-lg hover:brightness-110 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
@@ -273,7 +273,7 @@ const ResetPassword = () => {
                   <button 
                     type="button" 
                     onClick={() => setStep(2)} 
-                    className="text-xs font-medium text-[#004ac6] hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                    className="text-xs font-medium text-primary hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                     Back to OTP Verification
@@ -285,7 +285,7 @@ const ResetPassword = () => {
             {/* Contextual Support Info */}
             <div className="mt-8 text-center">
               <p className="text-sm text-[#434655]">
-                Having trouble? <Link to="/support" className="text-[#004ac6] font-semibold hover:underline">Contact support</Link>
+                Having trouble? <Link to="/support" className="text-primary font-semibold hover:underline">Contact support</Link>
               </p>
             </div>
           </div>

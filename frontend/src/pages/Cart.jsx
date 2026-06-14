@@ -358,12 +358,12 @@ const Cart = () => {
   // If user is not logged in, render Login Prompts
   if (!user) {
     return (
-      <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+      <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
         <Header />
         <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 py-8 md:py-12 flex items-center justify-center">
           <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] text-center max-w-2xl mx-auto my-8 space-y-6">
-            <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="material-symbols-outlined text-[#004ac6] text-[48px]">account_circle</span>
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="material-symbols-outlined text-primary text-[48px]">account_circle</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">Log in to View Cart</h2>
             <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
@@ -372,7 +372,7 @@ const Cart = () => {
             <div className="pt-4">
               <Link 
                 to="/login" 
-                className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
               >
                 <span className="material-symbols-outlined">login</span>
                 Log In Now
@@ -387,7 +387,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 pt-24 pb-32 min-h-screen">
@@ -399,13 +399,13 @@ const Cart = () => {
 
           {loading ? (
             <div className="flex justify-center items-center py-24">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : cartItems.length === 0 ? (
             /* Empty State */
             <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] text-center max-w-2xl mx-auto my-8 space-y-6">
-              <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="material-symbols-outlined text-[#004ac6] text-[48px]">remove_shopping_cart</span>
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-symbols-outlined text-primary text-[48px]">remove_shopping_cart</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">Your Cart is Empty</h2>
               <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
@@ -414,7 +414,7 @@ const Cart = () => {
               <div className="pt-4">
                 <Link 
                   to="/search" 
-                  className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined">explore</span>
                   Explore Our Store
@@ -439,16 +439,16 @@ const Cart = () => {
                           type="checkbox"
                           checked={isShopSelected(shop.id)}
                           onChange={() => handleSelectShop(shop.id)}
-                          className="w-5 h-5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6] cursor-pointer"
+                          className="w-5 h-5 rounded border-[#c3c6d7] text-primary focus:ring-primary cursor-pointer"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[#004ac6]">storefront</span>
+                          <span className="material-symbols-outlined text-primary">storefront</span>
                           <span className="font-bold text-base text-[#131b2e]">{shop.name}</span>
                         </div>
                       </div>
                       <button 
                         onClick={() => toast.success('Shop has not issued any coupons yet')}
-                        className="text-[#004ac6] font-bold text-xs hover:underline"
+                        className="text-primary font-bold text-xs hover:underline"
                       >
                         Get Coupon
                       </button>
@@ -465,7 +465,7 @@ const Cart = () => {
                               type="checkbox"
                               checked={selectedItemIds.has(item.id)}
                               onChange={() => handleSelectItem(item.id)}
-                              className="mt-1 w-5 h-5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6] cursor-pointer"
+                              className="mt-1 w-5 h-5 rounded border-[#c3c6d7] text-primary focus:ring-primary cursor-pointer"
                             />
                             <img 
                               alt={item.name} 
@@ -480,13 +480,18 @@ const Cart = () => {
                             <div className="flex justify-between items-start gap-4">
                               <div className="text-left">
                                 <h3 className="font-bold text-lg text-[#131b2e] line-clamp-2">
-                                  <Link to={`/product/${item.slug}`} className="hover:text-[#004ac6] transition-colors">{item.name}</Link>
+                                  <Link to={`/product/${item.slug}`} className="hover:text-primary transition-colors">{item.name}</Link>
                                 </h3>
                                 <p className="text-xs text-[#505f76] mt-1 font-medium bg-[#eaedff]/50 px-2 py-0.5 rounded-full inline-block">
                                   Variant: {item.variant || 'Default'}
                                 </p>
                               </div>
-                              <span className="font-bold text-lg text-[#004ac6] whitespace-nowrap">{item.price?.toLocaleString()}₫</span>
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-lg text-primary whitespace-nowrap">{item.price?.toLocaleString()}₫</span>
+                                {item.mrpPrice > item.price && (
+                                  <span className="text-xs text-[#737686] line-through whitespace-nowrap">{item.mrpPrice?.toLocaleString()}₫</span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Quantity, Note & Delete Actions */}
@@ -534,7 +539,7 @@ const Cart = () => {
                                       e.target.blur();
                                     }
                                   }}
-                                  className="w-full bg-[#f2f3ff]/50 border border-[#c3c6d7] rounded-lg text-xs px-4 py-2 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e] text-left"
+                                  className="w-full bg-[#f2f3ff]/50 border border-[#c3c6d7] rounded-lg text-xs px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-[#131b2e] text-left"
                                 />
                               </div>
 
@@ -570,7 +575,7 @@ const Cart = () => {
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="w-10 h-10 rounded-xl border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-[#004ac6] hover:border-[#004ac6] flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#505f76] disabled:hover:border-[#c3c6d7] disabled:cursor-not-allowed cursor-pointer"
+                        className="w-10 h-10 rounded-xl border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-primary hover:border-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#505f76] disabled:hover:border-[#c3c6d7] disabled:cursor-not-allowed cursor-pointer"
                         title="Previous Page"
                       >
                         <span className="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -583,8 +588,8 @@ const Cart = () => {
                           onClick={() => setCurrentPage(page)}
                           className={`w-10 h-10 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center justify-center ${
                             currentPage === page
-                              ? 'bg-[#004ac6] text-white shadow-md shadow-[#004ac6]/20'
-                              : 'border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-[#004ac6] hover:border-[#004ac6]'
+                              ? 'bg-primary text-white shadow-md shadow-primary/20'
+                              : 'border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-primary hover:border-primary'
                           }`}
                         >
                           {page}
@@ -595,7 +600,7 @@ const Cart = () => {
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="w-10 h-10 rounded-xl border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-[#004ac6] hover:border-[#004ac6] flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#505f76] disabled:hover:border-[#c3c6d7] disabled:cursor-not-allowed cursor-pointer"
+                        className="w-10 h-10 rounded-xl border border-[#c3c6d7] text-[#505f76] hover:bg-[#f2f3ff] hover:text-primary hover:border-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#505f76] disabled:hover:border-[#c3c6d7] disabled:cursor-not-allowed cursor-pointer"
                         title="Next Page"
                       >
                         <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -628,7 +633,7 @@ const Cart = () => {
                               {item.variant && item.variant !== 'Standard' ? `${item.variant} | ` : ''}Qty: {item.quantity}
                             </p>
                           </div>
-                          <span className="font-bold text-xs text-[#004ac6] flex-shrink-0">
+                          <span className="font-bold text-xs text-primary flex-shrink-0">
                             {(item.price * item.quantity).toLocaleString()}₫
                           </span>
                         </div>
@@ -647,7 +652,7 @@ const Cart = () => {
                     </div>
                     <div className="flex justify-between text-sm text-[#505f76]">
                       <span>Shipping Fee</span>
-                      <span className="text-[#004ac6] font-bold">Free</span>
+                      <span className="text-primary font-bold">Free</span>
                     </div>
                     {discount > 0 && (
                       <div className="flex justify-between text-sm text-[#ba1a1a]">
@@ -660,7 +665,7 @@ const Cart = () => {
                     
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-lg text-[#131b2e]">Total</span>
-                      <span className="font-extrabold text-2xl text-[#004ac6]">{total.toLocaleString()}₫</span>
+                      <span className="font-extrabold text-2xl text-primary">{total.toLocaleString()}₫</span>
                     </div>
                     <p className="text-[10px] text-[#737686] text-right italic">(VAT included if applicable)</p>
                   </div>
@@ -673,12 +678,12 @@ const Cart = () => {
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         disabled={couponApplied}
-                        className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none text-[#131b2e] disabled:opacity-50 text-left py-2"
+                        className="flex-grow bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg text-xs px-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-[#131b2e] disabled:opacity-50 text-left py-2"
                       />
                       <button 
                         onClick={handleApplyCoupon}
                         disabled={couponApplied}
-                        className="bg-[#eaedff] text-[#004ac6] hover:bg-[#004ac6] hover:text-white disabled:bg-emerald-100 disabled:text-emerald-700 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:cursor-not-allowed cursor-pointer"
+                        className="bg-[#eaedff] text-primary hover:bg-primary hover:text-white disabled:bg-emerald-100 disabled:text-emerald-700 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:cursor-not-allowed cursor-pointer"
                       >
                         {couponApplied ? 'Applied' : 'Apply'}
                       </button>
@@ -692,7 +697,7 @@ const Cart = () => {
                         }
                         navigate('/checkout', { state: { selectedItemIds: Array.from(selectedItemIds) } });
                       }}
-                      className="w-full bg-[#004ac6] text-white py-4 rounded-xl font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer"
+                      className="w-full bg-primary text-white py-4 rounded-xl font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-sm">lock</span>
                       Proceed to Checkout
@@ -700,7 +705,7 @@ const Cart = () => {
                   </div>
 
                   <div className="bg-[#f2f3ff] p-4 rounded-xl flex items-start gap-3 border border-[#c3c6d7]/10">
-                    <span className="material-symbols-outlined text-[#004ac6]">verified_user</span>
+                    <span className="material-symbols-outlined text-primary">verified_user</span>
                     <div>
                       <p className="text-xs font-bold text-[#131b2e]">UTEShop Commitments</p>
                       <p className="text-[11px] text-[#505f76] leading-relaxed mt-1">100% genuine products, official warranty, and flexible 7-day return policy.</p>
@@ -708,7 +713,7 @@ const Cart = () => {
                   </div>
 
                   <div className="text-center">
-                    <Link to="/search" className="text-xs font-bold text-[#004ac6] hover:underline inline-flex items-center gap-1 justify-center">
+                    <Link to="/search" className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1 justify-center">
                       <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                       Continue Shopping
                     </Link>
@@ -733,7 +738,7 @@ const Cart = () => {
                 type="checkbox"
                 checked={isAllSelected}
                 onChange={handleSelectAll}
-                className="w-5 h-5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6] cursor-pointer"
+                className="w-5 h-5 rounded border-[#c3c6d7] text-primary focus:ring-primary cursor-pointer"
               />
               <span className="text-sm font-semibold text-[#131b2e]">Select All ({cartItems.length})</span>
               <button 
@@ -749,7 +754,7 @@ const Cart = () => {
               <div className="flex flex-col items-end">
                 <div className="flex items-baseline gap-2">
                   <span className="text-sm font-semibold text-[#505f76]">Total Payment:</span>
-                  <span className="text-xl md:text-2xl font-extrabold text-[#004ac6]">{total.toLocaleString()}₫</span>
+                  <span className="text-xl md:text-2xl font-extrabold text-primary">{total.toLocaleString()}₫</span>
                 </div>
                 {discount > 0 && (
                   <span className="text-xs font-semibold text-emerald-600">Saved {discount.toLocaleString()}₫</span>
@@ -764,7 +769,7 @@ const Cart = () => {
                   }
                   navigate('/checkout', { state: { selectedItemIds: Array.from(selectedItemIds) } });
                 }}
-                className="bg-[#004ac6] text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-bold text-base shadow-md active:scale-95 hover:opacity-90 transition-all cursor-pointer"
+                className="bg-primary text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-bold text-base shadow-md active:scale-95 hover:opacity-90 transition-all cursor-pointer"
               >
                 Checkout
               </button>

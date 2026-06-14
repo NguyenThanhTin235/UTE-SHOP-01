@@ -113,7 +113,7 @@ const Login = () => {
       <div className="w-full max-w-[440px] my-auto py-8">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="font-['Manrope'] text-3xl font-bold text-[#004ac6] tracking-tighter">UTEShop</Link>
+          <Link to="/" className="font-sans text-3xl font-bold text-primary tracking-tighter">UTEShop</Link>
         </div>
 
         {/* Login Card */}
@@ -135,7 +135,7 @@ const Login = () => {
                       key={index}
                       ref={inputRefs[index]}
                       type="text"
-                      className="w-12 h-14 text-center font-bold text-xl border border-[#c3c6d7] rounded-xl bg-white focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 outline-none transition-all text-[#131b2e]"
+                      className="w-12 h-14 text-center font-bold text-xl border border-[#c3c6d7] rounded-xl bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-[#131b2e]"
                       value={digit}
                       maxLength={1}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -148,7 +148,7 @@ const Login = () => {
 
               <div className="pt-2 flex flex-col gap-2">
                 <button
-                  className="w-full py-3 px-4 bg-[#004ac6] text-white font-bold text-xl rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
+                  className="w-full py-3 px-4 bg-primary text-white font-bold text-xl rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
                   type="submit"
                   disabled={isLoading}
                 >
@@ -186,7 +186,7 @@ const Login = () => {
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#434655] text-[20px]">mail</span>
                   <input
-                    className="w-full pl-11 pr-4 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-base text-[#131b2e]"
+                    className="w-full pl-11 pr-4 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-base text-[#131b2e]"
                     id="email"
                     name="email"
                     placeholder="name@example.com"
@@ -202,12 +202,12 @@ const Login = () => {
               <div className="space-y-1">
                 <div className="flex justify-between items-center px-1">
                   <label className="text-xs font-medium text-[#434655]" htmlFor="password">Password</label>
-                  <Link className="text-xs font-medium text-[#004ac6] hover:underline transition-all" to="/forgot-password">Forgot Password?</Link>
+                  <Link className="text-xs font-medium text-primary hover:underline transition-all" to="/forgot-password">Forgot Password?</Link>
                 </div>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#434655] text-[20px]">lock</span>
                   <input
-                    className="w-full pl-11 pr-11 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-[#004ac6] focus:ring-2 focus:ring-[#004ac6]/20 transition-all outline-none text-base text-[#131b2e]"
+                    className="w-full pl-11 pr-11 py-3 bg-[#faf8ff] rounded-lg border border-[#c3c6d7] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-base text-[#131b2e]"
                     id="password"
                     name="password"
                     placeholder="••••••••"
@@ -217,7 +217,7 @@ const Login = () => {
                     onChange={onChange}
                   />
                   <button
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#434655] hover:text-[#004ac6] transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#434655] hover:text-primary transition-colors"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -237,7 +237,7 @@ const Login = () => {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       id="rememberMe"
                     />
-                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${rememberMe ? 'bg-[#004ac6] border-[#004ac6]' : 'border-[#c3c6d7] bg-white group-hover:border-[#004ac6]'
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${rememberMe ? 'bg-primary border-primary' : 'border-[#c3c6d7] bg-white group-hover:border-primary'
                       }`}>
                       {rememberMe && (
                         <span className="material-symbols-outlined text-white text-[12px] font-black">check</span>
@@ -251,7 +251,7 @@ const Login = () => {
               {/* Primary Action */}
               <div className="pt-2">
                 <button
-                  className="w-full py-3 px-4 bg-[#004ac6] text-white font-bold text-xl rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
+                  className="w-full py-3 px-4 bg-primary text-white font-bold text-xl rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
                   type="submit"
                   disabled={isLoading}
                 >
@@ -286,7 +286,7 @@ const Login = () => {
             {/* Secondary Option */}
             <div className="mt-8 text-center">
               <p className="text-sm text-[#434655]">
-                Don't have an account? <Link className="text-[#004ac6] font-bold hover:underline ml-1" to="/register">Sign up</Link>
+                Don't have an account? <Link className="text-primary font-bold hover:underline ml-1" to="/register">Sign up</Link>
               </p>
             </div>
           </div>

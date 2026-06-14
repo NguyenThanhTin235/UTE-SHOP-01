@@ -105,25 +105,25 @@ const Notifications = () => {
     if (!item) {
       return {
         icon: 'notifications',
-        classes: 'bg-blue-50 text-[#004ac6] border border-blue-100',
-        iconClass: 'bg-blue-50 text-[#004ac6] border border-blue-100',
+        classes: 'bg-blue-50 text-primary border border-blue-100',
+        iconClass: 'bg-blue-50 text-primary border border-blue-100',
         cardClass: isSelected 
-          ? 'bg-[#eaedff] border-l-4 border-l-[#004ac6]' 
+          ? 'bg-[#eaedff] border-l-4 border-l-primary' 
           : !item?.is_read 
-            ? 'bg-[#f0f4ff] border-l-4 border-l-[#004ac6] hover:bg-[#004ac6]/5' 
+            ? 'bg-[#f0f4ff] border-l-4 border-l-primary hover:bg-primary/5' 
             : 'bg-white hover:bg-[#f7f9ff] border-l-4 border-l-transparent',
-        badgeClass: 'bg-[#004ac6]/10 text-[#004ac6] border border-blue-100/30',
+        badgeClass: 'bg-primary/10 text-primary border border-blue-100/30',
         detailBg: 'bg-[#f7f9ff]',
         titleClass: 'text-[#131b2e] font-bold',
-        dateClass: 'text-[#004ac6]'
+        dateClass: 'text-primary'
       };
     }
     
     let icon = 'notifications';
-    let iconClass = 'bg-blue-50 text-[#004ac6] border border-blue-100';
-    let badgeClass = 'bg-[#004ac6]/10 text-[#004ac6] border border-blue-100/30';
+    let iconClass = 'bg-blue-50 text-primary border border-blue-100';
+    let badgeClass = 'bg-primary/10 text-primary border border-blue-100/30';
     let detailBg = 'bg-[#f7f9ff]';
-    let dateClass = 'text-[#004ac6]';
+    let dateClass = 'text-primary';
     
     // Status color configurations
     let theme = {
@@ -131,8 +131,8 @@ const Notifications = () => {
       unreadBg: 'bg-blue-50/70',
       selectedBg: 'bg-blue-100/80',
       hoverBg: 'hover:bg-blue-50/30',
-      borderLeft: 'border-l-[#004ac6]',
-      text: 'text-[#004ac6]'
+      borderLeft: 'border-l-primary',
+      text: 'text-primary'
     };
 
     if (item.type === 'order') {
@@ -261,16 +261,16 @@ const Notifications = () => {
       // Default Order
       else {
         icon = 'package_2';
-        iconClass = 'bg-blue-50 text-[#004ac6] border border-blue-100';
+        iconClass = 'bg-blue-50 text-primary border border-blue-100';
         badgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
         detailBg = 'bg-blue-50/20';
-        dateClass = 'text-[#004ac6]';
+        dateClass = 'text-primary';
         theme = {
           unreadBg: 'bg-blue-50/40',
           selectedBg: 'bg-blue-100/60',
           hoverBg: 'hover:bg-blue-50/25',
-          borderLeft: 'border-l-[#004ac6]',
-          text: 'text-[#004ac6]'
+          borderLeft: 'border-l-primary',
+          text: 'text-primary'
         };
       }
     } else if (item.type === 'promotion') {
@@ -360,7 +360,7 @@ const Notifications = () => {
   };
 
   return (
-    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-['Manrope']">
+    <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
       <Header />
 
       <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col justify-center overflow-hidden">
@@ -373,7 +373,7 @@ const Notifications = () => {
           {notifications.length > 0 && (
             <button 
               onClick={handleClearAll}
-              className="self-start sm:self-auto px-6 py-2.5 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-bold hover:bg-[#f2f3ff] hover:text-[#004ac6] transition-all shadow-sm flex items-center gap-2"
+              className="self-start sm:self-auto px-6 py-2.5 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-bold hover:bg-[#f2f3ff] hover:text-primary transition-all shadow-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">delete</span>
               Clear all
@@ -383,13 +383,13 @@ const Notifications = () => {
 
         {loading ? (
           <div className="flex justify-center items-center py-32">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : notifications.length === 0 ? (
           /* Empty State */
           <div className="bg-white rounded-3xl p-12 md:p-16 border border-[#c3c6d7]/30 shadow-sm text-center max-w-2xl mx-auto my-8 space-y-6">
-            <div className="w-24 h-24 bg-[#004ac6]/10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="material-symbols-outlined text-[#004ac6] text-[48px]">notifications_off</span>
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="material-symbols-outlined text-primary text-[48px]">notifications_off</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#131b2e]">No new notifications</h2>
             <p className="text-[#434655] text-base leading-relaxed max-w-md mx-auto">
@@ -398,7 +398,7 @@ const Notifications = () => {
             <div className="pt-4">
               <Link 
                 to="/search" 
-                className="inline-flex items-center gap-2 bg-[#004ac6] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-[#004ac6]/20 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
               >
                 <span className="material-symbols-outlined">explore</span>
                 Explore Store
@@ -416,28 +416,28 @@ const Notifications = () => {
                 <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
                   <button 
                     onClick={() => setSelectedCategory('All')} 
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'All' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'All' ? 'bg-primary/10 text-primary font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
                   >
                     <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">all_inclusive</span>
                     <span>All Notifications</span>
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('Orders')} 
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'Orders' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'Orders' ? 'bg-primary/10 text-primary font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
                   >
                     <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">package_2</span>
                     <span>Orders</span>
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('Promotions')} 
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'Promotions' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'Promotions' ? 'bg-primary/10 text-primary font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
                   >
                     <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">sell</span>
                     <span>Promotions</span>
                   </button>
                   <button 
                     onClick={() => setSelectedCategory('System')} 
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'System' ? 'bg-[#004ac6]/10 text-[#004ac6] font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group shrink-0 lg:shrink ${selectedCategory === 'System' ? 'bg-primary/10 text-primary font-bold' : 'text-[#434655] font-medium hover:bg-[#f7f9ff]'}`}
                   >
                     <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">settings_suggest</span>
                     <span>System</span>
@@ -447,7 +447,7 @@ const Notifications = () => {
               <div className="mt-auto p-6 border-t border-[#c3c6d7] hidden lg:block">
                 <button 
                   onClick={handleMarkAllAsRead} 
-                  className="text-[#004ac6] text-sm font-bold flex items-center gap-2 hover:underline"
+                  className="text-primary text-sm font-bold flex items-center gap-2 hover:underline"
                 >
                   <span className="material-symbols-outlined text-[18px]">done_all</span>
                   Mark all as read
@@ -546,7 +546,7 @@ const Notifications = () => {
                           <div>
                             <p className="text-sm font-bold text-[#131b2e]">{selectedNotification.orderSummary.name}</p>
                             <p className="text-xs text-[#434655] mt-0.5">{selectedNotification.orderSummary.variant}</p>
-                            <p className="text-xs font-bold text-[#004ac6] mt-1">Qty: {selectedNotification.orderSummary.qty}</p>
+                            <p className="text-xs font-bold text-primary mt-1">Qty: {selectedNotification.orderSummary.qty}</p>
                           </div>
                         </div>
                       </div>

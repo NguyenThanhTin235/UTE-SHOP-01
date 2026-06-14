@@ -17,6 +17,7 @@ const SellerProfile = require('../src/models/SellerProfile');
 const Shop = require('../src/models/Shop');
 const SellerWallet = require('../src/models/SellerWallet');
 const SellerWalletTransaction = require('../src/models/SellerWalletTransaction');
+const SellerBankAccount = require('../src/models/SellerBankAccount');
 const Category = require('../src/models/Category');
 const Product = require('../src/models/Product');
 const ProductVariant = require('../src/models/ProductVariant');
@@ -171,8 +172,8 @@ const seedFashionData = async () => {
     const hashedPassword = await bcrypt.hash('password123', 10);
 
     console.log('🧹 Clearing product-related and transactional collections...');
-    const modelsToClear = [
-      Shop, SellerWallet, SellerWalletTransaction, Category, Product, ProductVariant, ProductMedia, ProductApproval,
+     const modelsToClear = [
+      Shop, SellerWallet, SellerWalletTransaction, SellerBankAccount, Category, Product, ProductVariant, ProductMedia, ProductApproval,
       Campaign, CampaignTarget, Coupon, CouponRedemption, PaymentOrder, Payment, Order, OrderItem,
       OrderStatusHistory, OrderCancellation, Cart, CartItem, Wishlist, ShippingPartner, ProductReview, ProductReviewMedia,
       ShopReview, ShippingReview, Conversation, Message, ChatbotSession, ChatbotMessage, Notification,
@@ -205,10 +206,10 @@ const seedFashionData = async () => {
       permissions.push(p);
     }
 
-    const adminRole = await Role.findOne({ name: 'ADMIN' }) || await Role.create({ name: 'ADMIN', description: 'Quản trị viên tối cao' });
-    const managerRole = await Role.findOne({ name: 'MANAGER' }) || await Role.create({ name: 'MANAGER', description: 'Quản lý vận hành' });
-    const sellerRole = await Role.findOne({ name: 'SELLER' }) || await Role.create({ name: 'SELLER', description: 'Đối tác bán hàng' });
-    const customerRole = await Role.findOne({ name: 'CUSTOMER' }) || await Role.create({ name: 'CUSTOMER', description: 'Khách hàng mua sắm' });
+    const adminRole = await Role.findOne({ name: 'ADMIN' }) || await Role.create({ name: 'ADMIN', description: 'Platform Admin / Root access to all system configurations and security.' });
+    const managerRole = await Role.findOne({ name: 'MANAGER' }) || await Role.create({ name: 'MANAGER', description: 'Operational management, moderation, and support oversight.' });
+    const sellerRole = await Role.findOne({ name: 'SELLER' }) || await Role.create({ name: 'SELLER', description: 'Merchant access to store management, products, and wallet.' });
+    const customerRole = await Role.findOne({ name: 'CUSTOMER' }) || await Role.create({ name: 'CUSTOMER', description: 'Standard consumer access to browse, buy, and review.' });
 
     // Link permissions
     await RolePermission.deleteMany({});
@@ -722,6 +723,7 @@ const seedFashionData = async () => {
     const allShops = [fashionShop, sneakerShop, sportsShop, kidsShop, unisexShop];
     const bulkOrderItems = [];
     let orderCodeCounter = 3;
+    const orderCustomerMap = {};
 
     const productsByShop = {};
     for (const item of allProducts) {
@@ -778,6 +780,8 @@ const seedFashionData = async () => {
         coin_earned: Math.round(subtotal * 0.01)
       });
 
+      orderCustomerMap[bulkOrder._id.toString()] = randomCustomer._id;
+
       for (const sp of selectedProducts) {
         const qty = Math.floor(Math.random() * 5) + 1;
         bulkOrderItems.push({
@@ -792,8 +796,9 @@ const seedFashionData = async () => {
       orderCodeCounter++;
     }
 
+    let createdOrderItems = [];
     if (bulkOrderItems.length > 0) {
-      await OrderItem.insertMany(bulkOrderItems);
+      createdOrderItems = await OrderItem.insertMany(bulkOrderItems);
     }
     console.log(`✅ Created ${numBulkOrders} delivered orders with ${bulkOrderItems.length} order items`);
 
@@ -908,41 +913,26 @@ const seedFashionData = async () => {
         order_item_id: orderItem1._id,
         rating: 5,
         comment: 'Great quality, the fabric is so soft and the colors are vibrant!'
-      },
-      {
-        user_id: customers[1]._id,
-        product_id: p1._id,
-        rating: 4,
-        comment: 'Very pretty dress, but slightly longer than expected. Still love it!'
-      },
-      {
-        user_id: customers[0]._id,
-        product_id: p2._id,
-        rating: 5,
-        comment: 'Best sneakers I have ever owned. Super comfortable for walking.'
-      },
-      {
-        user_id: customers[1]._id,
-        product_id: p2._id,
-        rating: 5,
-        comment: 'Fast delivery and perfect fit. The design is very modern.'
       }
     ];
 
-    for (let i = 0; i < Math.min(allProducts.length, 100); i++) {
-      const prod = allProducts[i].product;
-      const numReviews = Math.floor(Math.random() * 3) + 1;
-      for (let j = 0; j < numReviews; j++) {
-        const randomCustomer = customers[Math.floor(Math.random() * customers.length)];
-        const template = reviewTemplates[Math.floor(Math.random() * reviewTemplates.length)];
-        dynamicReviews.push({
-          user_id: randomCustomer._id,
-          product_id: prod._id,
-          rating: template.rating,
-          comment: template.comment
-        });
+    // Create reviews dynamically from the generated bulk order items
+    createdOrderItems.forEach((item) => {
+      // 50% chance to write a review
+      if (Math.random() < 0.5) {
+        const customerId = orderCustomerMap[item.order_id.toString()];
+        if (customerId) {
+          const template = reviewTemplates[Math.floor(Math.random() * reviewTemplates.length)];
+          dynamicReviews.push({
+            user_id: customerId,
+            product_id: item.product_id,
+            order_item_id: item._id,
+            rating: template.rating,
+            comment: template.comment
+          });
+        }
       }
-    }
+    });
 
     const productReviews = await ProductReview.insertMany(dynamicReviews);
 

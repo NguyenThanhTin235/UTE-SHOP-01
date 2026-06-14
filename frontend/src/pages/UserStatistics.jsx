@@ -147,7 +147,7 @@ const UserStatistics = () => {
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#004ac6] flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
                 <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
@@ -158,43 +158,43 @@ const UserStatistics = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
-            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">local_mall</span>
               <span>Order History</span>
             </Link>
-            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">star</span>
               <span>My Reviews</span>
             </Link>
-            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/wishlist" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">favorite</span>
               <span>Wishlist</span>
             </Link>
-            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/recently-viewed" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">history</span>
               <span>Recently Viewed</span>
             </Link>
-            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/address-book" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">location_on</span>
               <span>Shipping Address</span>
             </Link>
-            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/coins" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">monetization_on</span>
               <span>My Coins</span>
             </Link>
-            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 transition-all">
+            <Link to="/user/statistics" className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">chat</span>
               <span>Messages</span>
             </Link>
-            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-[#004ac6] transition-all font-medium rounded-xl">
+            <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
@@ -205,7 +205,7 @@ const UserStatistics = () => {
         <section className="flex-1 w-full text-left">
           {loading ? (
             <div className="bg-white rounded-xl shadow-sm border border-[#c3c6d7]/30 p-8 flex items-center justify-center min-h-[400px]">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#004ac6]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -222,7 +222,7 @@ const UserStatistics = () => {
                       type="date" 
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="px-3 py-2 border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:border-[#004ac6]"
+                      className="px-3 py-2 border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div className="flex flex-col">
@@ -231,12 +231,12 @@ const UserStatistics = () => {
                       type="date" 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="px-3 py-2 border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:border-[#004ac6]"
+                      className="px-3 py-2 border border-[#c3c6d7] rounded-lg text-sm text-[#131b2e] focus:outline-none focus:border-primary"
                     />
                   </div>
                   <button 
                     onClick={fetchStatistics}
-                    className="self-end px-4 py-2 bg-[#004ac6] text-white rounded-lg text-sm font-bold hover:bg-[#003899] transition-colors"
+                    className="self-end px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-[#003899] transition-colors"
                   >
                     Filter
                   </button>
@@ -258,7 +258,7 @@ const UserStatistics = () => {
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-[#c3c6d7]/30">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-[#004ac6]">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-primary">
                       <span className="material-symbols-outlined">monetization_on</span>
                     </div>
                     <span className="text-sm font-bold text-[#434655] uppercase">My Coins</span>
@@ -307,7 +307,7 @@ const UserStatistics = () => {
                     <div className="space-y-4">
                       {statsData.data.topProducts?.map((product, index) => (
                         <div key={product._id} className="flex items-center gap-3">
-                          <div className="w-6 h-6 flex-shrink-0 bg-[#f2f3ff] text-[#004ac6] font-bold text-xs flex items-center justify-center rounded">
+                          <div className="w-6 h-6 flex-shrink-0 bg-[#f2f3ff] text-primary font-bold text-xs flex items-center justify-center rounded">
                             {index + 1}
                           </div>
                           <img src={product.media_url} alt={product.name} className="w-10 h-10 rounded object-cover flex-shrink-0 bg-slate-100" />
@@ -346,7 +346,7 @@ const UserStatistics = () => {
                       ) : (
                         statsData.data.recentOrders?.map(order => (
                           <tr key={order._id} className="hover:bg-[#f7f9ff] transition-colors">
-                            <td className="px-6 py-4 text-sm font-bold text-[#004ac6]">{order.order_code}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-primary">{order.order_code}</td>
                             <td className="px-6 py-4 text-sm text-[#131b2e]">{order.shop_name}</td>
                             <td className="px-6 py-4 text-sm text-[#434655]">{new Date(order.createdAt).toLocaleDateString()}</td>
                             <td className="px-6 py-4 text-sm font-bold text-[#131b2e]">{formatCurrency(order.total_final)}</td>
