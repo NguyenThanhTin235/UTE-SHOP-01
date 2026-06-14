@@ -577,6 +577,7 @@ class CheckoutController {
           order_code: orderCode,
           payment_order_id: paymentOrder._id,
           customer_id: userId,
+          shipping_address_id: addressId,
           shop_id: s.shopId === 'default' ? new mongoose.Types.ObjectId() : s.shopId,
           status: 'pending',
           subtotal_amount: s.subtotal,

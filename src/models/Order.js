@@ -5,9 +5,11 @@ const orderSchema = new mongoose.Schema({
   payment_order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PaymentOrder', required: true },
   customer_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   shop_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop', required: true },
+  shipper_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  shipping_address_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Address' },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipped', 'delivered', 'canceled', 'disputed', 'refunded', 'cancel_pending'],
+    enum: ['pending', 'confirmed', 'shipped', 'delivered', 'failed', 'canceled', 'disputed', 'refunded', 'cancel_pending'],
     default: 'pending'
   },
   subtotal_amount: { type: Number, required: true },
