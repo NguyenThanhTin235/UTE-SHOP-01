@@ -39,6 +39,15 @@ const upload = multer({ storage: storage });
 const uploadProduct = multer({ storage: productStorage });
 const uploadReview = multer({ storage: reviewStorage });
 
-module.exports = { cloudinary, upload, uploadProduct, uploadReview };
+const proofStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uteshop/proofs',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }],
+  },
+});
 
+const uploadProof = multer({ storage: proofStorage });
 
+module.exports = { cloudinary, upload, uploadProduct, uploadReview, uploadProof };

@@ -24,6 +24,7 @@ import DashboardProfile from './pages/DashboardProfile';
 import DashboardSecurity from './pages/DashboardSecurity';
 import DashboardBankAccounts from './pages/DashboardBankAccounts';
 import UserStatistics from './pages/UserStatistics';
+import ShipperDashboard from './pages/ShipperDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
@@ -83,6 +84,8 @@ const RoleBasedRedirect = ({ user }) => {
         window.location.href = '/manager/';
       } else if (user.role === 'seller' || user.role === 'vendor') {
         window.location.href = '/seller/';
+      } else if (user.role === 'shipper') {
+        window.location.href = '/shipper/';
       } else {
         window.location.href = '/';
       }
@@ -159,6 +162,10 @@ function App() {
         <Route path="/seller/security" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardSecurity /></ProtectedRoute>} />
         <Route path="/seller/bank-accounts" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardBankAccounts /></ProtectedRoute>} />
         <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
+
+        <Route path="/shipper/profile" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardProfile /></ProtectedRoute>} />
+        <Route path="/shipper/security" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardSecurity /></ProtectedRoute>} />
+        <Route path="/shipper/*" element={<ProtectedRoute allowedRoles={['shipper']}><ShipperDashboard /></ProtectedRoute>} />
 
         <Route path="/" element={<Home />} />
       </Routes>
