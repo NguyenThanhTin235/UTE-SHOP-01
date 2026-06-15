@@ -41,6 +41,7 @@ app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/manager', require('./routes/managerRoutes'));
 app.use('/api/shipper', require('./routes/shipperRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/support', require('./routes/supportRoutes'));
 
 
 // Global Error Handler

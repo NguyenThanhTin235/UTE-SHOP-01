@@ -36,6 +36,8 @@ import RecentlyViewed from './pages/RecentlyViewed';
 import Promotions from './pages/Promotions';
 import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
+import Support from './pages/Support';
+import PolicyDetail from './pages/PolicyDetail';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -148,6 +150,8 @@ function App() {
         <Route path="/promotions" element={<Promotions />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogDetail />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/support/policy/:slug" element={<PolicyDetail />} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />
