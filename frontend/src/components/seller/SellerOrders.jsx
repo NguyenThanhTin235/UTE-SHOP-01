@@ -11,12 +11,14 @@ const SellerOrders = ({ onViewDetails }) => {
     const { unreadCount } = useNotifications();
     const [orders, setOrders] = useState([]);
     const [summary, setSummary] = useState({
-        'All Orders': 0,
-        'Pending': 0,
-        'To Process': 0,
-        'Shipping': 0,
-        'Completed': 0,
-        'Return/Refund': 0
+        'Tất cả': 0,
+        'Chờ xác nhận': 0,
+        'Đã xác nhận': 0,
+        'Đang chuẩn bị hàng': 0,
+        'Đang vận chuyển': 0,
+        'Đã hoàn thành': 0,
+        'Đã hủy': 0,
+        'Hoàn tiền': 0
     });
     const [searchParams, setSearchParams] = useSearchParams();
     const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
@@ -68,7 +70,7 @@ const SellerOrders = ({ onViewDetails }) => {
     const [tempDateFrom, setTempDateFrom] = useState('');
     const [tempDateTo, setTempDateTo] = useState('');
 
-    const tabs = ['All Orders', 'Pending', 'To Process', 'Shipping', 'Completed', 'Return/Refund'];
+    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Shipped', 'Delivered', 'Cancellation Requested', 'Cancelled', 'Refunded'];
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -181,7 +183,16 @@ const SellerOrders = ({ onViewDetails }) => {
                     <button onClick={() => handleStatusUpdate(order._id, 'canceled')} className="p-2.5 border border-error/20 text-error rounded-xl hover:bg-error/5 transition-all group relative" title="Cancel Order">
                         <span className="material-symbols-outlined text-[20px]">cancel</span>
                     </button>
-                    <button onClick={() => handleStatusUpdate(order._id, 'shipped')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Prepare Goods & Ship">
+                    <button onClick={() => handleStatusUpdate(order._id, 'preparing')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Prepare Order">
+                        <span className="material-symbols-outlined text-[20px]">inventory_2</span>
+                    </button>
+                </div>
+            );
+        }
+        if (order.status === 'preparing') {
+            return (
+                <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => handleStatusUpdate(order._id, 'shipped')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Hand over to Shipper">
                         <span className="material-symbols-outlined text-[20px]">package_2</span>
                     </button>
                     <button className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="Print Waybill">
@@ -207,9 +218,9 @@ const SellerOrders = ({ onViewDetails }) => {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2">
-                        <span className="px-3 py-1.5 bg-surface-container-high text-secondary rounded-lg text-[10px] font-black uppercase tracking-wider border border-outline-variant/30 shadow-sm inline-block">Pending Confirm</span>
+                        <span className="px-3 py-1.5 bg-surface-container-high text-secondary rounded-lg text-[10px] font-black uppercase tracking-wider border border-outline-variant/30 shadow-sm inline-block">Pending</span>
                     </div>
-                    <span className="text-xs font-bold text-secondary/50">— Waiting for seller —</span>
+                    <span className="text-xs font-bold text-secondary/50">— Awaiting Seller —</span>
                 </div>
             );
         }
@@ -217,11 +228,24 @@ const SellerOrders = ({ onViewDetails }) => {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2 text-warning">
-                        <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">To Process</span>
+                        <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">Confirmed</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-secondary">
+                        <span className="material-symbols-outlined text-[14px]">checklist</span>
+                        To Process
+                    </div>
+                </div>
+            );
+        }
+        if (order.status === 'preparing') {
+            return (
+                <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center justify-center gap-2 text-warning">
+                        <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">Preparing</span>
                     </div>
                     <div className="flex items-center justify-center gap-1 text-xs font-bold text-secondary">
                         <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                        Preparing Goods
+                        Packing
                     </div>
                 </div>
             );
@@ -230,12 +254,12 @@ const SellerOrders = ({ onViewDetails }) => {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2 text-primary">
-                        <span className="px-3 py-1.5 bg-[#e0f2fe] text-[#0369a1] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#0369a1]/10 shadow-sm inline-block animate-pulse">In Transit</span>
+                        <span className="px-3 py-1.5 bg-[#e0f2fe] text-[#0369a1] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#0369a1]/10 shadow-sm inline-block animate-pulse">Shipped</span>
                     </div>
                     <div className="flex flex-col items-center text-xs font-bold text-secondary">
                         <span className="flex items-center justify-center gap-1">
                             <span className="material-symbols-outlined text-[14px]">local_shipping</span>
-                            Shipping Partner
+                            Logistics Provider
                         </span>
                     </div>
                 </div>
@@ -247,7 +271,7 @@ const SellerOrders = ({ onViewDetails }) => {
                     <div className="flex items-center justify-center gap-2 text-success">
                         <span className="px-3 py-1.5 bg-[#e6f4ea] text-[#1e7e34] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#1e7e34]/10 shadow-sm inline-block">Delivered</span>
                     </div>
-                    <span className="text-xs font-bold text-secondary text-center">Successfully received</span>
+                    <span className="text-xs font-bold text-secondary text-center">Received</span>
                 </div>
             );
         }
@@ -255,7 +279,7 @@ const SellerOrders = ({ onViewDetails }) => {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2 text-error">
-                        <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Canceled</span>
+                        <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Cancelled</span>
                     </div>
                 </div>
             );

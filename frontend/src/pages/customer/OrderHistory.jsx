@@ -114,12 +114,13 @@ const OrderHistory = () => {
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
 
   const tabs = [
-    { key: 'all', label: 'All' },
+    { key: 'all', label: 'All Orders' },
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
+    { key: 'preparing', label: 'Preparing' },
     { key: 'shipped', label: 'Shipped' },
     { key: 'delivered', label: 'Delivered' },
-    { key: 'cancel_pending', label: 'Cancel Pending' },
+    { key: 'cancel_pending', label: 'Cancellation Requested' },
     { key: 'canceled', label: 'Cancelled' },
     { key: 'refunded', label: 'Refunded' }
   ];
@@ -130,6 +131,8 @@ const OrderHistory = () => {
         return { text: 'Pending', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: 'pending_actions' };
       case 'confirmed':
         return { text: 'Confirmed', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: 'verified' };
+      case 'preparing':
+        return { text: 'Preparing', color: 'text-orange-500 bg-orange-500/10 border-orange-500/20', icon: 'inventory_2' };
       case 'shipped':
         return { text: 'Shipped', color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20', icon: 'local_shipping' };
       case 'delivered':
@@ -137,7 +140,7 @@ const OrderHistory = () => {
       case 'canceled':
         return { text: 'Cancelled', color: 'text-rose-500 bg-rose-500/10 border-rose-500/20', icon: 'cancel' };
       case 'cancel_pending':
-        return { text: 'Cancel Pending', color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: 'hourglass_empty' };
+        return { text: 'Cancellation Requested', color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: 'hourglass_empty' };
       case 'refunded':
         return { text: 'Refunded', color: 'text-purple-600 bg-purple-500/10 border-purple-500/20', icon: 'settings_backup_restore' };
       default:

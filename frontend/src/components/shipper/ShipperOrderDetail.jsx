@@ -122,9 +122,9 @@ const ShipperOrderDetail = () => {
   };
 
   // Build Timeline steps
-  const defaultSteps = ['pending', 'confirmed', 'shipped', 'delivered'];
+  const defaultSteps = ['pending', 'confirmed', 'preparing', 'shipped', 'delivered'];
   let steps = [...defaultSteps];
-  if (order.status === 'failed') steps[3] = 'failed';
+  if (order.status === 'failed') steps[4] = 'failed';
   if (order.status === 'canceled') steps = ['pending', 'canceled'];
 
   const getStepStatus = (stepName) => {
@@ -154,7 +154,9 @@ const ShipperOrderDetail = () => {
                 order.status === 'shipped' ? 'bg-blue-100 text-[#004ac6]' :
                 'bg-slate-100 text-slate-700'
               }`}>
-                {order.status}
+                {order.status === 'shipped' ? 'Shipped' :
+                 order.status === 'delivered' ? 'Delivered' :
+                 order.status === 'failed' ? 'Failed' : order.status}
               </span>
             </h2>
             <p className="text-sm font-medium text-slate-500 mt-1">Placed on {formatDate(order.createdAt)}</p>
@@ -220,12 +222,13 @@ const ShipperOrderDetail = () => {
                   }
 
                   const labels = {
-                    pending: 'Order Placed',
-                    confirmed: 'Order Confirmed',
-                    shipped: 'Handed to Shipper (In Transit)',
-                    delivered: 'Successfully Delivered',
-                    failed: 'Delivery Failed',
-                    canceled: 'Order Canceled'
+                    pending: 'Pending',
+                    confirmed: 'Confirmed',
+                    preparing: 'Preparing',
+                    shipped: 'Shipped',
+                    delivered: 'Delivered',
+                    failed: 'Failed',
+                    canceled: 'Cancelled'
                   };
 
                   return (
@@ -427,9 +430,9 @@ const ShipperOrderDetail = () => {
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
             <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
               {modalConfig.status === 'delivered' ? (
-                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Mark as Delivered</>
+                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Xác nhận đã giao</>
               ) : (
-                <><span className="material-symbols-outlined text-red-500">cancel</span> Mark as Failed</>
+                <><span className="material-symbols-outlined text-red-500">cancel</span> Xác nhận thất bại</>
               )}
             </h3>
             
@@ -496,7 +499,7 @@ const ShipperOrderDetail = () => {
                 disabled={isSubmitting}
                 className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                Cancel
+                Hủy
               </button>
               <button 
                 onClick={submitStatusUpdate}
@@ -506,9 +509,9 @@ const ShipperOrderDetail = () => {
                 } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSubmitting ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Submitting...</>
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Đang xử lý...</>
                 ) : (
-                  <>Confirm Update</>
+                  <>Xác nhận</>
                 )}
               </button>
             </div>

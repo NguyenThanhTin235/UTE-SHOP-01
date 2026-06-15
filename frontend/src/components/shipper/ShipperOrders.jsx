@@ -101,7 +101,7 @@ const ShipperOrders = () => {
                 currentFilter === status ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              {status === 'shipped' ? 'In Transit' : status}
+              {status === 'all' ? 'All' : status === 'shipped' ? 'Shipped' : status === 'delivered' ? 'Delivered' : 'Failed'}
             </button>
           ))}
         </div>
@@ -182,7 +182,9 @@ const ShipperOrders = () => {
                         order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
                         'bg-slate-100 text-slate-700'
                       }`}>
-                        {order.status}
+                        {order.status === 'shipped' ? 'Shipped' :
+                         order.status === 'delivered' ? 'Delivered' :
+                         order.status === 'failed' ? 'Failed' : order.status}
                       </span>
                     </td>
                     <td className="p-6 text-right space-x-2">
@@ -217,9 +219,9 @@ const ShipperOrders = () => {
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
             <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
               {modalConfig.status === 'delivered' ? (
-                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Mark as Delivered</>
+                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Confirm Delivery</>
               ) : (
-                <><span className="material-symbols-outlined text-red-500">cancel</span> Mark as Failed</>
+                <><span className="material-symbols-outlined text-red-500">cancel</span> Confirm Failure</>
               )}
             </h3>
             
