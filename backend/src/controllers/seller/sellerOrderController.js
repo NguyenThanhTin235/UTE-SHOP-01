@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Order = require('../../models/Order');
 const OrderItem = require('../../models/OrderItem');
 const PaymentOrder = require('../../models/PaymentOrder');
@@ -28,15 +27,13 @@ const getOrders = async (req, res, next) => {
         const { search, status, minPrice, maxPrice, startDate, endDate, sortBy } = req.query;
         let query = { shop_id: shop._id };
 
-        if (status && status !== 'All') {
+        if (status && status !== 'All Orders') {
             if (status === 'Pending') query.status = 'pending';
-            else if (status === 'Confirmed') query.status = 'confirmed';
-            else if (status === 'Preparing') query.status = 'preparing';
-            else if (status === 'Shipped') query.status = 'shipped';
-            else if (status === 'Delivered') query.status = 'delivered';
-            else if (status === 'Refunded') query.status = 'refunded';
-            else if (status === 'Cancellation Requested') query.status = 'cancel_pending';
-            else if (status === 'Cancelled') query.status = 'canceled';
+            else if (status === 'To Process') query.status = 'confirmed';
+            else if (status === 'Shipping') query.status = 'shipped';
+            else if (status === 'Completed') query.status = 'delivered';
+            else if (status === 'Return/Refund') query.status = { $in: ['disputed', 'refunded'] };
+            else if (status === 'Canceled') query.status = 'canceled';
         }
 
         if (search) {
@@ -82,32 +79,26 @@ const getOrders = async (req, res, next) => {
 
         // Map statuses for summary counts
         const allStatuses = await Order.aggregate([
-            { $match: { shop_id: new mongoose.Types.ObjectId(shop._id) } },
+            { $match: { shop_id: shop._id } },
             { $group: { _id: '$status', count: { $sum: 1 } } }
         ]);
         
         const summary = {
-            'All': 0,
+            'All Orders': 0,
             'Pending': 0,
-            'Confirmed': 0,
-            'Preparing': 0,
-            'Shipped': 0,
-            'Delivered': 0,
-            'Cancellation Requested': 0,
-            'Cancelled': 0,
-            'Refunded': 0
+            'To Process': 0,
+            'Shipping': 0,
+            'Completed': 0,
+            'Return/Refund': 0
         };
 
         allStatuses.forEach(s => {
-            summary['All'] += s.count;
+            summary['All Orders'] += s.count;
             if (s._id === 'pending') summary['Pending'] += s.count;
-            else if (s._id === 'confirmed') summary['Confirmed'] += s.count;
-            else if (s._id === 'preparing') summary['Preparing'] += s.count;
-            else if (s._id === 'shipped') summary['Shipped'] += s.count;
-            else if (s._id === 'delivered') summary['Delivered'] += s.count;
-            else if (s._id === 'cancel_pending') summary['Cancellation Requested'] += s.count;
-            else if (s._id === 'canceled') summary['Cancelled'] += s.count;
-            else if (s._id === 'refunded') summary['Refunded'] += s.count;
+            else if (s._id === 'confirmed') summary['To Process'] += s.count;
+            else if (s._id === 'shipped') summary['Shipping'] += s.count;
+            else if (s._id === 'delivered') summary['Completed'] += s.count;
+            else if (['disputed', 'refunded'].includes(s._id)) summary['Return/Refund'] += s.count;
         });
 
         // Fetch order items
@@ -166,7 +157,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipped', 'delivered', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }

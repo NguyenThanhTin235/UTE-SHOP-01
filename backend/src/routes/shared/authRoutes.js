@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../../controllers/customer/authController');
+const authController = require('../../controllers/shared/authController');
 const { validate } = require('../../middleware/validator');
 const { registrationRules, sendOTPRules, profileUpdateRules } = require('../../middleware/authValidator');
 const { upload } = require('../../config/cloudinary');

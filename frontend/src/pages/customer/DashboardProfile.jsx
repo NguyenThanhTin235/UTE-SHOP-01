@@ -113,7 +113,7 @@ const DashboardProfile = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="h-20 bg-white border-b border-[#c3c6d7]/30 flex items-center px-4 md:px-10 sticky top-0 z-40 shadow-sm">
-        <button onClick={() => navigate(user?.role === 'admin' ? '/admin' : user?.role === 'manager' ? '/manager' : user?.role === 'shipper' ? '/shipper/dashboard' : '/seller')} className="flex items-center gap-2 text-[#434655] hover:text-primary transition-colors font-bold cursor-pointer">
+        <button onClick={() => navigate(user?.role === 'admin' ? '/admin' : user?.role === 'manager' ? '/manager' : '/seller')} className="flex items-center gap-2 text-[#434655] hover:text-primary transition-colors font-bold cursor-pointer">
           <span className="material-symbols-outlined">arrow_back</span>
           Back to Dashboard
         </button>
@@ -125,7 +125,7 @@ const DashboardProfile = () => {
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
-                <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" />
+                <img src={avatarSrc} alt={user?.fullName || 'Avatar'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="overflow-hidden">
                 <h3 className="font-bold text-[#131b2e] tracking-tight truncate">{user?.fullName || 'User'}</h3>
@@ -148,7 +148,7 @@ const DashboardProfile = () => {
                 <span>Bank Accounts</span>
               </Link>
             )}
-            <Link to={user?.role === 'admin' ? '/admin/security' : user?.role === 'manager' ? '/manager/security' : user?.role === 'shipper' ? '/shipper/security' : '/seller/security'} className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+            <Link to={user?.role === 'admin' ? '/admin/security' : user?.role === 'manager' ? '/manager/security' : '/seller/security'} className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>

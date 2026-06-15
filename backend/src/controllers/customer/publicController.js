@@ -355,10 +355,7 @@ exports.searchProducts = async (req, res, next) => {
 
     // 1. Keyword Search
     if (q) {
-      query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } }
-      ];
+      query.$text = { $search: q };
     }
 
     // 2. Category Filter

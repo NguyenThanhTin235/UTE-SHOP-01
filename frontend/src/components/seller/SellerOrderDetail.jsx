@@ -79,25 +79,24 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
 
     const getTimelineSteps = () => {
         const steps = [
-            { id: 'pending', label: 'Pending', icon: 'pending_actions', date: order.createdAt },
-            { id: 'confirmed', label: 'Confirmed', icon: 'checklist', date: order.createdAt },
-            { id: 'preparing', label: 'Preparing', icon: 'inventory_2', date: ['preparing', 'shipped', 'delivered'].includes(order.status) ? order.updatedAt : null },
+            { id: 'pending', label: 'Order Placed', icon: 'check', date: order.createdAt },
+            { id: 'confirmed', label: 'Payment Confirmed', icon: 'check', date: order.createdAt },
+            { id: 'to_ship', label: 'To Ship', icon: 'inventory_2', date: ['shipped', 'delivered'].includes(order.status) ? order.updatedAt : null },
             { id: 'shipped', label: 'Shipped', icon: 'local_shipping', date: ['shipped', 'delivered'].includes(order.status) ? order.updatedAt : null },
-            { id: 'delivered', label: 'Delivered', icon: 'verified', date: order.status === 'delivered' ? order.updatedAt : null }
+            { id: 'delivered', label: 'Completed', icon: 'verified', date: order.status === 'delivered' ? order.updatedAt : null }
         ];
 
         let currentStepIndex = 0;
-        if (order.status === 'confirmed') currentStepIndex = 1;
-        if (order.status === 'preparing') currentStepIndex = 2;
+        if (order.status === 'confirmed') currentStepIndex = 2;
         if (order.status === 'shipped') currentStepIndex = 3;
-        if (order.status === 'delivered') currentStepIndex = 4;
-        if (['canceled', 'refunded'].includes(order.status)) currentStepIndex = -1;
+        if (order.status === 'delivered') currentStepIndex = 5;
+        if (['canceled', 'refunded', 'disputed'].includes(order.status)) currentStepIndex = -1;
 
         return steps.map((step, index) => {
             let status = 'pending';
             if (currentStepIndex === -1) {
                 status = 'canceled';
-            } else if (index < currentStepIndex || (index === 0 && order.status !== 'pending') || (index === 1 && order.status !== 'pending' && order.status !== 'confirmed')) {
+            } else if (index < currentStepIndex || (index === 0 && order.status !== 'pending') || (index === 1 && order.status !== 'pending')) {
                 status = 'completed';
             } else if (index === currentStepIndex) {
                 status = 'current';
@@ -135,8 +134,8 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                 <span className="px-4 py-1 bg-slate-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Pending</span>
                                 <span className="text-sm font-bold text-slate-500">Placed on {formatDate(order.createdAt)}</span>
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is awaiting confirmation</h2>
-                            <p className="text-slate-600 font-medium mt-1">Please review and confirm this order.</p>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Waiting for your confirmation</h2>
+                            <p className="text-slate-600 font-medium mt-1">Please review the order and confirm it to proceed.</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
@@ -156,47 +155,23 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                 <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
                         <div className="size-20 rounded-3xl bg-primary flex items-center justify-center text-white shadow-2xl shadow-primary/30">
-                            <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>checklist</span>
+                            <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>package_2</span>
                         </div>
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Confirmed</span>
+                                <span className="px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">To Ship</span>
                                 <span className="text-sm font-bold text-slate-500">Placed on {formatDate(order.createdAt)}</span>
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order has been confirmed</h2>
-                            <p className="text-slate-600 font-medium mt-1">Please proceed with preparing the order.</p>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is ready to be processed</h2>
+                            <p className="text-slate-600 font-medium mt-1">Please pack the items and confirm the shipment.</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => handleStatusUpdate('canceled')} className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-sm">
                             Cancel Order
                         </button>
-                        <button onClick={() => handleStatusUpdate('preparing')} className="px-8 py-4 bg-orange-500 text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-orange-500/20 cursor-pointer">
-                            Prepare Order
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        if (order.status === 'preparing') {
-            return (
-                <div className="bg-orange-50 border border-orange-100 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="flex items-center gap-6">
-                        <div className="size-20 rounded-3xl bg-orange-500 flex items-center justify-center text-white shadow-2xl shadow-orange-500/30">
-                            <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="px-4 py-1 bg-orange-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Preparing</span>
-                            </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Packing products</h2>
-                            <p className="text-slate-600 font-medium mt-1">Once packed, confirm handover to shipper.</p>
-                        </div>
-                    </div>
-                    <div className="flex gap-4">
                         <button onClick={() => setShowShipmentModal(true)} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-green-600/20 cursor-pointer">
-                            Hand over to Shipper
+                            Confirm Shipment
                         </button>
                     </div>
                 </div>
@@ -215,7 +190,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                 <span className="px-4 py-1 bg-yellow-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Shipped</span>
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is in transit</h2>
-                            <p className="text-slate-600 font-medium mt-1">Package has been handed over to the logistics provider.</p>
+                            <p className="text-slate-600 font-medium mt-1">The package has been handed over to the shipping partner.</p>
                         </div>
                     </div>
                 </div>
@@ -231,10 +206,10 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         </div>
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="px-4 py-1 bg-green-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Delivered</span>
+                                <span className="px-4 py-1 bg-green-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Completed</span>
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order Delivered</h2>
-                            <p className="text-slate-600 font-medium mt-1">Customer has received the package.</p>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order has been delivered</h2>
+                            <p className="text-slate-600 font-medium mt-1">The customer has successfully received the items.</p>
                         </div>
                     </div>
                 </div>

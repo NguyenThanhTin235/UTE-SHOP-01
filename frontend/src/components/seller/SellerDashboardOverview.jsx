@@ -206,11 +206,11 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
           <div>
             <div className="flex justify-between items-start mb-4">
               <span className="material-symbols-outlined text-slate-600">local_shipping</span>
-              <span className="text-xs font-bold text-primary bg-blue-50 px-2 py-1 rounded-full">Pending Orders</span>
+              <span className="text-xs font-bold text-primary bg-blue-50 px-2 py-1 rounded-full">Pending</span>
             </div>
-            <p className="text-slate-500 text-sm font-medium">To Process</p>
+            <p className="text-slate-500 text-sm font-medium">Pending Orders</p>
             <h3 className="text-2xl font-bold text-slate-900 mt-1">
-              {dashboardData.summary?.['Pending'] || 0} <span className="text-sm font-normal text-slate-500">orders</span>
+              {dashboardData.summary?.Pending || 0} <span className="text-sm font-normal text-slate-500">Orders</span>
             </h3>
           </div>
         </div>
@@ -315,11 +315,11 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
                       </td>
                       <td className="px-6 py-4">
                         {order.status === 'delivered' ? (
-                          <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Đã hoàn thành</span>
+                          <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Completed</span>
                         ) : order.status === 'canceled' ? (
-                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Đã hủy</span>
+                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Cancelled</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-primary text-[10px] font-bold border border-blue-100">Đang xử lý</span>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-primary text-[10px] font-bold border border-blue-100">Processing</span>
                         )}
                       </td>
                     </tr>

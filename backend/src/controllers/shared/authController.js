@@ -454,7 +454,7 @@ exports.googleLogin = async (req, res) => {
       message: 'Google login successful',
       data: {
         token: result.token,
-        user: result.user,
+        user: toCamelCase(result.user),
       },
     });
   } catch (error) {

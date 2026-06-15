@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema({
   shipping_address_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Address' },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'preparing', 'shipped', 'delivered', 'canceled', 'cancel_pending', 'refunded', 'failed'],
+    enum: ['pending', 'confirmed', 'shipped', 'delivered', 'failed', 'canceled', 'disputed', 'refunded', 'cancel_pending'],
     default: 'pending'
   },
   subtotal_amount: { type: Number, required: true },

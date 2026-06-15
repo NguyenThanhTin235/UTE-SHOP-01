@@ -264,8 +264,6 @@ const OrderDetail = () => {
         return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
       case 'confirmed':
         return 'bg-blue-500/10 text-blue-600 border border-blue-500/20';
-      case 'preparing':
-        return 'bg-orange-500/10 text-orange-600 border border-orange-500/20';
       case 'shipped':
         return 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20';
       case 'delivered':
@@ -284,7 +282,6 @@ const OrderDetail = () => {
   // Determine stepper active states
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
-  const isPreparing = order.status === 'preparing';
   const isShipped = order.status === 'shipped';
   const isDelivered = order.status === 'delivered';
   const isCanceled = order.status === 'canceled';
@@ -292,10 +289,9 @@ const OrderDetail = () => {
   const isRefunded = order.status === 'refunded';
 
   const step1Active = !isCanceled && !isCancelPending && !isRefunded;
-  const step2Active = isConfirmed || isPreparing || isShipped || isDelivered;
-  const step3Active = isPreparing || isShipped || isDelivered;
-  const step4Active = isShipped || isDelivered;
-  const step5Active = isDelivered;
+  const step2Active = isConfirmed || isShipped || isDelivered;
+  const step3Active = isShipped || isDelivered;
+  const step4Active = isDelivered;
 
   // Parse address parts or show directly
   const deliveryAddress = order.paymentOrderId?.address || "123 Han Thuyen Street, Linh Trung Ward, Thu Duc City, Ho Chi Minh City";
@@ -403,7 +399,7 @@ const OrderDetail = () => {
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">inventory</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step1Active ? 'text-primary' : 'text-[#434655]'}`}>Order Placed</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step1Active ? 'text-primary' : 'text-[#434655]'}`}>Ordered</span>
                 </div>
                 <div className={`h-0.5 flex-grow ${step2Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
@@ -419,27 +415,18 @@ const OrderDetail = () => {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
                     step3Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
-                    <span className="material-symbols-outlined text-[18px]">inventory_2</span>
+                    <span className="material-symbols-outlined text-[18px]">local_shipping</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-primary' : 'text-[#434655]'}`}>Preparing</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-primary' : 'text-[#434655]'}`}>Shipped</span>
                 </div>
                 <div className={`h-0.5 flex-grow ${step4Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
                     step4Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
                   }`}>
-                    <span className="material-symbols-outlined text-[18px]">local_shipping</span>
-                  </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-primary' : 'text-[#434655]'}`}>Shipped</span>
-                </div>
-                <div className={`h-0.5 flex-grow ${step5Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                    step5Active ? 'bg-primary text-white shadow-primary/20' : 'bg-[#f2f3ff] text-[#434655] border border-[#c3c6d7]/30'
-                  }`}>
                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step5Active ? 'text-primary' : 'text-[#434655]'}`}>Delivered</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-primary' : 'text-[#434655]'}`}>Delivered</span>
                 </div>
               </div>
             ) : (
@@ -458,8 +445,8 @@ const OrderDetail = () => {
                     isCanceled ? 'text-rose-700' :
                     isRefunded ? 'text-purple-700' : 'text-purple-700'
                   }`}>
-                    {isCanceled ? 'Order Cancelled' :
-                     isRefunded ? 'Order Refunded' : 'Cancellation Request Pending'}
+                    {isCanceled ? 'Order has been cancelled' :
+                     isRefunded ? 'Order has been refunded' : 'Cancellation Request Pending'}
                   </h4>
                   {isRefunded && (
                     <p className="text-xs text-purple-600 mt-1 font-semibold">

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const notificationController = require('../../controllers/customer/notificationController');
+const notificationController = require('../../controllers/shared/notificationController');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 

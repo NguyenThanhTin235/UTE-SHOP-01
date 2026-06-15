@@ -29,11 +29,11 @@ app.use(requestId);
 app.use('/api', limiter);
 
 // Routes
-app.use('/api/auth', require('./routes/customer/authRoutes'));
+app.use('/api/auth', require('./routes/shared/authRoutes'));
 app.use('/api/users', require('./routes/customer/userRoutes'));
 app.use('/api/public', require('./routes/customer/publicRoutes'));
 app.use('/api/seller', require('./routes/seller/sellerRoutes'));
-app.use('/api/notifications', require('./routes/customer/notificationRoutes'));
+app.use('/api/notifications', require('./routes/shared/notificationRoutes'));
 app.use('/api/cart', require('./routes/customer/cartRoutes'));
 app.use('/api/checkout', require('./routes/customer/checkoutRoutes'));
 app.use('/api/orders', require('./routes/customer/orderRoutes'));
@@ -41,6 +41,8 @@ app.use('/api/reviews', require('./routes/customer/reviewRoutes'));
 app.use('/api/manager', require('./routes/manager/managerRoutes'));
 app.use('/api/shipper', require('./routes/shipper/shipperRoutes'));
 app.use('/api/admin', require('./routes/admin/adminRoutes'));
+app.use('/api/support', require('./routes/customer/supportRoutes'));
+app.use('/api/chat', require('./routes/shared/chatRoutes'));
 
 
 // Global Error Handler

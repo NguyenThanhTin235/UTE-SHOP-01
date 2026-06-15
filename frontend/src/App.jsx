@@ -22,7 +22,7 @@ import SellerDashboard from './pages/seller/SellerDashboard';
 import SecuritySettings from './pages/customer/SecuritySettings';
 import DashboardProfile from './pages/customer/DashboardProfile';
 import DashboardSecurity from './pages/customer/DashboardSecurity';
-import DashboardBankAccounts from './pages/seller/DashboardBankAccounts';
+import DashboardBankAccounts from './pages/customer/DashboardBankAccounts';
 import UserStatistics from './pages/customer/UserStatistics';
 import ShipperDashboard from './pages/shipper/ShipperDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,6 +36,8 @@ import RecentlyViewed from './pages/customer/RecentlyViewed';
 import Promotions from './pages/customer/Promotions';
 import Blog from './pages/customer/Blog';
 import BlogDetail from './pages/customer/BlogDetail';
+import Support from './pages/customer/Support';
+import PolicyDetail from './pages/customer/PolicyDetail';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -94,16 +96,20 @@ const RoleBasedRedirect = ({ user }) => {
   return null;
 };
 
+const originalSuccess = toast.success;
+toast.success = (message, options) => {
+  toast.dismiss();
+  return originalSuccess(message, { ...options, id: 'global-toast' });
+};
+
+const originalError = toast.error;
+toast.error = (message, options) => {
+  toast.dismiss();
+  return originalError(message, { ...options, id: 'global-toast' });
+};
+
 function App() {
   const { user } = useSelector((state) => state.auth);
-  const { toasts } = useToasterStore();
-
-  useEffect(() => {
-    toasts
-      .filter((t) => t.visible)
-      .filter((_, i) => i >= 1)
-      .forEach((t) => toast.dismiss(t.id));
-  }, [toasts]);
 
   return (
     <ThemeProvider>
@@ -148,6 +154,8 @@ function App() {
         <Route path="/promotions" element={<Promotions />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogDetail />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/support/policy/:slug" element={<PolicyDetail />} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />

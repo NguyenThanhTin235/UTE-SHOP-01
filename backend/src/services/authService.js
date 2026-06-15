@@ -412,8 +412,8 @@ const socialAuthenticate = async (userData, ipAddress, deviceInfo) => {
   let user = await User.findOne({ email });
 
   if (user) {
-    // Update avatar if the user doesn't have one yet
-    if (!user.avatar_url && avatar_url) {
+    // Update avatar to Google avatar if provided
+    if (avatar_url) {
       user.avatar_url = avatar_url;
       await user.save();
     }
