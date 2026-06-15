@@ -1,43 +1,43 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Register from './pages/Register';
-import VerifyOTP from './pages/VerifyOTP';
-import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Profile from './pages/Profile';
-import Home from './pages/Home';
-import ProductDetail from './pages/ProductDetail';
-import Search from './pages/Search';
-import Cart from './pages/Cart';
-import Wishlist from './pages/Wishlist';
-import Notifications from './pages/Notifications';
-import OrderHistory from './pages/OrderHistory';
-import OrderDetail from './pages/OrderDetail';
-import CancelOrder from './pages/CancelOrder';
-import Reviews from './pages/Reviews';
-import AddressBook from './pages/AddressBook';
-import AdminDashboard from './pages/AdminDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import SellerDashboard from './pages/SellerDashboard';
-import SecuritySettings from './pages/SecuritySettings';
-import DashboardProfile from './pages/DashboardProfile';
-import DashboardSecurity from './pages/DashboardSecurity';
-import DashboardBankAccounts from './pages/DashboardBankAccounts';
-import UserStatistics from './pages/UserStatistics';
-import ShipperDashboard from './pages/ShipperDashboard';
+import Register from './pages/customer/Register';
+import VerifyOTP from './pages/customer/VerifyOTP';
+import Login from './pages/customer/Login';
+import ForgotPassword from './pages/customer/ForgotPassword';
+import ResetPassword from './pages/customer/ResetPassword';
+import Profile from './pages/customer/Profile';
+import Home from './pages/customer/Home';
+import ProductDetail from './pages/customer/ProductDetail';
+import Search from './pages/customer/Search';
+import Cart from './pages/customer/Cart';
+import Wishlist from './pages/customer/Wishlist';
+import Notifications from './pages/customer/Notifications';
+import OrderHistory from './pages/customer/OrderHistory';
+import OrderDetail from './pages/customer/OrderDetail';
+import CancelOrder from './pages/customer/CancelOrder';
+import Reviews from './pages/customer/Reviews';
+import AddressBook from './pages/customer/AddressBook';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ManagerDashboard from './pages/manager/ManagerDashboard';
+import SellerDashboard from './pages/seller/SellerDashboard';
+import SecuritySettings from './pages/customer/SecuritySettings';
+import DashboardProfile from './pages/customer/DashboardProfile';
+import DashboardSecurity from './pages/customer/DashboardSecurity';
+import DashboardBankAccounts from './pages/customer/DashboardBankAccounts';
+import UserStatistics from './pages/customer/UserStatistics';
+import ShipperDashboard from './pages/shipper/ShipperDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import Checkout from './pages/Checkout';
-import OrderSuccess from './pages/OrderSuccess';
-import VNPayMock from './pages/VNPayMock';
-import VNPayReturn from './pages/VNPayReturn';
-import Coins from './pages/Coins';
-import ShopDetail from './pages/ShopDetail';
-import RecentlyViewed from './pages/RecentlyViewed';
-import Promotions from './pages/Promotions';
-import Blog from './pages/Blog';
-import BlogDetail from './pages/BlogDetail';
-import Support from './pages/Support';
-import PolicyDetail from './pages/PolicyDetail';
+import Checkout from './pages/customer/Checkout';
+import OrderSuccess from './pages/customer/OrderSuccess';
+import VNPayMock from './pages/customer/VNPayMock';
+import VNPayReturn from './pages/customer/VNPayReturn';
+import Coins from './pages/customer/Coins';
+import ShopDetail from './pages/customer/ShopDetail';
+import RecentlyViewed from './pages/customer/RecentlyViewed';
+import Promotions from './pages/customer/Promotions';
+import Blog from './pages/customer/Blog';
+import BlogDetail from './pages/customer/BlogDetail';
+import Support from './pages/customer/Support';
+import PolicyDetail from './pages/customer/PolicyDetail';
 
 
 import { Toaster, useToasterStore, toast } from 'react-hot-toast';
@@ -96,16 +96,20 @@ const RoleBasedRedirect = ({ user }) => {
   return null;
 };
 
+const originalSuccess = toast.success;
+toast.success = (message, options) => {
+  toast.dismiss();
+  return originalSuccess(message, { ...options, id: 'global-toast' });
+};
+
+const originalError = toast.error;
+toast.error = (message, options) => {
+  toast.dismiss();
+  return originalError(message, { ...options, id: 'global-toast' });
+};
+
 function App() {
   const { user } = useSelector((state) => state.auth);
-  const { toasts } = useToasterStore();
-
-  useEffect(() => {
-    toasts
-      .filter((t) => t.visible)
-      .filter((_, i) => i >= 1)
-      .forEach((t) => toast.dismiss(t.id));
-  }, [toasts]);
 
   return (
     <ThemeProvider>
