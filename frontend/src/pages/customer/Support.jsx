@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -9,79 +9,39 @@ import FABGroup from '../../components/FABGroup';
 
 const Support = () => {
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
-  // Status Check State
-  const [searchTicketId, setSearchTicketId] = useState('');
-  const [ticketStatus, setTicketStatus] = useState(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNoMatchModal, setShowNoMatchModal] = useState(false);
+  const [contactModalInfo, setContactModalInfo] = useState(null);
 
-  // Create Ticket Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTicket, setNewTicket] = useState({ subject: '', category: 'Other', description: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search term');
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    
+    if (query.includes('return') || query.includes('refund')) {
+      navigate('/support/policy/returns-refunds');
+    } else if (query.includes('order') || query.includes('ship') || query.includes('track')) {
+      navigate('/support/policy/orders-shipping');
+    } else if (query.includes('pay') || query.includes('wallet') || query.includes('coin') || query.includes('voucher')) {
+      navigate('/support/policy/payments-wallets');
+    } else if (query.includes('account') || query.includes('password') || query.includes('secur')) {
+      navigate('/support/policy/account-security');
+    } else {
+      setShowNoMatchModal(true);
+    }
+  };
 
   // FAQs Accordion State
   const [openFaq, setOpenFaq] = useState(null);
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
-  };
-
-  const handleCheckStatus = async (e) => {
-    e.preventDefault();
-    if (!searchTicketId.trim()) {
-      toast.error('Please enter a valid Ticket ID');
-      return;
-    }
-
-    setIsChecking(true);
-    try {
-      const response = await axios.get(`http://localhost:5000/api/support/${searchTicketId.trim()}`);
-      if (response.data.success) {
-        setTicketStatus(response.data.data);
-        toast.success('Ticket found!');
-      }
-    } catch (error) {
-      console.error('Error fetching ticket:', error);
-      toast.error(error.response?.data?.message || 'Ticket not found');
-      setTicketStatus(null);
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  const handleCreateTicket = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      toast.error('Please log in to create a support ticket');
-      return;
-    }
-
-    if (!newTicket.subject.trim() || !newTicket.description.trim()) {
-      toast.error('Subject and description are required');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
-      const response = await axios.post('http://localhost:5000/api/support', newTicket, config);
-      if (response.data.success) {
-        toast.success(`Ticket ${response.data.data.ticketId} created successfully!`);
-        setIsModalOpen(false);
-        setNewTicket({ subject: '', category: 'Other', description: '' });
-        // Automatically show the new ticket status
-        setSearchTicketId(response.data.data.ticketId);
-        setTicketStatus(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error creating ticket:', error);
-      toast.error(error.response?.data?.message || 'Failed to create ticket');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const faqs = [
@@ -102,26 +62,6 @@ const Support = () => {
       a: 'Yes, UTEShop uses industry-standard SSL encryption and partners with leading payment gateways to ensure your data is always protected. We never store your full credit card details.'
     }
   ];
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'pending': return 'bg-amber-50 text-amber-600';
-      case 'in_progress': return 'bg-blue-50 text-primary';
-      case 'resolved': return 'bg-green-50 text-success';
-      case 'closed': return 'bg-slate-50 text-slate-600';
-      default: return 'bg-slate-50 text-slate-600';
-    }
-  };
-
-  const getStatusProgress = (status) => {
-    switch(status) {
-      case 'pending': return '15%';
-      case 'in_progress': return '50%';
-      case 'resolved': return '100%';
-      case 'closed': return '100%';
-      default: return '0%';
-    }
-  };
 
   return (
     <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen flex flex-col font-sans">
@@ -145,27 +85,29 @@ const Support = () => {
               </p>
             </div>
 
-              <div className="relative max-w-2xl mx-auto search-container group shadow-[0_20px_40px_-15px_rgba(0,74,198,0.1)] rounded-full">
+              <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto search-container group shadow-[0_20px_40px_-15px_rgba(0,74,198,0.1)] rounded-full">
               <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-2xl text-[#434655] group-focus-within:text-primary transition-colors">search</span>
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for 'how to return', 'refund policy', etc." 
-                className="w-full h-16 bg-white border-none rounded-full pl-16 pr-8 text-lg font-medium focus:ring-4 focus:ring-primary/10 transition-all shadow-xl"
+                className="w-full h-16 bg-white border-none rounded-full pl-16 pr-32 text-lg font-medium focus:ring-4 focus:ring-primary/10 transition-all shadow-xl outline-none"
               />
               <button 
-                onClick={() => toast('Search feature is being optimized', { icon: '🔍' })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-full text-sm font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-full text-sm font-black uppercase tracking-widest hover:brightness-110 transition-all cursor-pointer"
               >
                 Search
               </button>
-            </div>
+            </form>
 
             <div className="flex flex-wrap justify-center gap-3 pt-4">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Popular:</span>
-              <button onClick={() => toast('Order Tracking documentation coming soon')} className="text-xs font-bold text-primary hover:underline">Order Tracking</button>
-              <button onClick={() => toast('Refund Status documentation coming soon')} className="text-xs font-bold text-primary hover:underline">Refund Status</button>
-              <button onClick={() => toast('Voucher Issues documentation coming soon')} className="text-xs font-bold text-primary hover:underline">Voucher Issues</button>
-              <button onClick={() => toast('Account Security documentation coming soon')} className="text-xs font-bold text-primary hover:underline">Account Security</button>
+              <Link to="/support/policy/orders-shipping" className="text-xs font-bold text-primary hover:underline">Order Tracking</Link>
+              <Link to="/support/policy/returns-refunds" className="text-xs font-bold text-primary hover:underline">Refund Status</Link>
+              <Link to="/support/policy/payments-wallets" className="text-xs font-bold text-primary hover:underline">Voucher Issues</Link>
+              <Link to="/support/policy/account-security" className="text-xs font-bold text-primary hover:underline">Account Security</Link>
             </div>
           </div>
         </section>
@@ -218,86 +160,17 @@ const Support = () => {
           </div>
 
           <div className="text-center pt-8">
-            <button 
-              onClick={() => toast('Help Articles are being written. Check back later!', { icon: '📚' })}
-              className="px-8 py-3 border-2 border-primary text-primary rounded-full text-sm font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+            <Link 
+              to="/blog"
+              className="inline-block px-8 py-3 border-2 border-primary text-primary rounded-full text-sm font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
             >
               View All Help Articles
-            </button>
-          </div>
-        </section>
-
-        {/* Ticket Status Section */}
-        <section className="max-w-container-max mx-auto px-margin-mobile py-20">
-          <div className="bg-primary/5 rounded-[3rem] p-8 md:p-12 flex flex-col lg:flex-row items-center gap-12 border border-primary/10">
-            <div className="flex-1 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                Active Support
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-[#131b2e]">
-                Already have a <span className="text-primary italic">support ticket?</span>
-              </h2>
-              <p className="text-[#434655] text-lg font-medium">
-                Check the status of your ongoing support request by entering your Ticket ID below.
-              </p>
-              
-              <form onSubmit={handleCheckStatus} className="flex flex-col sm:flex-row gap-4">
-                <input 
-                  type="text" 
-                  value={searchTicketId}
-                  onChange={(e) => setSearchTicketId(e.target.value)}
-                  placeholder="Enter Ticket ID (e.g. #TK-12345)" 
-                  className="flex-1 bg-white border-[#c3c6d7]/50 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-primary focus:border-primary shadow-sm"
-                />
-                <button 
-                  type="submit"
-                  disabled={isChecking}
-                  className="px-8 py-4 bg-[#131b2e] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:brightness-125 transition-all disabled:opacity-50"
-                >
-                  {isChecking ? 'Checking...' : 'Check Status'}
-                </button>
-              </form>
-            </div>
-            
-            {/* Display Ticket Status Result */}
-            <div className="lg:w-1/3 w-full">
-              {ticketStatus ? (
-                <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-[#c3c6d7]/30 space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Status</span>
-                    <span className={`px-2 py-1 text-[10px] font-black uppercase rounded-lg ${getStatusColor(ticketStatus.status)}`}>
-                      {ticketStatus.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-black text-[#131b2e]">{ticketStatus.ticketId}: {ticketStatus.subject}</h4>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Updated {new Date(ticketStatus.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-1000 ${getStatusColor(ticketStatus.status).split(' ')[0].replace('50', '500')}`} 
-                      style={{ width: getStatusProgress(ticketStatus.status) }}
-                    ></div>
-                  </div>
-                  <p className="text-sm text-[#434655] font-medium line-clamp-2">
-                    {ticketStatus.description}
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-[#c3c6d7]/30 flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                  <span className="material-symbols-outlined text-4xl text-[#c3c6d7] mb-2">assignment</span>
-                  <p className="text-[#434655] font-medium text-sm">Enter a ticket ID to view its status here.</p>
-                </div>
-              )}
-            </div>
+            </Link>
           </div>
         </section>
 
         {/* Contact Section */}
-        <section className="max-w-container-max mx-auto px-margin-mobile py-32 grid grid-cols-1 md:grid-cols-3 gap-12">
+        <section className="max-w-container-max mx-auto px-margin-mobile py-12 grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="text-center space-y-6">
             <div className="w-20 h-20 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto">
               <span className="material-symbols-outlined text-4xl">chat</span>
@@ -307,8 +180,8 @@ const Support = () => {
               <p className="text-sm text-[#434655] font-medium mt-2">Chat with our academic support specialists in real-time.</p>
             </div>
             <button 
-              onClick={() => toast('Live Chat will be available in the next update', { icon: '💬' })}
-              className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg shadow-blue-200 transition-all"
+              onClick={() => document.dispatchEvent(new CustomEvent('open-admin-chat'))}
+              className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg shadow-blue-200 transition-all cursor-pointer"
             >
               Start Chat
             </button>
@@ -320,20 +193,14 @@ const Support = () => {
               <span className="material-symbols-outlined text-4xl">mail</span>
             </div>
             <div>
-              <h3 className="text-xl font-black text-[#131b2e]">Create Ticket</h3>
-              <p className="text-sm text-[#434655] font-medium mt-2">Send us a detailed inquiry and we'll get back to you soon.</p>
+              <h3 className="text-xl font-black text-[#131b2e]">Email Support</h3>
+              <p className="text-sm text-[#434655] font-medium mt-2">Send us a detailed inquiry via email and we'll reply soon.</p>
             </div>
             <button 
-              onClick={() => {
-                if(!user) {
-                  toast.error('Please login to create ticket');
-                  return;
-                }
-                setIsModalOpen(true);
-              }}
-              className="w-full py-4 border-2 border-[#c3c6d7] text-[#434655] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#f7f9ff] transition-all"
+              onClick={() => setContactModalInfo({ type: 'email' })}
+              className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg shadow-blue-200 transition-all cursor-pointer"
             >
-              Open Ticket
+              Send Email
             </button>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Response within <span className="text-[#131b2e]">24 hours</span></p>
           </div>
@@ -347,8 +214,8 @@ const Support = () => {
               <p className="text-sm text-[#434655] font-medium mt-2">Speak directly with our team for urgent matters.</p>
             </div>
             <button 
-              onClick={() => toast('Call Center Numbers:\n- CSKH: 1900 1234\n- Support: 028 3812 3456', { duration: 5000, icon: '📞' })}
-              className="w-full py-4 border-2 border-[#c3c6d7] text-[#434655] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#f7f9ff] transition-all"
+              onClick={() => setContactModalInfo({ type: 'phone' })}
+              className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg shadow-blue-200 transition-all cursor-pointer"
             >
               View Phone Numbers
             </button>
@@ -381,83 +248,126 @@ const Support = () => {
 
       <FABGroup />
 
-      {/* Create Ticket Modal */}
-      {isModalOpen && (
+      <FABGroup />
+
+      {/* No Match Modal */}
+      {showNoMatchModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-in-out]">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
             <div className="px-8 py-6 border-b border-[#c3c6d7]/30 flex justify-between items-center bg-primary text-white">
-              <h2 className="text-xl font-bold">Create Support Ticket</h2>
+              <h2 className="text-xl font-bold">Search Results</h2>
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setShowNoMatchModal(false)}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
             
-            <form onSubmit={handleCreateTicket} className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-[#131b2e] block">Category</label>
-                <select 
-                  value={newTicket.category}
-                  onChange={(e) => setNewTicket({...newTicket, category: e.target.value})}
-                  className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none transition-all"
-                >
-                  <option value="Orders & Shipping">Orders & Shipping</option>
-                  <option value="Returns & Refunds">Returns & Refunds</option>
-                  <option value="Payments & Wallets">Payments & Wallets</option>
-                  <option value="Account & Security">Account & Security</option>
-                  <option value="Other">Other</option>
-                </select>
+            <div className="p-8 text-center space-y-6">
+              <div className="w-20 h-20 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto">
+                <span className="material-symbols-outlined text-4xl">search_off</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-[#131b2e]">No exact match found</h3>
+                <p className="text-sm text-[#434655] font-medium mt-2">
+                  We couldn't find a specific policy matching "{searchQuery}".
+                </p>
+              </div>
+              
+              <div className="text-left bg-[#f2f3ff] p-4 rounded-xl space-y-2">
+                <p className="text-xs font-bold text-[#131b2e] uppercase tracking-widest">Suggested topics:</p>
+                <ul className="text-sm text-primary font-medium flex flex-col gap-2">
+                  <li><Link to="/support/policy/returns-refunds" onClick={() => setShowNoMatchModal(false)} className="hover:underline flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">arrow_right_alt</span> Returns & Refunds</Link></li>
+                  <li><Link to="/support/policy/orders-shipping" onClick={() => setShowNoMatchModal(false)} className="hover:underline flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">arrow_right_alt</span> Orders & Shipping</Link></li>
+                  <li><Link to="/support/policy/account-security" onClick={() => setShowNoMatchModal(false)} className="hover:underline flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">arrow_right_alt</span> Account Security</Link></li>
+                </ul>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-[#131b2e] block">Subject</label>
-                <input 
-                  type="text" 
-                  value={newTicket.subject}
-                  onChange={(e) => setNewTicket({...newTicket, subject: e.target.value})}
-                  placeholder="Brief summary of your issue"
-                  className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-[#131b2e] block">Description</label>
-                <textarea 
-                  value={newTicket.description}
-                  onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
-                  placeholder="Please provide details about your issue..."
-                  className="w-full h-32 bg-[#f2f3ff] border border-[#c3c6d7] rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none transition-all resize-none"
-                  required
-                ></textarea>
-              </div>
-
-              <div className="flex justify-end gap-4 pt-4 border-t border-[#c3c6d7]/30">
+              <div className="pt-4 flex gap-4">
                 <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 font-bold text-[#505f76] hover:bg-[#f2f3ff] rounded-xl transition-colors"
+                  onClick={() => setShowNoMatchModal(false)}
+                  className="flex-1 py-3 bg-slate-100 text-[#434655] font-bold rounded-xl hover:bg-slate-200 transition-colors"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button 
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  onClick={() => {
+                    window.location.href = 'mailto:support@uteshop.com';
+                  }}
+                  className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:bg-blue-700 transition-colors"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Ticket'
-                  )}
+                  Email Us
                 </button>
               </div>
-            </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Info Modal */}
+      {contactModalInfo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-in-out]">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+            <div className="px-8 py-6 border-b border-[#c3c6d7]/30 flex justify-between items-center bg-primary text-white">
+              <h2 className="text-xl font-bold">
+                {contactModalInfo.type === 'phone' ? 'Call Center Information' : 
+                 contactModalInfo.type === 'email' ? 'Email Support' : 'Live Chat'}
+              </h2>
+              <button 
+                onClick={() => setContactModalInfo(null)}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className="p-8 text-center space-y-6">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                contactModalInfo.type === 'phone' ? 'bg-red-50 text-[#ba1a1a]' : 
+                contactModalInfo.type === 'email' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-primary'
+              }`}>
+                <span className="material-symbols-outlined text-4xl">
+                  {contactModalInfo.type === 'phone' ? 'call' : 
+                   contactModalInfo.type === 'email' ? 'mail' : 'chat'}
+                </span>
+              </div>
+              
+              <div className="bg-[#f2f3ff] p-6 rounded-2xl text-left space-y-4">
+                {contactModalInfo.type === 'phone' && (
+                  <>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Customer Service (CSKH)</p>
+                      <p className="text-lg font-black text-[#131b2e]">1900 1234</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Technical Support</p>
+                      <p className="text-lg font-black text-[#131b2e]">028 3812 3456</p>
+                    </div>
+                  </>
+                )}
+                {contactModalInfo.type === 'email' && (
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Direct Email</p>
+                    <p className="text-lg font-black text-[#131b2e]">support@uteshop.com</p>
+                    <p className="text-sm text-[#434655] mt-2">Please include your Order ID if applicable for faster resolution.</p>
+                  </div>
+                )}
+                {contactModalInfo.type === 'chat' && (
+                  <div className="text-center">
+                    <p className="text-lg font-black text-[#131b2e]">Coming Soon</p>
+                    <p className="text-sm text-[#434655] mt-2">Our live chat feature is currently being upgraded. Please use Email or Call Center for immediate assistance.</p>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => setContactModalInfo(null)}
+                className="w-full py-3 bg-slate-100 text-[#434655] font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,6 +13,7 @@ import SellerAnalytics from '../../components/seller/SellerAnalytics';
 import SellerSettings from '../../components/seller/SellerSettings';
 import SellerWallet from '../../components/seller/SellerWallet';
 import SellerReviews from '../../components/seller/SellerReviews';
+import SellerMessages from '../../components/seller/SellerMessages';
 
 import SellerSidebar from '../../components/seller/SellerSidebar';
 import SellerHeader from '../../components/seller/SellerHeader';
@@ -164,6 +165,7 @@ const SellerDashboard = () => {
           <Route path="wallet" element={<SellerWallet />} />
           <Route path="reviews" element={<SellerReviews />} />
           <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
+          <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
           
           <Route path="*" element={
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">

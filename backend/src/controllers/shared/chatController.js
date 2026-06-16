@@ -1,5 +1,6 @@
 const Conversation = require('../../models/Conversation');
 const Message = require('../../models/Message');
+const Shop = require('../../models/Shop');
 
 // @desc    Init or get Admin conversation
 // @route   POST /api/chat/admin/init
@@ -18,6 +19,42 @@ exports.initAdminChat = async (req, res, next) => {
         customer_id: customerId,
         type: 'admin'
       });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: conversation
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Init or get Shop conversation
+// @route   POST /api/chat/shop/init
+// @access  Private (Customer)
+exports.initShopChat = async (req, res, next) => {
+  try {
+    const customerId = req.user.id;
+    const { shopId } = req.body;
+
+    if (!shopId) {
+      return res.status(400).json({ success: false, message: 'Shop ID is required' });
+    }
+
+    let conversation = await Conversation.findOne({
+      customer_id: customerId,
+      shop_id: shopId,
+      type: 'shop'
+    }).populate('shop_id', 'name logo_url');
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        customer_id: customerId,
+        shop_id: shopId,
+        type: 'shop'
+      });
+      await conversation.populate('shop_id', 'name logo_url');
     }
 
     res.status(200).json({
@@ -134,6 +171,37 @@ exports.getAllAdminConversations = async (req, res, next) => {
   }
 };
 
+// @desc    Get all shop conversations
+// @route   GET /api/chat/shop/all-conversations
+// @access  Private (Seller)
+exports.getAllShopConversations = async (req, res, next) => {
+  try {
+    const shop = await Shop.findOne({ owner_user_id: req.user.id });
+    if (!shop) {
+      return res.status(404).json({ success: false, message: 'Shop not found' });
+    }
+
+    const conversations = await Conversation.find({ type: 'shop', shop_id: shop._id })
+      .populate('customer_id', 'full_name avatar_url email')
+      .sort({ updatedAt: -1 });
+
+    const convWithLatestMsg = await Promise.all(conversations.map(async (conv) => {
+      const latestMessage = await Message.findOne({ conversation_id: conv._id }).sort({ createdAt: -1 });
+      return {
+        ...conv._doc,
+        latestMessage
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: convWithLatestMsg
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get unread count
 // @route   GET /api/chat/unread-count
 // @access  Private
@@ -144,6 +212,13 @@ exports.getUnreadCount = async (req, res, next) => {
     
     if (req.query.role === 'admin') {
       query = { type: 'admin' };
+    } else if (req.query.role === 'seller') {
+      const shop = await Shop.findOne({ owner_user_id: userId });
+      if (shop) {
+        query = { type: 'shop', shop_id: shop._id };
+      } else {
+        return res.status(200).json({ success: true, data: 0 });
+      }
     }
 
     const convs = await Conversation.find(query);

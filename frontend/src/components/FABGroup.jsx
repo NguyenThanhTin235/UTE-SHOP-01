@@ -10,9 +10,13 @@ const FABGroup = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    const handleOpenAdminChat = () => setIsChatOpen(true);
-    document.addEventListener('open-admin-chat', handleOpenAdminChat);
-    return () => document.removeEventListener('open-admin-chat', handleOpenAdminChat);
+    const handleOpenChat = () => setIsChatOpen(true);
+    document.addEventListener('open-admin-chat', handleOpenChat);
+    document.addEventListener('open-shop-chat', handleOpenChat);
+    return () => {
+      document.removeEventListener('open-admin-chat', handleOpenChat);
+      document.removeEventListener('open-shop-chat', handleOpenChat);
+    };
   }, []);
 
   useEffect(() => {

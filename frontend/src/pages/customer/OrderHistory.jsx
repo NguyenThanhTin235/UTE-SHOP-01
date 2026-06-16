@@ -195,10 +195,7 @@ const OrderHistory = () => {
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">chat</span>
-              <span>Messages</span>
-            </Link>
+
             <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
@@ -295,7 +292,17 @@ const OrderHistory = () => {
                             <span className="font-extrabold text-[#131b2e] tracking-tight">
                               {order.shopId?.name || 'UTEShop Store'}
                             </span>
-                            <button className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors">
+                            <button 
+                              onClick={() => {
+                                if (order.shopId) {
+                                  document.dispatchEvent(new CustomEvent('open-shop-chat', { detail: { 
+                                    shopId: order.shopId._id || order.shopId.id || order.shopId,
+                                    initialMessage: `Tôi cần hỗ trợ về đơn hàng ${order.orderCode}`
+                                  } }));
+                                }
+                              }}
+                              className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors cursor-pointer"
+                            >
                               <span className="material-symbols-outlined text-[12px]">chat_bubble</span> Chat
                             </button>
                           </div>

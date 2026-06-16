@@ -64,17 +64,18 @@ const CustomerChatWidget = ({ isOpen, onClose }) => {
     }
   };
 
-  const fetchMessages = async () => {
-    if (!activeConversation?.id) return;
+  const fetchMessages = async (overrideConvId = null) => {
+    const convId = overrideConvId || activeConversation?.id;
+    if (!convId) return;
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
-      axios.put(`http://localhost:5000/api/chat/conversations/${activeConversation.id}/read`, {}, config)
+      axios.put(`http://localhost:5000/api/chat/conversations/${convId}/read`, {}, config)
         .then(() => document.dispatchEvent(new CustomEvent('refresh-unread-chat')))
         .catch(() => {});
 
-      const res = await axios.get(`http://localhost:5000/api/chat/conversations/${activeConversation.id}/messages`, config);
+      const res = await axios.get(`http://localhost:5000/api/chat/conversations/${convId}/messages`, config);
       if (res.data.success) {
         setMessages(res.data.data);
       }
@@ -113,9 +114,84 @@ const CustomerChatWidget = ({ isOpen, onClose }) => {
     const onOpenAdminChat = () => {
       handleOpenAdminChat();
     };
+    const onOpenShopChat = (e) => {
+      handleOpenShopChatDirectly(e.detail.shopId, e.detail.initialMessage);
+    };
     document.addEventListener('open-admin-chat', onOpenAdminChat);
-    return () => document.removeEventListener('open-admin-chat', onOpenAdminChat);
-  }, [conversations]);
+    document.addEventListener('open-shop-chat', onOpenShopChat);
+    return () => {
+      document.removeEventListener('open-admin-chat', onOpenAdminChat);
+      document.removeEventListener('open-shop-chat', onOpenShopChat);
+    };
+  }, [conversations, user]);
+
+  const autoSendMessage = async (convId, content) => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      const tempMsg = {
+        _id: Date.now().toString(),
+        content: content,
+        sender_id: { _id: user._id || user.id, full_name: user.full_name, avatar_url: user.avatar_url },
+        createdAt: new Date().toISOString(),
+      };
+      
+      setMessages((prev) => [...prev, tempMsg]);
+
+      await axios.post('http://localhost:5000/api/chat/messages', {
+        conversation_id: convId,
+        content: content
+      }, config);
+      
+      fetchMessages(convId);
+      fetchConversations();
+    } catch (error) {
+      console.error('Failed to auto send message', error);
+    }
+  };
+
+  const handleOpenShopChatDirectly = async (shopId, initialMessage) => {
+    const existing = conversations.find(c => c.type === 'shop' && ((c.shop_id?._id === shopId) || (c.shop_id?.id === shopId) || (c.shop_id === shopId)));
+    let convIdToUse = null;
+
+    if (existing) {
+      handleOpenShopChat(existing);
+      convIdToUse = existing._id;
+    } else {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const res = await axios.post('http://localhost:5000/api/chat/shop/init', { shopId }, config);
+        
+        if (res.data.success) {
+          const conv = res.data.data;
+          setActiveConversation({ 
+            id: conv._id, 
+            title: conv.shop_id?.name || 'Shop', 
+            type: 'shop',
+            logo: conv.shop_id?.logo_url 
+          });
+          setViewState('chat');
+          convIdToUse = conv._id;
+          setConversations(prev => [conv, ...prev.filter(c => c._id !== conv._id)]);
+        }
+      } catch (error) {
+        toast.error('Failed to connect to Shop.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (convIdToUse && initialMessage) {
+      // Small delay to ensure UI updates before auto-sending
+      setTimeout(() => {
+        autoSendMessage(convIdToUse, initialMessage);
+      }, 300);
+    }
+  };
 
   const handleOpenShopChat = (conv) => {
     setActiveConversation({ 

@@ -23,6 +23,7 @@ import RBACTab from '../../components/admin/RBACTab';
 import BlogManagementTab from '../../components/admin/BlogManagementTab';
 import BlogEditor from '../../components/admin/BlogEditor';
 import PlatformSettingsTab from '../../components/admin/PlatformSettingsTab';
+import UserSupportTab from '../../components/admin/UserSupportTab';
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -223,6 +224,10 @@ const AdminDashboard = () => {
               </>
             )}
 
+            {activeTab === 'support' && (
+              <UserSupportTab searchTerm={searchTerm} />
+            )}
+
             {activeTab === 'finance_config' && (
               <FinanceSettingsTab 
                 searchTerm={searchTerm} 
@@ -254,7 +259,7 @@ const AdminDashboard = () => {
               <BlogManagementTab searchTerm={searchTerm} navigate={navigate} />
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && activeTab !== 'platform_settings' && (
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'support' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && activeTab !== 'platform_settings' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}
