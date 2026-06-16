@@ -314,7 +314,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
                         {order.total_final?.toLocaleString('vi-VN')}₫
                       </td>
                       <td className="px-6 py-4">
-                        {order.status === 'delivered' ? (
+                        {order.status === 'completed' ? (
                           <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Completed</span>
                         ) : order.status === 'canceled' ? (
                           <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Cancelled</span>

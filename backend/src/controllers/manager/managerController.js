@@ -976,7 +976,7 @@ const getStatistics = async (req, res) => {
     }
 
     // 7. Financial & Revenue Intelligence
-    const orderMatch = { status: { $in: ['confirmed', 'shipped', 'delivered'] } };
+    const orderMatch = { status: { $in: ['confirmed', 'shipping', 'completed'] } };
     if (Object.keys(dateFilter).length > 0) {
       orderMatch.createdAt = dateFilter.createdAt;
     }

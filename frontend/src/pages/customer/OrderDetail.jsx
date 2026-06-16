@@ -94,7 +94,7 @@ const OrderDetail = () => {
   };
 
   useEffect(() => {
-    if (order?.status === 'delivered') fetchReviewableItems();
+    if (order?.status === 'completed') fetchReviewableItems();
   }, [order]);
 
   // ─── Mở modal đánh giá ───
@@ -264,9 +264,11 @@ const OrderDetail = () => {
         return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
       case 'confirmed':
         return 'bg-blue-500/10 text-blue-600 border border-blue-500/20';
-      case 'shipped':
+      case 'preparing':
+        return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
+      case 'shipping':
         return 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20';
-      case 'delivered':
+      case 'completed':
         return 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20';
       case 'canceled':
         return 'bg-rose-500/10 text-rose-600 border border-rose-500/20';
@@ -282,14 +284,15 @@ const OrderDetail = () => {
   // Determine stepper active states
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
-  const isShipped = order.status === 'shipped';
-  const isDelivered = order.status === 'delivered';
+  const isPreparing = order.status === 'preparing';
+  const isShipped = order.status === 'shipping';
+  const isDelivered = order.status === 'completed';
   const isCanceled = order.status === 'canceled';
   const isCancelPending = order.status === 'cancel_pending';
   const isRefunded = order.status === 'refunded';
 
   const step1Active = !isCanceled && !isCancelPending && !isRefunded;
-  const step2Active = isConfirmed || isShipped || isDelivered;
+  const step2Active = isConfirmed || isPreparing || isShipped || isDelivered;
   const step3Active = isShipped || isDelivered;
   const step4Active = isDelivered;
 
@@ -380,8 +383,9 @@ const OrderDetail = () => {
               <span className={`px-5 py-2 rounded-full font-black text-[11px] uppercase tracking-widest border ${getStatusClass(order.status)}`}>
                 {isPending ? 'Pending' :
                  isConfirmed ? 'Confirmed' :
-                 isShipped ? 'Shipped' :
-                 isDelivered ? 'Delivered' :
+                 isPreparing ? 'Preparing' :
+                 isShipped ? 'Shipping' :
+                 isDelivered ? 'Completed' :
                  isCanceled ? 'Cancelled' :
                  isCancelPending ? 'Cancel Pending' :
                  isRefunded ? 'Refunded' : order.status}
@@ -414,7 +418,7 @@ const OrderDetail = () => {
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">local_shipping</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-primary' : 'text-[#434655]'}`}>Shipped</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step3Active ? 'text-primary' : 'text-[#434655]'}`}>Shipping</span>
                 </div>
                 <div className={`h-0.5 flex-grow ${step4Active ? 'bg-primary' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center gap-2 relative z-10">
@@ -423,7 +427,7 @@ const OrderDetail = () => {
                   }`}>
                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                   </div>
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-primary' : 'text-[#434655]'}`}>Delivered</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider ${step4Active ? 'text-primary' : 'text-[#434655]'}`}>Completed</span>
                 </div>
               </div>
             ) : (
@@ -722,7 +726,7 @@ const OrderDetail = () => {
             </div>
           </div>
         {/* ─── Product Review Section (delivered only) ─── */}
-          {order.status === 'delivered' && reviewableItems.length > 0 && (
+          {order.status === 'completed' && reviewableItems.length > 0 && (
             <div className="bg-white border border-[#c3c6d7]/30 rounded-3xl p-6 md:p-8 shadow-sm">
               <h2 className="text-lg font-extrabold text-[#131b2e] mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">rate_review</span>

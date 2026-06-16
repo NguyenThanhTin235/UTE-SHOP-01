@@ -53,7 +53,7 @@ exports.createReview = async (req, res, next) => {
         timestamp: Math.floor(Date.now() / 1000)
       });
     }
-    if (order.status !== 'delivered') {
+    if (order.status !== 'completed') {
       return res.status(400).json({
         success: false, code: 400,
         message: 'Only delivered order items can be reviewed',
@@ -149,7 +149,7 @@ exports.createReview = async (req, res, next) => {
 exports.getMyReviews = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    
+
     // Parse query params for pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
@@ -422,7 +422,7 @@ exports.getReviewableItems = async (req, res, next) => {
         timestamp: Math.floor(Date.now() / 1000)
       });
     }
-    if (order.status !== 'delivered') {
+    if (order.status !== 'completed') {
       return res.status(400).json({
         success: false, code: 400,
         message: 'Only delivered order items can be reviewed',

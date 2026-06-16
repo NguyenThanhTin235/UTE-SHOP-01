@@ -369,6 +369,13 @@ const updateUserStatus = async (req, res) => {
 
     const oldStatus = user.status;
     user.status = status;
+    
+    // Nếu chuyển status sang active, reset các cờ khóa đăng nhập
+    if (status === 'active') {
+      user.failed_login_attempts = 0;
+      user.lockout_until = null;
+    }
+    
     await user.save();
 
     // Log the action to AuditLog

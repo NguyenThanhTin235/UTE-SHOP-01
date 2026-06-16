@@ -13,10 +13,13 @@ const SellerOrders = ({ onViewDetails }) => {
     const [summary, setSummary] = useState({
         'All Orders': 0,
         'Pending': 0,
-        'To Process': 0,
+        'Confirmed': 0,
+        'Preparing': 0,
         'Shipping': 0,
         'Completed': 0,
-        'Return/Refund': 0
+        'Cancel Pending': 0,
+        'Canceled': 0,
+        'Refunded': 0
     });
     const [searchParams, setSearchParams] = useSearchParams();
     const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
@@ -68,7 +71,7 @@ const SellerOrders = ({ onViewDetails }) => {
     const [tempDateFrom, setTempDateFrom] = useState('');
     const [tempDateTo, setTempDateTo] = useState('');
 
-    const tabs = ['All Orders', 'Pending', 'To Process', 'Shipping', 'Completed', 'Return/Refund'];
+    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Shipping', 'Completed', 'Cancel Pending', 'Canceled', 'Refunded'];
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -181,8 +184,20 @@ const SellerOrders = ({ onViewDetails }) => {
                     <button onClick={() => handleStatusUpdate(order._id, 'canceled')} className="p-2.5 border border-error/20 text-error rounded-xl hover:bg-error/5 transition-all group relative" title="Cancel Order">
                         <span className="material-symbols-outlined text-[20px]">cancel</span>
                     </button>
-                    <button onClick={() => handleStatusUpdate(order._id, 'shipped')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Prepare Goods & Ship">
-                        <span className="material-symbols-outlined text-[20px]">package_2</span>
+                    <button onClick={() => handleStatusUpdate(order._id, 'preparing')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Prepare Goods">
+                        <span className="material-symbols-outlined text-[20px]">inventory_2</span>
+                    </button>
+                </div>
+            );
+        }
+        if (order.status === 'preparing') {
+            return (
+                <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => handleStatusUpdate(order._id, 'canceled')} className="p-2.5 border border-error/20 text-error rounded-xl hover:bg-error/5 transition-all group relative" title="Cancel Order">
+                        <span className="material-symbols-outlined text-[20px]">cancel</span>
+                    </button>
+                    <button onClick={() => handleStatusUpdate(order._id, 'shipping')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Handover to Shipper">
+                        <span className="material-symbols-outlined text-[20px]">local_shipping</span>
                     </button>
                     <button className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="Print Waybill">
                         <span className="material-symbols-outlined text-[20px]">print</span>
@@ -190,10 +205,10 @@ const SellerOrders = ({ onViewDetails }) => {
                 </div>
             );
         }
-        if (order.status === 'shipped') {
+        if (order.status === 'shipping') {
             return (
                 <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleStatusUpdate(order._id, 'delivered')} className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="Mark Delivered">
+                    <button onClick={() => handleStatusUpdate(order._id, 'completed')} className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="mark completed">
                         <span className="material-symbols-outlined text-[20px]">local_shipping</span>
                     </button>
                 </div>
@@ -220,13 +235,26 @@ const SellerOrders = ({ onViewDetails }) => {
                         <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">To Process</span>
                     </div>
                     <div className="flex items-center justify-center gap-1 text-xs font-bold text-secondary">
+                        <span className="material-symbols-outlined text-[14px]">new_releases</span>
+                        Confirmed
+                    </div>
+                </div>
+            );
+        }
+        if (order.status === 'preparing') {
+            return (
+                <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center justify-center gap-2 text-warning">
+                        <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">Preparing</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-secondary">
                         <span className="material-symbols-outlined text-[14px]">inventory_2</span>
                         Preparing Goods
                     </div>
                 </div>
             );
         }
-        if (order.status === 'shipped') {
+        if (order.status === 'shipping') {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2 text-primary">
@@ -241,11 +269,11 @@ const SellerOrders = ({ onViewDetails }) => {
                 </div>
             );
         }
-        if (order.status === 'delivered') {
+        if (order.status === 'completed') {
             return (
                 <div className="flex flex-col items-center gap-1.5">
                     <div className="flex items-center justify-center gap-2 text-success">
-                        <span className="px-3 py-1.5 bg-[#e6f4ea] text-[#1e7e34] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#1e7e34]/10 shadow-sm inline-block">Delivered</span>
+                        <span className="px-3 py-1.5 bg-[#e6f4ea] text-[#1e7e34] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#1e7e34]/10 shadow-sm inline-block">Completed</span>
                     </div>
                     <span className="text-xs font-bold text-secondary text-center">Successfully received</span>
                 </div>

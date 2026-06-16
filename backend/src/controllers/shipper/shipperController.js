@@ -15,8 +15,8 @@ exports.getDashboardOverview = async (req, res) => {
     const shipperId = req.user.id;
 
     const totalAssigned = await Order.countDocuments({ shipper_id: shipperId });
-    const inTransit = await Order.countDocuments({ shipper_id: shipperId, status: 'shipped' });
-    const delivered = await Order.countDocuments({ shipper_id: shipperId, status: 'delivered' });
+    const inTransit = await Order.countDocuments({ shipper_id: shipperId, status: 'shipping' });
+    const delivered = await Order.countDocuments({ shipper_id: shipperId, status: 'completed' });
     const failed = await Order.countDocuments({ shipper_id: shipperId, status: 'failed' });
 
     // Today's stats
@@ -25,7 +25,7 @@ exports.getDashboardOverview = async (req, res) => {
 
     const todayDelivered = await Order.countDocuments({
       shipper_id: shipperId,
-      status: 'delivered',
+      status: 'completed',
       updatedAt: { $gte: today }
     });
 
@@ -97,7 +97,7 @@ exports.updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status, note, reason } = req.body;
 
-    if (!['delivered', 'failed'].includes(status)) {
+    if (!['completed', 'failed'].includes(status)) {
       return errorResponse(res, 'Invalid status update. Only "delivered" or "failed" are allowed.', 400);
     }
 
@@ -107,8 +107,8 @@ exports.updateOrderStatus = async (req, res) => {
       return errorResponse(res, 'Order not found or not assigned to you', 404);
     }
 
-    if (order.status !== 'shipped') {
-      return errorResponse(res, `Cannot update order status from ${order.status} to ${status}. Order must be in 'shipped' status.`, 400);
+    if (order.status !== 'shipping') {
+      return errorResponse(res, `Cannot update order status from ${order.status} to ${status}. Order must be in 'shipping' status.`, 400);
     }
 
     order.status = status;
@@ -164,7 +164,7 @@ exports.getStatistics = async (req, res) => {
 
     const historyData = await OrderStatusHistory.find({
       updated_by: shipperId,
-      status: { $in: ['delivered', 'failed'] },
+      status: { $in: ['completed', 'failed'] },
       createdAt: { $gte: dateLimit, $lte: finalEndDate }
     }).sort({ createdAt: 1 });
 
@@ -186,7 +186,7 @@ exports.getStatistics = async (req, res) => {
     historyData.forEach(record => {
       const dateString = record.createdAt.toISOString().split('T')[0];
       if (statsByDate[dateString]) {
-        if (record.status === 'delivered') {
+        if (record.status === 'completed') {
           statsByDate[dateString].delivered += 1;
         } else if (record.status === 'failed') {
           statsByDate[dateString].failed += 1;

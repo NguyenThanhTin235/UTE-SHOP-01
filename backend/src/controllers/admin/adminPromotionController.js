@@ -109,6 +109,14 @@ const validateCampaignData = (data) => {
   return null;
 };
 
+const determinePromotionStatus = (start_at, end_at, current_status) => {
+  if (current_status === 'inactive') return 'inactive'; // Bị tắt thủ công
+  const now = new Date();
+  if (start_at && now < new Date(start_at)) return 'scheduled';
+  if (end_at && now > new Date(end_at)) return 'expired';
+  return 'active';
+};
+
 
 /**
  * GET /api/admin/promotions/stats
@@ -201,9 +209,16 @@ const getCoupons = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Calculate real-time status
+    const formattedCoupons = coupons.map(c => {
+      const doc = c.toObject();
+      doc.status = determinePromotionStatus(doc.start_at, doc.end_at, doc.status);
+      return doc;
+    });
+
     return response.success(res, {
       message: 'Coupons retrieved successfully',
-      data: coupons,
+      data: formattedCoupons,
       meta: {
         pagination: {
           total,
@@ -272,7 +287,7 @@ const createCoupon = async (req, res) => {
       start_at: start_at ? new Date(start_at) : null,
       end_at: end_at ? new Date(end_at) : null,
       usage_limit: usage_limit || 1,
-      status: status || 'active'
+      status: determinePromotionStatus(start_at, end_at, status || 'active')
     });
 
     return response.success(res, {
@@ -384,6 +399,9 @@ const updateCoupon = async (req, res) => {
     if (end_at !== undefined) coupon.end_at = end_at ? new Date(end_at) : null;
     if (usage_limit !== undefined) coupon.usage_limit = usage_limit;
     if (status !== undefined) coupon.status = status;
+
+    // Recalculate status based on new dates/status
+    coupon.status = determinePromotionStatus(coupon.start_at, coupon.end_at, coupon.status);
 
     await coupon.save();
 
@@ -504,6 +522,8 @@ const getCampaigns = async (req, res) => {
       .limit(limit);
 
     const formattedCampaigns = await Promise.all(campaigns.map(async (c) => {
+      const doc = c.toObject();
+      doc.status = determinePromotionStatus(doc.start_at, doc.end_at, doc.status);
       const targetsCount = await CampaignTarget.countDocuments({ campaign_id: c._id });
       // Fetch target product names/categories just for quick summary preview if needed
       const targets = await CampaignTarget.find({ campaign_id: c._id }).populate({
@@ -513,7 +533,7 @@ const getCampaigns = async (req, res) => {
       const categories = [...new Set(targets.map(t => t.product_id?.category_id?.name).filter(Boolean))];
 
       return {
-        ...c.toObject(),
+        ...doc,
         targetsCount,
         appliedCategories: categories
       };
@@ -592,7 +612,7 @@ const createCampaign = async (req, res) => {
       banner_url: banner_url || '',
       start_at: new Date(start_at),
       end_at: new Date(end_at),
-      status: status || 'active',
+      status: determinePromotionStatus(start_at, end_at, status || 'active'),
       type: type || 'Mass Discount',
       value: value || 0
     });
@@ -714,6 +734,9 @@ const updateCampaign = async (req, res) => {
     if (start_at) campaign.start_at = new Date(start_at);
     if (end_at) campaign.end_at = new Date(end_at);
     if (status) campaign.status = status;
+    
+    // Recalculate status based on new dates/status
+    campaign.status = determinePromotionStatus(campaign.start_at, campaign.end_at, campaign.status);
     if (type) campaign.type = type;
     if (banner_url !== undefined) campaign.banner_url = banner_url;
     if (value !== undefined) campaign.value = value;

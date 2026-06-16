@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -43,6 +44,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState([]);
   const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
+  const [rejectModal, setRejectModal] = useState({ isOpen: false, shopId: null, shopName: '' });
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -116,21 +118,25 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
     }
   };
 
-  const handleReject = async (id, shopName) => {
-    const reason = window.prompt(`Reason for rejecting ${shopName}:`);
-    if (reason === null) return; // User cancelled
+  const handleRejectClick = (e, id, shopName) => {
+    e.stopPropagation();
+    setRejectModal({ isOpen: true, shopId: id, shopName });
+  };
+
+  const handleRejectConfirm = async (reason) => {
+    setRejectModal({ isOpen: false, shopId: null, shopName: '' });
     try {
       const { data } = await axios.post(
-        `${API}/manager/shops/${id}/reject`,
-        { reason: reason || 'Not eligible' },
+        `${API}/manager/shops/${rejectModal.shopId}/reject`,
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
-        toast.success(`Rejected ${shopName}`);
-        setShops((prev) => prev.filter((s) => s.id !== id));
+        toast.success(`Rejected ${rejectModal.shopName}`);
+        setShops((prev) => prev.filter((s) => s.id !== rejectModal.shopId));
       }
     } catch (err) {
-      toast.error(`Failed to reject ${shopName}`);
+      toast.error(`Failed to reject ${rejectModal.shopName}`);
     }
   };
 
@@ -244,7 +250,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                         <span className="material-symbols-outlined text-xl">check</span>
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleReject(shop.id, shop.shopName); }}
+                        onClick={(e) => handleRejectClick(e, shop.id, shop.shopName)}
                         className="w-9 h-9 rounded-xl bg-red-50 text-[#dc2626] flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all cursor-pointer"
                         title="Reject"
                       >
@@ -372,6 +378,15 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal({ isOpen: false, shopId: null, shopName: '' })}
+        onSubmit={handleRejectConfirm}
+        title="Reject Registration"
+        itemName={rejectModal.shopName}
+        type="shop"
+      />
     </div>
   );
 };

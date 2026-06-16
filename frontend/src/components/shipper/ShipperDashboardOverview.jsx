@@ -85,7 +85,7 @@ const ShipperDashboardOverview = ({ setActiveTab }) => {
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <span className="material-symbols-outlined">check_circle</span>
           </div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Delivered</p>
+          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Completed</p>
           <h3 className="text-3xl font-black text-slate-900">{stats.delivered}</h3>
         </div>
 

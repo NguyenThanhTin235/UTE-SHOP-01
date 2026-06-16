@@ -30,8 +30,8 @@ const getOrders = async (req, res, next) => {
         if (status && status !== 'All Orders') {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'To Process') query.status = 'confirmed';
-            else if (status === 'Shipping') query.status = 'shipped';
-            else if (status === 'Completed') query.status = 'delivered';
+            else if (status === 'Shipping') query.status = 'shipping';
+            else if (status === 'Completed') query.status = 'completed';
             else if (status === 'Return/Refund') query.status = { $in: ['disputed', 'refunded'] };
             else if (status === 'Canceled') query.status = 'canceled';
         }
@@ -44,7 +44,7 @@ const getOrders = async (req, res, next) => {
                 ]
             }).select('_id');
             const customerIds = matchedCustomers.map(c => c._id);
-            
+
             query.$or = [
                 { order_code: { $regex: search, $options: 'i' } },
                 { customer_id: { $in: customerIds } }
@@ -82,7 +82,7 @@ const getOrders = async (req, res, next) => {
             { $match: { shop_id: shop._id } },
             { $group: { _id: '$status', count: { $sum: 1 } } }
         ]);
-        
+
         const summary = {
             'All Orders': 0,
             'Pending': 0,
@@ -96,8 +96,8 @@ const getOrders = async (req, res, next) => {
             summary['All Orders'] += s.count;
             if (s._id === 'pending') summary['Pending'] += s.count;
             else if (s._id === 'confirmed') summary['To Process'] += s.count;
-            else if (s._id === 'shipped') summary['Shipping'] += s.count;
-            else if (s._id === 'delivered') summary['Completed'] += s.count;
+            else if (s._id === 'shipping') summary['Shipping'] += s.count;
+            else if (s._id === 'completed') summary['Completed'] += s.count;
             else if (['disputed', 'refunded'].includes(s._id)) summary['Return/Refund'] += s.count;
         });
 
@@ -112,7 +112,7 @@ const getOrders = async (req, res, next) => {
 
         const ordersWithItems = orders.map(order => {
             const items = orderItems.filter(oi => oi.order_id.toString() === order._id.toString());
-            
+
             const itemsWithMedia = items.map(item => {
                 const itemObj = item.toObject();
                 if (itemObj.product_id) {
@@ -157,7 +157,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -167,10 +167,10 @@ const updateOrderStatus = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Order not found' });
         }
 
-        const isAlreadyDelivered = order.status === 'delivered';
+        const isAlreadyDelivered = order.status === 'completed';
         order.status = status;
 
-        if (status === 'delivered' && !isAlreadyDelivered) {
+        if (status === 'completed' && !isAlreadyDelivered) {
             // Add funds to seller's wallet
             let wallet = await SellerWallet.findOne({ shop_id: shop._id });
             if (!wallet) {
@@ -218,7 +218,7 @@ const updateOrderStatus = async (req, res, next) => {
                 // Update parent PaymentOrder if all sub-orders are success/delivered
                 const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id });
                 const allSiblingSuccess = siblingOrders.every(so =>
-                    so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+                    so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'completed'
                 );
                 if (allSiblingSuccess) {
                     paymentOrder.payment_status = 'success';

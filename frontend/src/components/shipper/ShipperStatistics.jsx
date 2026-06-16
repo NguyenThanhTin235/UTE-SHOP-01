@@ -198,7 +198,7 @@ const ShipperStatistics = () => {
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="delivered" name="Delivered Successfully" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar dataKey="completed" name="Delivered Successfully" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
                 <Bar dataKey="failed" name="Failed Deliveries" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>

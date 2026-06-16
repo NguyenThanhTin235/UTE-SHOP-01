@@ -115,7 +115,33 @@ const getAlertTemplate = (title, description, detailsArray, theme = 'blue', isWa
   return getBaseTemplate(title, body, "Secure Academic Marketplace", theme);
 };
 
+const getNewsletterTemplate = (blogTitle, blogExcerpt, blogUrl, theme = 'blue') => {
+  const body = `
+    <p style="color: #475569; font-size: 15px; line-height: 1.6; text-align: center; margin: 0 0 24px 0;">
+      Hello,<br/><br/>
+      A new blog post has just been published on UTEShop!
+    </p>
+    
+    <div style="background-color: #f8fafc; border-left: 4px solid #004ac6; padding: 16px; border-radius: 6px; margin: 24px 0; font-size: 14px; color: #1e293b; text-align: left; line-height: 1.5;">
+      <h3 style="margin-top: 0;">${blogTitle}</h3>
+      <p style="color: #475569;">${blogExcerpt}</p>
+    </div>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${blogUrl}" style="background-color: #004ac6; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Read Full Article</a>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 32px 0;">
+    
+    <p style="color: #64748b; font-size: 13px; line-height: 1.5; text-align: center; margin: 0;">
+      You received this email because you subscribed to our newsletter.
+    </p>
+  `;
+  return getBaseTemplate("New Blog Published!", body, "Secure Academic Marketplace", theme);
+};
+
 module.exports = {
   getOTPTemplate,
-  getAlertTemplate
+  getAlertTemplate,
+  getNewsletterTemplate
 };

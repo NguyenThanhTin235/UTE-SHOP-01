@@ -111,9 +111,9 @@ const SellerDashboard = () => {
     switch (activeTab) {
       case 'dashboard': return { title: 'Dashboard Overview', icon: 'dashboard' };
       case 'products': return { title: 'Products Management', icon: 'inventory_2' };
-      case 'add-product': return { 
-        title: location.state?.editProduct ? 'Edit Product' : 'Add New Product', 
-        icon: location.state?.editProduct ? 'edit' : 'add_circle' 
+      case 'add-product': return {
+        title: location.state?.editProduct ? 'Edit Product' : 'Add New Product',
+        icon: location.state?.editProduct ? 'edit' : 'add_circle'
       };
       case 'orders': return { title: 'Orders Management', icon: 'shopping_cart' };
       case 'order-detail': return { title: `Order Details #${location.pathname.split('/').pop()}`, icon: 'receipt_long' };
@@ -135,21 +135,21 @@ const SellerDashboard = () => {
 
   return (
     <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
-      <SellerSidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        navItems={navItems} 
-        handleLogout={handleLogout} 
+      <SellerSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        navItems={navItems}
+        handleLogout={handleLogout}
         walletBalance={walletBalance}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
-        <SellerHeader 
-          activeTab={activeTab} 
-          headerInfo={getHeaderInfo()} 
-          currentOrder={currentOrder} 
-          user={user} 
-          navigate={navigate} 
+        <SellerHeader
+          activeTab={activeTab}
+          headerInfo={getHeaderInfo()}
+          currentOrder={currentOrder}
+          user={user}
+          navigate={navigate}
         />
 
         <Routes>
@@ -160,13 +160,13 @@ const SellerDashboard = () => {
           <Route path="add-product" element={<SellerAddProduct setActiveTab={setActiveTab} />} />
           <Route path="orders" element={<SellerOrders onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
           <Route path="orders/:orderId" element={<SellerOrderDetailWrapper />} />
-          <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} />} />
+          <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
           <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
           <Route path="wallet" element={<SellerWallet />} />
           <Route path="reviews" element={<SellerReviews />} />
           <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
           <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
-          
+
           <Route path="*" element={
             <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
               <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">

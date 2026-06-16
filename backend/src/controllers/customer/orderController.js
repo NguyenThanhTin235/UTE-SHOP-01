@@ -308,16 +308,16 @@ class OrderController {
             createdAt: order.updatedAt
           });
         }
-        if (['shipped', 'delivered'].includes(order.status)) {
+        if (['shipping', 'completed'].includes(order.status)) {
           trackingTimeline.unshift({
-            status: 'shipped',
+            status: 'shipping',
             note: 'Order handed over to SPX shipping partner',
             createdAt: order.updatedAt
           });
         }
-        if (order.status === 'delivered') {
+        if (order.status === 'completed') {
           trackingTimeline.unshift({
-            status: 'delivered',
+            status: 'completed',
             note: 'Delivery successful',
             createdAt: order.updatedAt
           });
@@ -456,7 +456,7 @@ class OrderController {
         // --- CASE 1: Within 30 minutes - Cancel immediately without confirmation ---
         // 1. Update order status to canceled
         order.status = 'canceled';
-        
+
         let coinsRefundedFromPayment = 0;
         if (order.payment_status === 'success') {
           coinsRefundedFromPayment = order.total_final;
@@ -767,9 +767,9 @@ class OrderController {
         shop_id: { $in: shopIds },
         status: 'cancel_pending'
       })
-      .sort({ updatedAt: -1 })
-      .populate('customer_id', 'fullName email')
-      .populate('payment_order_id');
+        .sort({ updatedAt: -1 })
+        .populate('customer_id', 'fullName email')
+        .populate('payment_order_id');
 
       // 3. Populate items and cancellation details
       const ordersWithDetails = await Promise.all(
@@ -912,7 +912,7 @@ class OrderController {
 
       // 4. Update order status to canceled
       order.status = 'canceled';
-      
+
       let coinsRefundedFromPayment = 0;
       if (order.payment_status === 'success') {
         coinsRefundedFromPayment = order.total_final;
@@ -1025,7 +1025,7 @@ class OrderController {
         const firstOrderItem = await OrderItem.findOne({ order_id: order._id })
           .populate('product_id')
           .populate('variant_id');
-        
+
         let orderSummary = undefined;
         if (firstOrderItem && firstOrderItem.product_id) {
           const media = await ProductMedia.findOne({ product_id: firstOrderItem.product_id._id }).sort({ sort_order: 1 });
@@ -1207,7 +1207,7 @@ class OrderController {
         const firstOrderItem = await OrderItem.findOne({ order_id: order._id })
           .populate('product_id')
           .populate('variant_id');
-        
+
         let orderSummary = undefined;
         if (firstOrderItem && firstOrderItem.product_id) {
           const media = await ProductMedia.findOne({ product_id: firstOrderItem.product_id._id }).sort({ sort_order: 1 });
@@ -1430,7 +1430,7 @@ class OrderController {
       const { status: newStatus, note } = req.body;
 
       // 1. Validate status
-      const validStatuses = ['confirmed', 'shipped', 'delivered', 'disputed', 'refunded', 'canceled'];
+      const validStatuses = ['confirmed', 'preparing', 'shipping', 'completed', 'disputed', 'refunded', 'canceled'];
       if (!newStatus || !validStatuses.includes(newStatus)) {
         if (useTransaction && session) {
           await session.abortTransaction();
@@ -1486,7 +1486,7 @@ class OrderController {
       }
 
       // Prevent invalid status update flows if needed
-      if (['canceled', 'delivered', 'refunded'].includes(order.status) && !['disputed', 'refunded'].includes(newStatus)) {
+      if (['canceled', 'completed', 'refunded'].includes(order.status) && !['disputed', 'refunded'].includes(newStatus)) {
         if (useTransaction && session) {
           await session.abortTransaction();
           session.endSession();
@@ -1504,8 +1504,8 @@ class OrderController {
       let coinsRefundedFromPayment = 0;
 
       // Adjust payment status and trigger stock/coin refunds if status transitioned to canceled or refunded
-      if (newStatus === 'delivered') {
-        if (oldStatus !== 'delivered') {
+      if (newStatus === 'completed') {
+        if (oldStatus !== 'completed') {
           // Add funds to seller's wallet
           const shop = await Shop.findById(order.shop_id).session(session);
           if (shop) {
@@ -1521,7 +1521,7 @@ class OrderController {
         const paymentOrder = await PaymentOrder.findById(order.payment_order_id).session(session);
         if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
           order.payment_status = 'success';
-          
+
           // Update pending payments to success
           await Payment.updateMany(
             { payment_order_id: order.payment_order_id, status: 'pending' },
@@ -1531,8 +1531,8 @@ class OrderController {
 
           if (paymentOrder) {
             const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id }).session(session);
-            const allSiblingSuccess = siblingOrders.every(so => 
-              so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+            const allSiblingSuccess = siblingOrders.every(so =>
+              so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'completed'
             );
             if (allSiblingSuccess) {
               paymentOrder.payment_status = 'success';
@@ -1664,11 +1664,11 @@ class OrderController {
         title = 'Order Confirmed';
         content = `Your order ${order.order_code} has been confirmed by the shop.`;
         detailContent = `Hello,\n\nYour order ${order.order_code} has been confirmed. The shop is preparing your items and will ship them soon.`;
-      } else if (newStatus === 'shipped') {
+      } else if (newStatus === 'shipping') {
         title = 'Order Shipped';
         content = `Your order ${order.order_code} is on the way.`;
         detailContent = `Hello,\n\nYour order ${order.order_code} has been shipped and handed over to our shipping partner.`;
-      } else if (newStatus === 'delivered') {
+      } else if (newStatus === 'completed') {
         title = 'Order Delivered Successfully';
         content = `Your order ${order.order_code} has been delivered.`;
         detailContent = `Hello,\n\nYour order ${order.order_code} has been delivered successfully. Thank you for shopping with us! Please share your feedback by writing a review.`;

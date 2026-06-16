@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
  */
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 10,                   // Tối đa 10 lần mỗi IP trong 15 phút
+  max: 100,                  // Tăng lên 100 trong lúc dev
   standardHeaders: true,
   legacyHeaders: false,
   message: {

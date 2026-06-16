@@ -24,6 +24,7 @@ const PromotionsTab = ({ searchTerm }) => {
   const [couponSearch, setCouponSearch] = useState('');
   const [couponStatus, setCouponStatus] = useState('all');
   const [campaignStatus, setCampaignStatus] = useState('all');
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '' });
 
   const getHeaders = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
@@ -114,7 +115,6 @@ const PromotionsTab = ({ searchTerm }) => {
   };
 
   const handleDeleteCoupon = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this coupon?')) return;
     try {
       const res = await axios.delete(
         `http://localhost:5000/api/admin/promotions/coupons/${id}`,
@@ -132,7 +132,6 @@ const PromotionsTab = ({ searchTerm }) => {
   };
 
   const handleDeleteCampaign = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this campaign?')) return;
     try {
       const res = await axios.delete(
         `http://localhost:5000/api/admin/promotions/campaigns/${id}`,
@@ -147,6 +146,15 @@ const PromotionsTab = ({ searchTerm }) => {
       console.error('Delete campaign error:', err);
       toast.error('Failed to delete campaign');
     }
+  };
+
+  const confirmDelete = () => {
+    if (deleteModal.type === 'coupon') {
+      handleDeleteCoupon(deleteModal.id);
+    } else if (deleteModal.type === 'campaign') {
+      handleDeleteCampaign(deleteModal.id);
+    }
+    setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
   };
 
   // Helper to format discount volume like '12.4M' or '20K'
@@ -536,7 +544,7 @@ const PromotionsTab = ({ searchTerm }) => {
                           Details
                         </button>
                         <button
-                          onClick={() => handleDeleteCoupon(coupon.id)}
+                          onClick={() => setDeleteModal({ isOpen: true, type: 'coupon', id: coupon.id, title: 'Delete Coupon' })}
                           className="text-red-500 text-xs font-black hover:underline cursor-pointer"
                         >
                           Delete
@@ -699,7 +707,7 @@ const PromotionsTab = ({ searchTerm }) => {
                               <span className="material-symbols-outlined">edit</span>
                             </button>
                             <button
-                              onClick={() => handleDeleteCampaign(camp.id)}
+                              onClick={() => setDeleteModal({ isOpen: true, type: 'campaign', id: camp.id, title: 'Delete Campaign' })}
                               className="p-2 text-slate-400 hover:text-error transition-all cursor-pointer"
                             >
                               <span className="material-symbols-outlined">delete</span>
@@ -857,7 +865,7 @@ const PromotionsTab = ({ searchTerm }) => {
                               <span className="material-symbols-outlined">edit</span>
                             </button>
                             <button
-                              onClick={() => handleDeleteCampaign(camp.id)}
+                              onClick={() => setDeleteModal({ isOpen: true, type: 'campaign', id: camp.id, title: 'Delete Campaign' })}
                               className="p-2 text-slate-400 hover:text-error transition-all cursor-pointer"
                             >
                               <span className="material-symbols-outlined">delete</span>
@@ -879,6 +887,37 @@ const PromotionsTab = ({ searchTerm }) => {
           </>
         )}
       </div>
+
+      {/* Delete Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#131b2e]/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl border border-[#c3c6d7]/30 transform scale-100 transition-all">
+            <div className="flex flex-col items-center text-center">
+              <div className="size-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-6">
+                <span className="material-symbols-outlined text-3xl">warning</span>
+              </div>
+              <h3 className="text-xl font-extrabold text-[#131b2e] mb-2">{deleteModal.title}</h3>
+              <p className="text-[#434655] text-sm mb-8 leading-relaxed">
+                Are you sure you want to delete this {deleteModal.type}? This action cannot be undone.
+              </p>
+              <div className="flex gap-4 w-full">
+                <button
+                  onClick={() => setDeleteModal({ isOpen: false, type: null, id: null, title: '' })}
+                  className="flex-1 py-3 px-4 rounded-2xl font-bold text-[#434655] bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 py-3 px-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-200 transition-all cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

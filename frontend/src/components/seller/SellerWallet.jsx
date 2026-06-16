@@ -203,8 +203,9 @@ const SellerWallet = () => {
     const handleWithdraw = async (e) => {
         e.preventDefault();
         const amount = Number(withdrawAmount);
-        if (!amount || amount < 100000) {
-            toast.error('Minimum withdrawal amount is 100,000 ₫');
+        const minLimit = wallet?.min_withdrawal || 100000;
+        if (!amount || amount < minLimit) {
+            toast.error(`Minimum withdrawal amount is ${formatPrice(minLimit)} ₫`);
             return;
         }
         if (wallet && amount > wallet.available_balance) {
@@ -365,7 +366,7 @@ const SellerWallet = () => {
                                         className="w-full bg-slate-50 border-slate-200 rounded-2xl pl-4 pr-16 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none"
                                         value={withdrawAmount}
                                         onChange={(e) => setWithdrawAmount(e.target.value)}
-                                        min="100000"
+                                        min={wallet?.min_withdrawal || 100000}
                                     />
                                     <span className="absolute right-12 top-1/2 -translate-y-1/2 font-black text-secondary text-sm">₫</span>
                                     <button 
@@ -377,7 +378,7 @@ const SellerWallet = () => {
                                     </button>
                                 </div>
                                 <div className="flex justify-end items-center px-1">
-                                    <span className="text-[10px] text-secondary font-medium">Min: 100,000 ₫</span>
+                                    <span className="text-[10px] text-secondary font-medium">Min: {formatPrice(wallet?.min_withdrawal || 100000)} ₫</span>
                                 </div>
                             </div>
                             <button 
@@ -441,7 +442,7 @@ const SellerWallet = () => {
                                                 <td className="px-8 py-5 text-right flex items-center justify-end gap-2">
                                                     <span className={`px-3 py-1 text-[9px] font-black uppercase rounded-full ${statusClass}`}>{withdraw.status}</span>
                                                     <button
-                                                        onClick={() => handleViewDetail({ type: 'withdraw', amount: -withdraw.amount, createdAt: withdraw.createdAt, status: withdraw.status, note: withdraw.note, _id: withdraw._id })}
+                                                        onClick={() => handleViewDetail({ type: 'withdraw', amount: -withdraw.amount, createdAt: withdraw.createdAt, status: withdraw.status, note: withdraw.note, _id: withdraw._id, reject_reason: withdraw.reject_reason })}
                                                         className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-black uppercase rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
                                                     >
                                                         Details
@@ -855,6 +856,14 @@ const SellerWallet = () => {
                                         {selectedTransaction.status === 'paid' ? 'Completed' : (selectedTransaction.status || 'Completed')}
                                     </span>
                                 </div>
+                                {selectedTransaction.status === 'rejected' && selectedTransaction.reject_reason && (
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700 bg-red-50/30">
+                                        <span className="text-[#b3261e] font-bold">Reject Reason</span>
+                                        <span className="font-bold text-[#b3261e] text-right max-w-[60%]">
+                                            {selectedTransaction.reject_reason}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
                                     <span>Date & Time Requested</span>
                                     <span className="font-bold text-slate-900">

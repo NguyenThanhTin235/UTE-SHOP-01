@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -15,6 +16,8 @@ const ManagerProductDetail = ({ productId }) => {
   const [productDetail, setProductDetail] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showAI, setShowAI] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [requestInfoModalOpen, setRequestInfoModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchProductDetail = async () => {
@@ -54,13 +57,12 @@ const ManagerProductDetail = ({ productId }) => {
     }
   };
 
-  const handleReject = async () => {
-    const reason = window.prompt(`Reason for rejecting ${productDetail?.name}:`);
-    if (reason === null) return;
+  const handleRejectConfirm = async (reason) => {
+    setRejectModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/products/${productId}/reject`,
-        { reason: reason || 'Violation of policies' },
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -72,13 +74,12 @@ const ManagerProductDetail = ({ productId }) => {
     }
   };
 
-  const handleRequestInfo = async () => {
-    const note = window.prompt(`Information requested for ${productDetail?.name}:`);
-    if (note === null) return;
+  const handleRequestInfoConfirm = async (note) => {
+    setRequestInfoModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/products/${productId}/request-info`,
-        { note: note || 'Please provide additional information.' },
+        { note },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -270,12 +271,12 @@ const ManagerProductDetail = ({ productId }) => {
                     Approve Listing
                   </button>
                   <button 
-                    onClick={handleReject}
+                    onClick={() => setRejectModalOpen(true)}
                     className="w-14 h-14 bg-red-50 text-[#dc2626] rounded-2xl flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all shadow-sm cursor-pointer" title="Reject">
                     <span className="material-symbols-outlined">block</span>
                   </button>
                   <button 
-                    onClick={handleRequestInfo}
+                    onClick={() => setRequestInfoModalOpen(true)}
                     className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm cursor-pointer" title="Edit/Request Info">
                     <span className="material-symbols-outlined">edit</span>
                   </button>
@@ -309,6 +310,24 @@ const ManagerProductDetail = ({ productId }) => {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        onSubmit={handleRejectConfirm}
+        title="Reject Product"
+        itemName={productDetail.name}
+        type="product"
+      />
+
+      <ActionReasonModal
+        isOpen={requestInfoModalOpen}
+        onClose={() => setRequestInfoModalOpen(false)}
+        onSubmit={handleRequestInfoConfirm}
+        title="Request Information"
+        itemName={productDetail.name}
+        type="info"
+      />
     </>
   );
 };

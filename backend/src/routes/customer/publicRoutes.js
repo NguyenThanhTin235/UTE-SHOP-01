@@ -73,5 +73,6 @@ router.get('/coupons', publicController.getCoupons);
 // Blog Routes
 router.get('/blog', publicController.getBlogPosts);
 router.get('/blog/:slug', publicController.getBlogPostBySlug);
+router.post('/newsletter/subscribe', publicController.subscribeNewsletter);
 
 module.exports = router;

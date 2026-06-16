@@ -8,7 +8,7 @@ const ShipperOrders = () => {
   const { status: statusParam } = useParams();
   const navigate = useNavigate();
   
-  const validFilters = ['all', 'shipped', 'delivered', 'failed'];
+  const validFilters = ['all', 'preparing', 'shipping', 'completed', 'failed'];
   const currentFilter = validFilters.includes(statusParam) ? statusParam : 'all';
 
   const [orders, setOrders] = useState([]);
@@ -50,7 +50,7 @@ const ShipperOrders = () => {
 
   const submitStatusUpdate = async () => {
     const { status, orderId } = modalConfig;
-    if (status === 'delivered' && !imageFile) {
+    if (status === 'completed' && !imageFile) {
       toast.error('Vui lòng cung cấp ảnh bằng chứng giao hàng!');
       return;
     }
@@ -60,7 +60,7 @@ const ShipperOrders = () => {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const formData = new FormData();
       formData.append('status', status);
-      if (status === 'delivered') {
+      if (status === 'completed') {
         formData.append('image', imageFile);
       } else if (status === 'failed') {
         formData.append('reason', failedReason);
@@ -93,7 +93,7 @@ const ShipperOrders = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-black text-slate-900">Assigned Orders</h2>
         <div className="flex bg-slate-100 p-1 rounded-xl">
-          {['all', 'shipped', 'delivered', 'failed'].map((status) => (
+          {['all', 'preparing', 'shipping', 'completed', 'failed'].map((status) => (
             <button
               key={status}
               onClick={() => navigate(status === 'all' ? '/shipper/orders' : `/shipper/orders/${status}`)}
@@ -101,7 +101,7 @@ const ShipperOrders = () => {
                 currentFilter === status ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              {status === 'shipped' ? 'In Transit' : status}
+              {status === 'shipping' ? 'In Transit' : status}
             </button>
           ))}
         </div>
@@ -177,22 +177,22 @@ const ShipperOrders = () => {
                     </td>
                     <td className="p-6">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1 ${
-                        order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
+                        order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                         order.status === 'failed' ? 'bg-red-100 text-red-700' :
-                        order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
+                        order.status === 'shipping' ? 'bg-blue-100 text-blue-700' :
                         'bg-slate-100 text-slate-700'
                       }`}>
                         {order.status}
                       </span>
                     </td>
                     <td className="p-6 text-right space-x-2">
-                      {order.status === 'shipped' && (
+                      {order.status === 'shipping' && (
                         <>
                           <button
-                            onClick={() => handleOpenModal(order._id || order.id, 'delivered')}
+                            onClick={() => handleOpenModal(order._id || order.id, 'completed')}
                             className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-200 transition-colors cursor-pointer"
                           >
-                            Mark Delivered
+                            mark completed
                           </button>
                           <button
                             onClick={() => handleOpenModal(order._id || order.id, 'failed')}
@@ -216,14 +216,14 @@ const ShipperOrders = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
             <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
-              {modalConfig.status === 'delivered' ? (
-                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Mark as Delivered</>
+              {modalConfig.status === 'completed' ? (
+                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> mark as completed</>
               ) : (
                 <><span className="material-symbols-outlined text-red-500">cancel</span> Mark as Failed</>
               )}
             </h3>
             
-            {modalConfig.status === 'delivered' && (
+            {modalConfig.status === 'completed' && (
               <div className="space-y-4 mb-6">
                 <label className="block text-sm font-bold text-slate-700">Proof of Delivery (Required) <span className="text-red-500">*</span></label>
                 <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors cursor-pointer relative overflow-hidden group">
@@ -292,7 +292,7 @@ const ShipperOrders = () => {
                 onClick={submitStatusUpdate}
                 disabled={isSubmitting}
                 className={`px-6 py-2.5 rounded-xl font-bold text-white transition-all flex items-center gap-2 cursor-pointer ${
-                  modalConfig.status === 'delivered' ? 'bg-[#004ac6] hover:bg-[#003da6]' : 'bg-red-500 hover:bg-red-600'
+                  modalConfig.status === 'completed' ? 'bg-[#004ac6] hover:bg-[#003da6]' : 'bg-red-500 hover:bg-red-600'
                 } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSubmitting ? (

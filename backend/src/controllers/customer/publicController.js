@@ -35,7 +35,7 @@ exports.getUIConfig = async (req, res, next) => {
       platformSettings = await PlatformSetting.create({});
       platformSettings = platformSettings.toObject();
     }
-    
+
     res.status(200).json({
       success: true,
       code: 200,
@@ -75,7 +75,7 @@ exports.getHomepageData = async (req, res, next) => {
       return await Promise.all(products.map(async (p) => {
         const media = await ProductMedia.find({ product_id: p._id }).sort({ sort_order: 1 });
         const reviews = await ProductReview.find({ product_id: p._id });
-        const avgRating = reviews.length > 0 
+        const avgRating = reviews.length > 0
           ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
           : 5.0;
 
@@ -83,7 +83,7 @@ exports.getHomepageData = async (req, res, next) => {
           { $match: { product_id: p._id } },
           { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
           { $unwind: '$order' },
-          { $match: { 'order.status': 'delivered' } },
+          { $match: { 'order.status': 'completed' } },
           { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
         ]);
         const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
@@ -180,7 +180,7 @@ exports.getProductDetail = async (req, res, next) => {
     const shopProducts = await Product.find({ shop_id: product.shop_id }).select('_id');
     const pIds = shopProducts.map(p => p._id);
     const shopReviews = await ProductReview.find({ product_id: { $in: pIds } });
-    const shopRating = shopReviews.length > 0 
+    const shopRating = shopReviews.length > 0
       ? Number((shopReviews.reduce((acc, r) => acc + r.rating, 0) / shopReviews.length).toFixed(1))
       : 5.0;
 
@@ -206,7 +206,7 @@ exports.getProductDetail = async (req, res, next) => {
 
     // 5. Fetch Variants & Calculate Total Stock (sorted by _id to match listing card default variant)
     const variants = await ProductVariant.find({ product_id: product._id }).sort({ _id: 1 });
-    const totalStock = variants.length > 0 
+    const totalStock = variants.length > 0
       ? variants.reduce((acc, v) => acc + (v.stock_quantity || 0), 0)
       : 100;
 
@@ -215,7 +215,7 @@ exports.getProductDetail = async (req, res, next) => {
       { $match: { product_id: product._id } },
       { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
       { $unwind: '$order' },
-      { $match: { 'order.status': 'delivered' } },
+      { $match: { 'order.status': 'completed' } },
       { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
     ]);
     const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
@@ -225,7 +225,7 @@ exports.getProductDetail = async (req, res, next) => {
       .populate('user_id', 'full_name avatar_url')
       .sort({ createdAt: -1 });
 
-    const avgRating = reviews.length > 0 
+    const avgRating = reviews.length > 0
       ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
       : 5.0;
 
@@ -248,8 +248,8 @@ exports.getProductDetail = async (req, res, next) => {
     }));
 
     // 8. Fetch Related Products (Same category, approved, not current)
-    const relatedProductsRaw = await Product.find({ 
-      category_id: product.category_id, 
+    const relatedProductsRaw = await Product.find({
+      category_id: product.category_id,
       _id: { $ne: product._id },
       approval_status: 'approved'
     }).limit(10);
@@ -264,7 +264,7 @@ exports.getProductDetail = async (req, res, next) => {
         { $match: { product_id: p._id } },
         { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
         { $unwind: '$order' },
-        { $match: { 'order.status': 'delivered' } },
+        { $match: { 'order.status': 'completed' } },
         { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
       ]);
       const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
@@ -367,7 +367,7 @@ exports.searchProducts = async (req, res, next) => {
         const subCatIds = subCats.map(c => c._id);
         // Find grandchildren (Level 3)
         const grandSubCats = await Category.find({ parent_id: { $in: subCatIds } });
-        
+
         const allCatIds = [cat._id, ...subCatIds, ...grandSubCats.map(c => c._id)];
         query.category_id = { $in: allCatIds };
       }
@@ -390,7 +390,7 @@ exports.searchProducts = async (req, res, next) => {
       const cat = await Category.findById(p.category_id).select('name slug');
       const reviews = await ProductReview.find({ product_id: p._id });
       const variants = await ProductVariant.find({ product_id: p._id });
-      const avgRating = reviews.length > 0 
+      const avgRating = reviews.length > 0
         ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
         : 5.0;
 
@@ -398,7 +398,7 @@ exports.searchProducts = async (req, res, next) => {
         { $match: { product_id: p._id } },
         { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
         { $unwind: '$order' },
-        { $match: { 'order.status': 'delivered' } },
+        { $match: { 'order.status': 'completed' } },
         { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
       ]);
       const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
@@ -549,7 +549,7 @@ exports.getShopDetail = async (req, res, next) => {
         { $match: { product_id: p._id } },
         { $lookup: { from: 'orders', localField: 'order_id', foreignField: '_id', as: 'order' } },
         { $unwind: '$order' },
-        { $match: { 'order.status': 'delivered' } },
+        { $match: { 'order.status': 'completed' } },
         { $group: { _id: null, totalSold: { $sum: '$quantity' } } }
       ]);
       const totalSold = soldData.length > 0 ? soldData[0].totalSold : 0;
@@ -627,7 +627,7 @@ exports.getCampaigns = async (req, res, next) => {
       // Find targets
       const targets = await CampaignTarget.find({ campaign_id: camp._id });
       const productIds = targets.map(t => t.product_id);
-      
+
       // Fetch products
       const productsRaw = await Product.find({
         _id: { $in: productIds },
@@ -739,7 +739,7 @@ const Post = require('../../models/Post');
 exports.getBlogPosts = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, category, search } = req.query;
-    
+
     const query = { status: 'published' };
     if (category) {
       query.category = category;
@@ -812,6 +812,51 @@ exports.getBlogPostBySlug = async (req, res, next) => {
         post,
         relatedPosts
       })
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const NewsletterSubscriber = require('../../models/NewsletterSubscriber');
+
+exports.subscribeNewsletter = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        code: 400,
+        message: 'Email is required'
+      });
+    }
+
+    let subscriber = await NewsletterSubscriber.findOne({ email });
+
+    if (subscriber) {
+      if (!subscriber.isActive) {
+        subscriber.isActive = true;
+        await subscriber.save();
+        return res.status(200).json({
+          success: true,
+          code: 200,
+          message: 'Subscription reactivated successfully'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        code: 400,
+        message: 'Email is already subscribed'
+      });
+    }
+
+    subscriber = new NewsletterSubscriber({ email });
+    await subscriber.save();
+
+    res.status(201).json({
+      success: true,
+      code: 201,
+      message: 'Subscribed successfully'
     });
   } catch (error) {
     next(error);

@@ -18,10 +18,12 @@ const WithdrawalSetting = require('../../models/WithdrawalSetting');
 const SellerBankAccount = require('../../models/SellerBankAccount');
 const ProductReview = require('../../models/ProductReview');
 const ProductReviewMedia = require('../../models/ProductReviewMedia');
+const OrderStatusHistory = require('../../models/OrderStatusHistory');
+const AuditLog = require('../../models/AuditLog');
 const excelJS = require('exceljs');
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
-    return (order.payment_status === 'success' || order.status === 'delivered') && order.status !== 'canceled';
+    return (order.payment_status === 'success' || order.status === 'completed') && order.status !== 'canceled';
 };
 
 // Helper to hash string to simple float for seeding varied but consistent conversion rates
@@ -49,7 +51,7 @@ const getAnalytics = async (req, res, next) => {
         if (range === 'today') {
             currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
             currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-            
+
             prevStart = new Date(currentStart);
             prevStart.setDate(prevStart.getDate() - 1);
             prevEnd = new Date(currentEnd);
@@ -279,7 +281,7 @@ const exportAnalytics = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        const orders = await Order.find({ shop_id: shop._id, status: 'delivered' }).sort({ createdAt: -1 });
+        const orders = await Order.find({ shop_id: shop._id, status: 'completed' }).sort({ createdAt: -1 });
 
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sales Performance');
@@ -338,7 +340,7 @@ const getCancellations = async (req, res, next) => {
 
         // 2. Query cancellations for these orders
         let query = { order_id: { $in: shopOrderIds } };
-        
+
         if (status && status !== 'All') {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'Approved') query.status = 'approved';
@@ -391,7 +393,7 @@ const getCancellations = async (req, res, next) => {
             const items = await OrderItem.find({ order_id: cancel.order_id._id })
                 .populate('product_id', 'name slug')
                 .populate('variant_id', 'attributes');
-            
+
             return {
                 ...cancel.toObject(),
                 items: items
@@ -479,11 +481,13 @@ const getOrders = async (req, res, next) => {
 
         if (status && status !== 'All Orders') {
             if (status === 'Pending') query.status = 'pending';
-            else if (status === 'To Process') query.status = 'confirmed';
-            else if (status === 'Shipping') query.status = 'shipped';
-            else if (status === 'Completed') query.status = 'delivered';
-            else if (status === 'Return/Refund') query.status = { $in: ['disputed', 'refunded'] };
-            else if (status === 'Canceled') query.status = 'canceled';
+            else if (status === 'Confirmed') query.status = 'confirmed';
+            else if (status === 'Preparing') query.status = 'preparing';
+            else if (status === 'Shipping') query.status = 'shipping';
+            else if (status === 'Completed') query.status = 'completed';
+            else if (status === 'Cancel Pending') query.status = 'cancel_pending';
+            else if (status === 'Canceled' || status === 'Cancelled') query.status = 'canceled';
+            else if (status === 'Refunded') query.status = 'refunded';
         }
 
         if (search) {
@@ -494,7 +498,7 @@ const getOrders = async (req, res, next) => {
                 ]
             }).select('_id');
             const customerIds = matchedCustomers.map(c => c._id);
-            
+
             query.$or = [
                 { order_code: { $regex: search, $options: 'i' } },
                 { customer_id: { $in: customerIds } }
@@ -532,23 +536,29 @@ const getOrders = async (req, res, next) => {
             { $match: { shop_id: shop._id } },
             { $group: { _id: '$status', count: { $sum: 1 } } }
         ]);
-        
+
         const summary = {
             'All Orders': 0,
             'Pending': 0,
-            'To Process': 0,
+            'Confirmed': 0,
+            'Preparing': 0,
             'Shipping': 0,
             'Completed': 0,
-            'Return/Refund': 0
+            'Cancel Pending': 0,
+            'Canceled': 0,
+            'Refunded': 0
         };
 
         allStatuses.forEach(s => {
             summary['All Orders'] += s.count;
             if (s._id === 'pending') summary['Pending'] += s.count;
-            else if (s._id === 'confirmed') summary['To Process'] += s.count;
-            else if (s._id === 'shipped') summary['Shipping'] += s.count;
-            else if (s._id === 'delivered') summary['Completed'] += s.count;
-            else if (['disputed', 'refunded'].includes(s._id)) summary['Return/Refund'] += s.count;
+            else if (s._id === 'confirmed') summary['Confirmed'] += s.count;
+            else if (s._id === 'preparing') summary['Preparing'] += s.count;
+            else if (s._id === 'shipping') summary['Shipping'] += s.count;
+            else if (s._id === 'completed') summary['Completed'] += s.count;
+            else if (s._id === 'cancel_pending') summary['Cancel Pending'] += s.count;
+            else if (s._id === 'canceled') summary['Canceled'] += s.count;
+            else if (s._id === 'refunded') summary['Refunded'] += s.count;
         });
 
         // Fetch order items
@@ -562,7 +572,7 @@ const getOrders = async (req, res, next) => {
 
         const ordersWithItems = orders.map(order => {
             const items = orderItems.filter(oi => oi.order_id.toString() === order._id.toString());
-            
+
             const itemsWithMedia = items.map(item => {
                 const itemObj = item.toObject();
                 if (itemObj.product_id) {
@@ -607,7 +617,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -619,7 +629,7 @@ const updateOrderStatus = async (req, res, next) => {
 
         order.status = status;
 
-        if (status === 'delivered') {
+        if (status === 'completed') {
             const paymentOrder = await PaymentOrder.findById(order.payment_order_id);
             if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
                 order.payment_status = 'success';
@@ -633,7 +643,7 @@ const updateOrderStatus = async (req, res, next) => {
                 // Update parent PaymentOrder if all sub-orders are success/delivered
                 const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id });
                 const allSiblingSuccess = siblingOrders.every(so =>
-                    so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'delivered'
+                    so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'completed'
                 );
                 if (allSiblingSuccess) {
                     paymentOrder.payment_status = 'success';
@@ -785,14 +795,41 @@ const getProducts = async (req, res, next) => {
         const variants = await ProductVariant.find({ product_id: { $in: productIds } });
         const medias = await ProductMedia.find({ product_id: { $in: productIds } });
 
+        const auditLogs = await AuditLog.find({
+            entity_id: { $in: productIds },
+            action: { $in: ['Reject Product', 'Approve Product', 'Product Updated & Re-submitted'] }
+        }).sort({ createdAt: -1 });
+
         const productsWithDetails = products.map(p => {
             const productVariants = variants.filter(v => v.product_id.toString() === p._id.toString());
             const productMedias = medias.filter(m => m.product_id.toString() === p._id.toString());
             const totalStock = productVariants.reduce((sum, v) => sum + v.stock_quantity, 0);
-            
+
+            const pLogs = auditLogs.filter(l => l.entity_id.toString() === p._id.toString());
+            const history = pLogs.map(log => ({
+                action: log.action,
+                reason: log.metadata?.reason || log.metadata?.note,
+                createdAt: log.createdAt
+            }));
+
+            // Add draft creation as the first event (oldest)
+            history.push({
+                action: 'Draft Created',
+                reason: 'Initial product listing creation.',
+                createdAt: p.createdAt
+            });
+
+            // Sort descending by date
+            history.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
             let currentStatus = 'Selling';
+            let reject_reason = null;
             if (p.approval_status === 'pending') currentStatus = 'Pending';
-            else if (p.approval_status === 'rejected') currentStatus = 'Violated';
+            else if (p.approval_status === 'rejected') {
+                currentStatus = 'Violated';
+                const latestReject = history.find(h => h.action === 'Reject Product');
+                if (latestReject) reject_reason = latestReject.reason || 'Violation of policies';
+            }
             else if (totalStock === 0 && productVariants.length > 0) currentStatus = 'Out of Stock';
 
             return {
@@ -800,7 +837,9 @@ const getProducts = async (req, res, next) => {
                 variants: productVariants,
                 media: productMedias,
                 totalStock,
-                currentStatus
+                currentStatus,
+                reject_reason,
+                approval_history: history
             };
         });
 
@@ -915,7 +954,7 @@ const exportProducts = async (req, res, next) => {
         products.forEach(p => {
             const productVariants = variants.filter(v => v.product_id.toString() === p._id.toString());
             const totalStock = productVariants.reduce((sum, v) => sum + v.stock_quantity, 0);
-            
+
             let status = 'Selling';
             if (p.approval_status === 'pending') status = 'Pending';
             else if (p.approval_status === 'rejected') status = 'Violated';
@@ -1023,7 +1062,7 @@ const uploadShopAssets = async (req, res, next) => {
         if (!req.file && !req.files) {
             return res.status(400).json({ success: false, code: 400, message: 'No file uploaded' });
         }
-        
+
         let url = '';
         if (req.file) {
             url = req.file.path;
@@ -1065,43 +1104,58 @@ const deleteShop = async (req, res, next) => {
 };
 
 const recalculateWallet = async (shopId) => {
-    // 1. Get all delivered orders for this shop
-    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
-    
+    // 1. Get all completed orders for this shop
+    const orders = await Order.find({ shop_id: shopId, status: 'completed' });
+    const orderIds = orders.map(o => o._id);
+
+    // Get completion histories to know exactly when they were completed (to avoid updatedAt being overridden)
+    const histories = await OrderStatusHistory.find({
+        order_id: { $in: orderIds },
+        status: { $in: ['completed', 'delivered'] }
+    });
+    const historyMap = {};
+    histories.forEach(h => {
+        // If multiple, earliest completion time is kept (or latest, doesn't matter much)
+        if (!historyMap[h.order_id] || h.createdAt > historyMap[h.order_id]) {
+            historyMap[h.order_id] = h.createdAt;
+        }
+    });
+
     // 2. Sum up total earnings and pending earnings
     let totalEarnings = 0;
     let pendingEarnings = 0;
-    
+
     const escrowLimit = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    
+
     for (const order of orders) {
         const platformFee = order.platform_fee_amount || 0;
         const gatewayFee = order.gateway_fee_amount || 0;
         const payout = order.subtotal_amount - platformFee - gatewayFee;
-        
+
         totalEarnings += payout;
-        
-        // If order was delivered/updated within the last 7 days, it's still frozen/pending
-        if (order.updatedAt > escrowLimit) {
+
+        // If order was delivered within the last 7 days, it's still frozen/pending
+        const completedDate = historyMap[order._id] || order.updatedAt;
+        if (completedDate > escrowLimit) {
             pendingEarnings += payout;
         }
     }
-    
+
     // 3. Get all withdrawal requests for this shop
     const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
     let totalWithdrawals = 0;
-    
+
     for (const w of withdrawals) {
         if (w.status !== 'rejected') {
             totalWithdrawals += w.amount;
         }
     }
-    
+
     // 4. Calculate final balances
     const totalBalance = totalEarnings - totalWithdrawals;
     const pendingBalance = pendingEarnings; // Only track escrow/pending order earnings
     const availableBalance = totalBalance - pendingBalance;
-    
+
     // 5. Find or create the wallet and update it
     let wallet = await SellerWallet.findOne({ shop_id: shopId });
     if (!wallet) {
@@ -1116,12 +1170,11 @@ const recalculateWallet = async (shopId) => {
         wallet.pending_balance = pendingBalance;
         wallet.available_balance = availableBalance;
     }
-    
+
     await wallet.save();
     return wallet;
 };
 
-// Wallet APIs
 const getWalletInfo = async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -1132,18 +1185,26 @@ const getWalletInfo = async (req, res, next) => {
 
         const wallet = await recalculateWallet(shop._id);
 
+        const withdrawSetting = await WithdrawalSetting.findOne().sort({ effective_from: -1 });
+        const minWithdrawLimit = withdrawSetting ? withdrawSetting.min_withdrawal : 100000;
+        const maxDailyLimit = withdrawSetting ? withdrawSetting.max_daily_withdrawal : 50000000;
+
         res.status(200).json({
             success: true,
             code: 200,
             message: 'Wallet info retrieved successfully',
-            data: wallet
+            data: {
+                ...wallet.toObject(),
+                min_withdrawal: minWithdrawLimit,
+                max_daily_withdrawal: maxDailyLimit
+            }
         });
     } catch (error) {
         next(error);
     }
 };
 const getDynamicTransactions = async (shopId) => {
-    const orders = await Order.find({ shop_id: shopId, status: 'delivered' });
+    const orders = await Order.find({ shop_id: shopId, status: 'completed' });
     const withdrawals = await WithdrawRequest.find({ shop_id: shopId });
 
     const orderTransactions = orders.map(order => {
@@ -1481,7 +1542,23 @@ const updateProduct = async (req, res, next) => {
         if (selling_price !== undefined) product.selling_price = selling_price;
         if (sku !== undefined) product.sku = sku;
 
+        let statusChanged = false;
+        if (product.approval_status === 'rejected') {
+            product.approval_status = 'pending';
+            statusChanged = true;
+        }
+
         await product.save();
+
+        if (statusChanged) {
+            await AuditLog.create({
+                actor_id: userId,
+                action: 'Product Updated & Re-submitted',
+                entity_type: 'Product',
+                entity_id: product._id,
+                metadata: { note: 'Seller updated the rejected product and submitted for review again.' }
+            });
+        }
 
         // Update variants
         if (variants !== undefined) {
@@ -1733,8 +1810,8 @@ const getSellerReviews = async (req, res, next) => {
         // Build hierarchical categories list
         const buildCategoryHierarchy = (parentId = null, depth = 0) => {
             let result = [];
-            const children = allCategories.filter(c => 
-                (parentId === null && !c.parent_id) || 
+            const children = allCategories.filter(c =>
+                (parentId === null && !c.parent_id) ||
                 (parentId !== null && c.parent_id && c.parent_id.toString() === parentId.toString())
             );
 
@@ -1868,9 +1945,9 @@ const getSellerReviews = async (req, res, next) => {
 
         // Fetch first image for these products
         const productIdsInReviews = reviews.map(r => r.product_id?._id).filter(id => id);
-        const productMedias = await ProductMedia.find({ 
-            product_id: { $in: productIdsInReviews }, 
-            media_type: 'image' 
+        const productMedias = await ProductMedia.find({
+            product_id: { $in: productIdsInReviews },
+            media_type: 'image'
         }).sort({ sort_order: 1 });
 
         // Map media and format response

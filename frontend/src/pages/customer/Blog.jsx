@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import toast from 'react-hot-toast';
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
@@ -10,6 +11,8 @@ const Blog = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [category, setCategory] = useState('');
+  const [subscriberEmail, setSubscriberEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -23,6 +26,28 @@ const Blog = () => {
       console.error('Fetch blog posts error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!subscriberEmail) {
+      toast.error('Please enter your email');
+      return;
+    }
+    setSubscribing(true);
+    try {
+      const res = await axios.post('http://localhost:5000/api/public/newsletter/subscribe', { email: subscriberEmail });
+      if (res.data.success) {
+        toast.success(res.data.message || 'Subscribed successfully!');
+        setSubscriberEmail('');
+      } else {
+        toast.error(res.data.message || 'Failed to subscribe');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to subscribe');
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -119,13 +144,60 @@ const Blog = () => {
             <section className="pt-12 border-t border-[#c3c6d7]">
               <h2 className="text-3xl font-bold text-[#131b2e] mb-8">FAQ & Policies</h2>
               <div className="space-y-4">
-                <div className="p-6 bg-[#f2f3ff] rounded-2xl group cursor-pointer">
+                <div className="p-6 bg-[#f2f3ff] rounded-2xl group cursor-pointer transition-all hover:shadow-md">
                   <div className="flex justify-between items-center">
                     <h4 className="text-xl font-semibold text-[#131b2e]">Shipping Policy for Students</h4>
                     <span className="material-symbols-outlined group-hover:text-primary transition-colors">expand_more</span>
                   </div>
                   <div className="mt-4 text-sm text-[#434655] leading-relaxed hidden group-hover:block transition-all">
-                    UTEShop supports express delivery in the inner city and free shipping for orders over 500,000₫ for verified students.
+                    <p className="mb-2">UTEShop is proud to support the student community with special shipping rates. We offer <strong>express delivery within the inner city</strong> for all verified student accounts.</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Free shipping on all orders over 500,000₫.</li>
+                      <li>Standard delivery within 2-3 business days.</li>
+                      <li>Same-day delivery available for central districts with a flat fee of 15,000₫.</li>
+                    </ul>
+                    <p className="mt-2 text-xs italic">* Note: A valid Student ID is required to be linked with your account to unlock these benefits.</p>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-[#f2f3ff] rounded-2xl group cursor-pointer transition-all hover:shadow-md">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xl font-semibold text-[#131b2e]">Return & Exchange Policy</h4>
+                    <span className="material-symbols-outlined group-hover:text-primary transition-colors">expand_more</span>
+                  </div>
+                  <div className="mt-4 text-sm text-[#434655] leading-relaxed hidden group-hover:block transition-all">
+                    <p>We want you to be completely satisfied with your purchase. If a product does not meet your expectations, you can return it within <strong>7 days of delivery</strong>.</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Items must be unworn, unwashed, and in their original packaging with tags attached.</li>
+                      <li>To initiate a return, navigate to your Order History and click "Request Return".</li>
+                      <li>Refunds will be processed to your original payment method within 3-5 business days after we receive the item.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-[#f2f3ff] rounded-2xl group cursor-pointer transition-all hover:shadow-md">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xl font-semibold text-[#131b2e]">How to apply Student Discount Codes?</h4>
+                    <span className="material-symbols-outlined group-hover:text-primary transition-colors">expand_more</span>
+                  </div>
+                  <div className="mt-4 text-sm text-[#434655] leading-relaxed hidden group-hover:block transition-all">
+                    <p>Subscribing to our newsletter gives you access to exclusive student discount codes. To apply them:</p>
+                    <ol className="list-decimal pl-5 mt-2 space-y-1">
+                      <li>Add your desired items to the shopping cart.</li>
+                      <li>Proceed to checkout and look for the "Promo Code" or "Voucher" field.</li>
+                      <li>Enter the code you received in your email and click "Apply".</li>
+                      <li>The discount will be automatically calculated and deducted from your total bill.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-[#f2f3ff] rounded-2xl group cursor-pointer transition-all hover:shadow-md">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xl font-semibold text-[#131b2e]">Quality Assurance Guarantee</h4>
+                    <span className="material-symbols-outlined group-hover:text-primary transition-colors">expand_more</span>
+                  </div>
+                  <div className="mt-4 text-sm text-[#434655] leading-relaxed hidden group-hover:block transition-all">
+                    <p>Every seller on UTEShop undergoes a strict verification process. We ensure that all products listed on our platform meet our high-quality standards. If you suspect an item is counterfeit or differs significantly from its description, please report it immediately through our support center.</p>
                   </div>
                 </div>
               </div>
@@ -138,10 +210,23 @@ const Blog = () => {
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
               <h3 className="text-xl font-semibold mb-4 relative z-10">Join Our Newsletter</h3>
               <p className="text-sm opacity-80 mb-6 relative z-10">Subscribe to receive weekly styling tips and exclusive discount codes.</p>
-              <div className="relative z-10 space-y-3">
-                <input type="email" placeholder="Your email address" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm outline-none placeholder:text-white/50" />
-                <button className="w-full bg-white text-primary py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all">Subscribe Now</button>
-              </div>
+              <form onSubmit={handleSubscribe} className="relative z-10 space-y-3">
+                <input 
+                  type="email" 
+                  value={subscriberEmail}
+                  onChange={(e) => setSubscriberEmail(e.target.value)}
+                  placeholder="Your email address" 
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm outline-none placeholder:text-white/50" 
+                  required
+                />
+                <button 
+                  type="submit" 
+                  disabled={subscribing}
+                  className="w-full bg-white text-primary py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all disabled:opacity-50"
+                >
+                  {subscribing ? 'Subscribing...' : 'Subscribe Now'}
+                </button>
+              </form>
             </section>
 
             <section className="bg-[#f2f3ff] rounded-3xl p-8 border border-[#c3c6d7]/30">

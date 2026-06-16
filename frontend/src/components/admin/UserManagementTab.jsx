@@ -58,6 +58,8 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
     newThisWeek: 0,
     bannedUsers: 0
   });
+  
+  const [confirmStatusModal, setConfirmStatusModal] = useState({ show: false, userId: null, currentStatus: null });
 
   // Filters
   const [localSearch, setLocalSearch] = useState('');
@@ -184,7 +186,9 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
   };
 
   // Toggle Ban/Unban status
-  const handleToggleStatus = async (userId, currentStatus) => {
+  const handleToggleStatus = async () => {
+    if (!confirmStatusModal.userId) return;
+    const { userId, currentStatus } = confirmStatusModal;
     setActionLoadingId(userId);
     const newStatus = currentStatus === 'locked' ? 'active' : 'locked';
     try {
@@ -222,6 +226,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
       toast.error(error.response?.data?.message || 'Failed to toggle account ban status');
     } finally {
       setActionLoadingId(null);
+      setConfirmStatusModal({ show: false, userId: null, currentStatus: null });
     }
   };
 
@@ -661,7 +666,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
                     {/* Ban / Unban Toggle */}
                     <button
-                      onClick={() => handleToggleStatus(user.id, user.status)}
+                      onClick={() => setConfirmStatusModal({ show: true, userId: user.id, currentStatus: user.status })}
                       className={`p-2 transition-all cursor-pointer inline-block ${
                         user.status === 'locked' 
                           ? 'text-red-500 hover:brightness-110' 
@@ -909,7 +914,8 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
               <button
                 onClick={() => {
                   if (selectedUser) {
-                    handleToggleStatus(selectedUser.profile.id, selectedUser.profile.status);
+                    setShowDetailsModal(false);
+                    setConfirmStatusModal({ show: true, userId: selectedUser.profile.id, currentStatus: selectedUser.profile.status });
                   }
                 }}
                 disabled={actionLoadingId !== null}
@@ -966,7 +972,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                         </p>
                       </div>
                       <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${
-                        order.status === 'delivered' || order.paymentStatus === 'success'
+                        order.status === 'completed' || order.paymentStatus === 'success'
                           ? 'bg-success/10 text-success border-success/20'
                           : order.status === 'canceled'
                             ? 'bg-error/10 text-error border-error/20'
@@ -1009,6 +1015,52 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
             <div className="p-8 border-t border-slate-100 bg-slate-50/30">
               <button onClick={() => setShowHistoryModal(false)} className="w-full py-4 bg-white border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all cursor-pointer">
                 Close History
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Form Modal for Ban/Unban */}
+      {confirmStatusModal.show && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl transform transition-all scale-100 relative">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ${
+              confirmStatusModal.currentStatus === 'locked' 
+                ? 'bg-green-100 text-green-600' 
+                : 'bg-red-100 text-red-600'
+            }`}>
+              <span className="material-symbols-outlined text-3xl">
+                {confirmStatusModal.currentStatus === 'locked' ? 'check_circle' : 'warning'}
+              </span>
+            </div>
+
+            <h3 className="text-2xl font-black text-slate-900 text-center mb-2">
+              {confirmStatusModal.currentStatus === 'locked' ? 'Unban User' : 'Ban User'}
+            </h3>
+            <p className="text-sm font-medium text-slate-500 text-center mb-8">
+              {confirmStatusModal.currentStatus === 'locked' 
+                ? 'Are you sure you want to unban this user? They will be able to log in and use the platform normally.' 
+                : 'Are you sure you want to ban this user? They will immediately be locked out of the platform and unable to log in.'}
+            </p>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setConfirmStatusModal({ show: false, userId: null, currentStatus: null })}
+                className="flex-1 py-3.5 bg-slate-100 text-slate-600 text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleStatus}
+                disabled={actionLoadingId !== null}
+                className={`flex-1 py-3.5 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg transition-all cursor-pointer ${
+                  confirmStatusModal.currentStatus === 'locked'
+                    ? 'bg-green-600 hover:brightness-110 shadow-green-200'
+                    : 'bg-red-600 hover:brightness-110 shadow-red-200'
+                }`}
+              >
+                {actionLoadingId === confirmStatusModal.userId ? 'Processing...' : 'Confirm'}
               </button>
             </div>
           </div>

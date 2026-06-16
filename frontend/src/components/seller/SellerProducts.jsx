@@ -255,7 +255,12 @@ const SellerProducts = ({ setActiveTab }) => {
                                             <td className="px-6 py-5 text-center">
                                                 {product.currentStatus === 'Selling' && <span className="px-3 py-1.5 bg-[#e6f4ea] text-[#1e7e34] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#1e7e34]/10 shadow-sm inline-block">Selling</span>}
                                                 {product.currentStatus === 'Pending' && <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">Pending</span>}
-                                                {product.currentStatus === 'Violated' && <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Violated</span>}
+                                                {product.currentStatus === 'Violated' && (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Violated</span>
+                                                        {product.reject_reason && <span className="text-[9px] text-[#c62828] font-bold max-w-[100px] text-center line-clamp-2" title={product.reject_reason}>{product.reject_reason}</span>}
+                                                    </div>
+                                                )}
                                                 {product.currentStatus === 'Out of Stock' && <span className="px-3 py-1.5 bg-surface-container-high text-secondary rounded-lg text-[10px] font-black uppercase tracking-wider border border-outline-variant/30 shadow-sm inline-block">Out of Stock</span>}
                                             </td>
                                             <td className="px-8 py-5">

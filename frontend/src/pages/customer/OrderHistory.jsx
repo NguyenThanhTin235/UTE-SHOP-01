@@ -117,8 +117,9 @@ const OrderHistory = () => {
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
-    { key: 'shipped', label: 'Shipped' },
-    { key: 'delivered', label: 'Delivered' },
+    { key: 'preparing', label: 'Preparing' },
+    { key: 'shipping', label: 'Shipping' },
+    { key: 'completed', label: 'Completed' },
     { key: 'cancel_pending', label: 'Cancel Pending' },
     { key: 'canceled', label: 'Cancelled' },
     { key: 'refunded', label: 'Refunded' }
@@ -130,10 +131,12 @@ const OrderHistory = () => {
         return { text: 'Pending', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: 'pending_actions' };
       case 'confirmed':
         return { text: 'Confirmed', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: 'verified' };
-      case 'shipped':
-        return { text: 'Shipped', color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20', icon: 'local_shipping' };
-      case 'delivered':
-        return { text: 'Delivered', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20', icon: 'check_circle' };
+      case 'preparing':
+        return { text: 'Preparing', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: 'inventory_2' };
+      case 'shipping':
+        return { text: 'Shipping', color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20', icon: 'local_shipping' };
+      case 'completed':
+        return { text: 'Completed', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20', icon: 'check_circle' };
       case 'canceled':
         return { text: 'Cancelled', color: 'text-rose-500 bg-rose-500/10 border-rose-500/20', icon: 'cancel' };
       case 'cancel_pending':
@@ -393,7 +396,7 @@ const OrderHistory = () => {
                                  </button>
                               )}
 
-                              {['pending', 'confirmed'].includes(order.status) && (
+                              {['pending', 'confirmed', 'preparing'].includes(order.status) && (
                                 <Link
                                   to={`/order-history/${order.id}/cancel`}
                                   className="border border-rose-200 text-rose-600 hover:bg-rose-50 px-5 py-2 rounded-xl font-bold text-xs transition-all text-center"
@@ -402,7 +405,7 @@ const OrderHistory = () => {
                                 </Link>
                               )}
 
-                              {order.status === 'delivered' && (
+                              {order.status === 'completed' && (
                                 <button 
                                   onClick={() => toast.success('Invoice downloaded')}
                                   className="border border-[#c3c6d7] text-[#434655] hover:bg-[#f2f3ff] px-5 py-2 rounded-xl font-bold text-xs transition-all text-center"
@@ -411,7 +414,7 @@ const OrderHistory = () => {
                                 </button>
                               )}
 
-                              {['delivered', 'canceled'].includes(order.status) && (
+                              {['completed', 'canceled'].includes(order.status) && (
                                 <button
                                   onClick={() => {
                                     toast.success('Added items to cart to reorder!');

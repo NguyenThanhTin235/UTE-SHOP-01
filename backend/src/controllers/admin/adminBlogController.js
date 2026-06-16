@@ -48,6 +48,10 @@ exports.getPostById = async (req, res) => {
   }
 };
 
+const NewsletterSubscriber = require('../../models/NewsletterSubscriber');
+const sendEmail = require('../../utils/mail');
+const { getNewsletterTemplate } = require('../../utils/emailTemplates');
+
 exports.createPost = async (req, res) => {
   try {
     const { title, slug, content, cover_image, category, tags, status } = req.body;
@@ -70,7 +74,30 @@ exports.createPost = async (req, res) => {
     });
 
     await post.save();
+
+    // If published, notify subscribers
+    if (status === 'published') {
+      const subscribers = await NewsletterSubscriber.find({ isActive: true });
+      if (subscribers.length > 0) {
+        // Strip HTML from content for a brief excerpt (approx 150 chars)
+        const excerpt = content.replace(/<[^>]+>/g, '').substring(0, 150) + '...';
+        const blogUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/blog/${slug}`;
+        const htmlContent = getNewsletterTemplate(title, excerpt, blogUrl);
+
+        // Fire and forget
+        Promise.all(subscribers.map(sub => 
+          sendEmail({
+            email: sub.email,
+            subject: `New Blog Post: ${title}`,
+            message: `A new blog post has been published: ${title}`,
+            html: htmlContent
+          }).catch(err => console.error(`Failed to send newsletter to ${sub.email}:`, err))
+        ));
+      }
+    }
+
     res.status(201).json({ success: true, data: post, message: 'Post created successfully' });
+
   } catch (error) {
     console.error('createPost error:', error);
     res.status(500).json({ success: false, message: 'Server error' });

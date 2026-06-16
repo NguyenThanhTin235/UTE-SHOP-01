@@ -3,6 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -15,6 +16,8 @@ const ManagerShopDetail = ({ shopId }) => {
   const [loading, setLoading] = useState(true);
   const [shopDetail, setShopDetail] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [requestInfoModalOpen, setRequestInfoModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchShopDetail = async () => {
@@ -54,13 +57,12 @@ const ManagerShopDetail = ({ shopId }) => {
     }
   };
 
-  const handleReject = async () => {
-    const reason = window.prompt(`Reason for rejecting ${shopDetail?.shopName}:`);
-    if (reason === null) return;
+  const handleRejectConfirm = async (reason) => {
+    setRejectModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/shops/${shopId}/reject`,
-        { reason: reason || 'Not eligible' },
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -72,13 +74,12 @@ const ManagerShopDetail = ({ shopId }) => {
     }
   };
 
-  const handleRequestInfo = async () => {
-    const note = window.prompt(`Information requested for ${shopDetail?.shopName}:`);
-    if (note === null) return;
+  const handleRequestInfoConfirm = async (note) => {
+    setRequestInfoModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/shops/${shopId}/request-info`,
-        { note: note || 'Please provide additional information.' },
+        { note },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -311,13 +312,13 @@ const ManagerShopDetail = ({ shopId }) => {
                       Approve Registration
                     </button>
                     <button 
-                      onClick={handleRequestInfo}
+                      onClick={() => setRequestInfoModalOpen(true)}
                       className="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">help</span>
                       Request More Info
                     </button>
                     <button 
-                      onClick={handleReject}
+                      onClick={() => setRejectModalOpen(true)}
                       className="w-full py-4 bg-red-50 text-[#dc2626] rounded-2xl font-black text-sm hover:bg-[#dc2626] hover:text-white transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">cancel</span>
                       Reject Application
@@ -364,6 +365,24 @@ const ManagerShopDetail = ({ shopId }) => {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        onSubmit={handleRejectConfirm}
+        title="Reject Registration"
+        itemName={shopDetail.shopName}
+        type="shop"
+      />
+
+      <ActionReasonModal
+        isOpen={requestInfoModalOpen}
+        onClose={() => setRequestInfoModalOpen(false)}
+        onSubmit={handleRequestInfoConfirm}
+        title="Request Information"
+        itemName={shopDetail.shopName}
+        type="info"
+      />
     </>
   );
 };

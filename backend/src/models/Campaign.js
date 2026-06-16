@@ -8,7 +8,7 @@ const campaignSchema = new mongoose.Schema({
   view_count: { type: Number, default: 0 },
   start_at: { type: Date, required: true },
   end_at: { type: Date, required: true },
-  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+  status: { type: String, enum: ['scheduled', 'active', 'inactive', 'expired'], default: 'active' },
   type: { type: String }, // VD: Khuyến mãi mùa hè, Black Friday...
   value: { type: Number } // Giá trị giảm giá chung nếu có
 }, { timestamps: true });

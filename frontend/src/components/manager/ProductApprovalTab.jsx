@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -15,6 +16,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState(null);
   const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
+  const [rejectModal, setRejectModal] = useState({ isOpen: false, productId: null });
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -93,16 +95,19 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
     }
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt('Enter rejection reason:');
-    if (!reason) return;
+  const handleRejectClick = (id) => {
+    setRejectModal({ isOpen: true, productId: id });
+  };
+
+  const handleRejectConfirm = async (reason) => {
+    setRejectModal({ isOpen: false, productId: null });
     try {
-      const { data } = await axios.post(`${API}/manager/products/${id}/reject`, { reason }, {
+      const { data } = await axios.post(`${API}/manager/products/${rejectModal.productId}/reject`, { reason }, {
         headers: getAuthHeader(),
       });
       if (data.success) {
         toast.success('Product rejected successfully');
-        setProducts(products.filter(p => p.id !== id));
+        setProducts(products.filter(p => p.id !== rejectModal.productId));
       }
     } catch (err) {
       console.error('Reject product error:', err);
@@ -208,7 +213,7 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
                               <span className="material-symbols-outlined text-xl">check</span>
                             </button>
                             <button
-                              onClick={() => handleReject(p.id)}
+                              onClick={() => handleRejectClick(p.id)}
                               className="w-10 h-10 rounded-xl bg-red-50 text-[#dc2626] flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all cursor-pointer"
                               title="Reject"
                             >
@@ -342,6 +347,15 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
           </div>
         )}
       </div>
+
+      <ActionReasonModal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal({ isOpen: false, productId: null })}
+        onSubmit={handleRejectConfirm}
+        title="Reject Product"
+        itemName="this product"
+        type="product"
+      />
     </>
   );
 };

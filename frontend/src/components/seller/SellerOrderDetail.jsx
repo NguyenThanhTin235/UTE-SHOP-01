@@ -49,7 +49,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
             if (res.data.success) {
                 toast.success('Order status updated successfully');
                 fetchOrderDetails();
-                if (newStatus === 'shipped') {
+                if (newStatus === 'shipping') {
                     setShowShipmentModal(false);
                 }
             }
@@ -81,15 +81,15 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
         const steps = [
             { id: 'pending', label: 'Order Placed', icon: 'check', date: order.createdAt },
             { id: 'confirmed', label: 'Payment Confirmed', icon: 'check', date: order.createdAt },
-            { id: 'to_ship', label: 'To Ship', icon: 'inventory_2', date: ['shipped', 'delivered'].includes(order.status) ? order.updatedAt : null },
-            { id: 'shipped', label: 'Shipped', icon: 'local_shipping', date: ['shipped', 'delivered'].includes(order.status) ? order.updatedAt : null },
-            { id: 'delivered', label: 'Completed', icon: 'verified', date: order.status === 'delivered' ? order.updatedAt : null }
+            { id: 'to_ship', label: 'To Ship', icon: 'inventory_2', date: ['shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
+            { id: 'shipping', label: 'Shipping', icon: 'local_shipping', date: ['shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
+            { id: 'completed', label: 'Completed', icon: 'verified', date: order.status === 'completed' ? order.updatedAt : null }
         ];
 
         let currentStepIndex = 0;
         if (order.status === 'confirmed') currentStepIndex = 2;
-        if (order.status === 'shipped') currentStepIndex = 3;
-        if (order.status === 'delivered') currentStepIndex = 5;
+        if (order.status === 'shipping') currentStepIndex = 3;
+        if (order.status === 'completed') currentStepIndex = 5;
         if (['canceled', 'refunded', 'disputed'].includes(order.status)) currentStepIndex = -1;
 
         return steps.map((step, index) => {
@@ -178,7 +178,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
             );
         }
 
-        if (order.status === 'shipped') {
+        if (order.status === 'shipping') {
             return (
                 <div className="bg-yellow-50 border border-yellow-100 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
@@ -187,7 +187,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         </div>
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="px-4 py-1 bg-yellow-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Shipped</span>
+                                <span className="px-4 py-1 bg-yellow-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Shipping</span>
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is in transit</h2>
                             <p className="text-slate-600 font-medium mt-1">The package has been handed over to the shipping partner.</p>
@@ -197,7 +197,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
             );
         }
 
-        if (order.status === 'delivered') {
+        if (order.status === 'completed') {
             return (
                 <div className="bg-green-50 border border-green-100 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
@@ -418,7 +418,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                             </div>
                             <div className="flex gap-4 pt-4">
                                 <button onClick={() => setShowShipmentModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all cursor-pointer">Cancel</button>
-                                <button onClick={() => handleStatusUpdate('shipped')} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-primary/20 cursor-pointer">Confirm</button>
+                                <button onClick={() => handleStatusUpdate('shipping')} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-primary/20 cursor-pointer">Confirm</button>
                             </div>
                         </div>
                     </div>

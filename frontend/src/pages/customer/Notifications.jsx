@@ -328,7 +328,7 @@ const Notifications = () => {
 
   const getActionText = (type, title) => {
     const t = title?.toLowerCase() || '';
-    if (t.includes('delivered')) return 'Review Product';
+    if (t.includes('completed')) return 'Review Product';
     if (t.includes('welcome')) return 'Explore Store';
     if (t.includes('password')) return 'View Profile';
     if (type === 'order') return 'Track Order';
@@ -343,7 +343,7 @@ const Notifications = () => {
       navigate('/search');
       return;
     }
-    if (t.includes('delivered')) {
+    if (t.includes('completed')) {
       navigate('/reviews');
       return;
     }

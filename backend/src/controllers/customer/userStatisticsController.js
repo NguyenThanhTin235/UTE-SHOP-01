@@ -9,7 +9,7 @@ class UserStatisticsController {
       const { startDate, endDate } = req.query;
 
       let query = { customer_id: userId };
-      
+
       if (startDate || endDate) {
         query.createdAt = {};
         if (startDate) query.createdAt.$gte = new Date(startDate);
@@ -24,11 +24,11 @@ class UserStatisticsController {
       const orders = await Order.find(query).populate('shop_id', 'name');
 
       // 2. Calculate Total Spent (only delivered orders)
-      const deliveredOrders = orders.filter(o => o.status === 'delivered');
+      const deliveredOrders = orders.filter(o => o.status === 'completed');
       const totalSpent = deliveredOrders.reduce((sum, order) => sum + (order.total_final || 0), 0);
 
       // 3. Calculate Pending Payments (shipped, confirmed, pending)
-      const pendingStatuses = ['pending', 'confirmed', 'shipped'];
+      const pendingStatuses = ['pending', 'confirmed', 'shipping'];
       const pendingOrders = orders.filter(o => pendingStatuses.includes(o.status));
       const pendingPayments = pendingOrders.reduce((sum, order) => sum + (order.total_final || 0), 0);
 
@@ -71,17 +71,17 @@ class UserStatisticsController {
           }
         }
       ];
-      
+
       const topProducts = await OrderItem.aggregate(topProductsPipeline);
 
       // Fetch images for top products
       const ProductMedia = require('../../models/ProductMedia');
       const topProductsWithMedia = await Promise.all(topProducts.map(async (p) => {
-          const media = await ProductMedia.findOne({ product_id: p._id }).sort({ sort_order: 1 });
-          return {
-              ...p,
-              media_url: media ? media.media_url : 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400'
-          };
+        const media = await ProductMedia.findOne({ product_id: p._id }).sort({ sort_order: 1 });
+        return {
+          ...p,
+          media_url: media ? media.media_url : 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400'
+        };
       }));
 
       // 7. Expenditure Chart Data (Group by Day for the last 30 days)

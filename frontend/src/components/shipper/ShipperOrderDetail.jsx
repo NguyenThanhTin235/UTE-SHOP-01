@@ -46,7 +46,7 @@ const ShipperOrderDetail = () => {
 
   const submitStatusUpdate = async () => {
     const { status } = modalConfig;
-    if (status === 'delivered' && !imageFile) {
+    if (status === 'completed' && !imageFile) {
       toast.error('Vui lòng cung cấp ảnh bằng chứng giao hàng!');
       return;
     }
@@ -56,7 +56,7 @@ const ShipperOrderDetail = () => {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const formData = new FormData();
       formData.append('status', status);
-      if (status === 'delivered') {
+      if (status === 'completed') {
         formData.append('image', imageFile);
       } else if (status === 'failed') {
         formData.append('reason', failedReason);
@@ -122,7 +122,7 @@ const ShipperOrderDetail = () => {
   };
 
   // Build Timeline steps
-  const defaultSteps = ['pending', 'confirmed', 'shipped', 'delivered'];
+  const defaultSteps = ['pending', 'confirmed', 'shipping', 'completed'];
   let steps = [...defaultSteps];
   if (order.status === 'failed') steps[3] = 'failed';
   if (order.status === 'canceled') steps = ['pending', 'canceled'];
@@ -149,9 +149,9 @@ const ShipperOrderDetail = () => {
             <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
               Order #{order.order_code}
               <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full tracking-widest ${
-                order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
+                order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                 order.status === 'failed' ? 'bg-red-100 text-red-700' :
-                order.status === 'shipped' ? 'bg-blue-100 text-[#004ac6]' :
+                order.status === 'shipping' ? 'bg-blue-100 text-[#004ac6]' :
                 'bg-slate-100 text-slate-700'
               }`}>
                 {order.status}
@@ -162,7 +162,7 @@ const ShipperOrderDetail = () => {
         </div>
         
         {/* Actions */}
-        {order.status === 'shipped' && (
+        {order.status === 'shipping' && (
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button 
               onClick={() => handleOpenModal('failed')}
@@ -171,10 +171,10 @@ const ShipperOrderDetail = () => {
               <span className="material-symbols-outlined text-lg">cancel</span> Mark Failed
             </button>
             <button 
-              onClick={() => handleOpenModal('delivered')}
+              onClick={() => handleOpenModal('completed')}
               className="flex-1 md:flex-none px-6 py-3 bg-[#004ac6] text-white rounded-xl font-bold hover:bg-[#003da6] transition-colors shadow-lg shadow-[#004ac6]/30 cursor-pointer flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-lg">check_circle</span> Mark Delivered
+              <span className="material-symbols-outlined text-lg">check_circle</span> mark completed
             </button>
           </div>
         )}
@@ -208,7 +208,7 @@ const ShipperOrderDetail = () => {
                       icon = 'cancel';
                       colorClass = 'text-red-500 bg-red-50 border-red-200';
                       textClass = 'text-red-700 font-bold';
-                    } else if (step === 'delivered') {
+                    } else if (step === 'completed') {
                       icon = 'check_circle';
                       colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-200';
                       textClass = 'text-emerald-700 font-bold';
@@ -426,14 +426,14 @@ const ShipperOrderDetail = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
             <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
-              {modalConfig.status === 'delivered' ? (
-                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> Mark as Delivered</>
+              {modalConfig.status === 'completed' ? (
+                <><span className="material-symbols-outlined text-emerald-500">check_circle</span> mark as completed</>
               ) : (
                 <><span className="material-symbols-outlined text-red-500">cancel</span> Mark as Failed</>
               )}
             </h3>
             
-            {modalConfig.status === 'delivered' && (
+            {modalConfig.status === 'completed' && (
               <div className="space-y-4 mb-6">
                 <label className="block text-sm font-bold text-slate-700">Proof of Delivery (Required) <span className="text-red-500">*</span></label>
                 <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors cursor-pointer relative overflow-hidden group">
@@ -502,7 +502,7 @@ const ShipperOrderDetail = () => {
                 onClick={submitStatusUpdate}
                 disabled={isSubmitting}
                 className={`px-6 py-2.5 rounded-xl font-bold text-white transition-all flex items-center gap-2 cursor-pointer ${
-                  modalConfig.status === 'delivered' ? 'bg-[#004ac6] hover:bg-[#003da6]' : 'bg-red-500 hover:bg-red-600'
+                  modalConfig.status === 'completed' ? 'bg-[#004ac6] hover:bg-[#003da6]' : 'bg-red-500 hover:bg-red-600'
                 } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSubmitting ? (

@@ -8,7 +8,7 @@ const excelJS = require('exceljs');
 
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
-    return (order.payment_status === 'success' || order.status === 'delivered') && order.status !== 'canceled';
+    return (order.payment_status === 'success' || order.status === 'completed') && order.status !== 'canceled';
 };
 
 // Helper to hash string to simple float for seeding varied but consistent conversion rates
@@ -266,7 +266,7 @@ const exportAnalytics = async (req, res, next) => {
             return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
         }
 
-        const orders = await Order.find({ shop_id: shop._id, status: 'delivered' }).sort({ createdAt: -1 });
+        const orders = await Order.find({ shop_id: shop._id, status: 'completed' }).sort({ createdAt: -1 });
 
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sales Performance');
