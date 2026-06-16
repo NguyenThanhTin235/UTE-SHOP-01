@@ -566,7 +566,17 @@ const ProductDetail = () => {
                         {shop?.address || 'Ho Chi Minh City, Vietnam'}
                     </p>
                     <div className="flex gap-2">
-                        <button className="px-4 py-2 bg-primary/10 text-primary rounded-xl text-xs font-bold hover:bg-primary/20 transition-all flex items-center gap-1">
+                        <button 
+                            onClick={() => {
+                                if (!user) {
+                                  toast.error('Please log in to chat with the shop');
+                                  navigate('/login');
+                                  return;
+                                }
+                                document.dispatchEvent(new CustomEvent('open-shop-chat', { detail: { shopId: shop._id || shop.id } }));
+                            }}
+                            className="px-4 py-2 bg-primary/10 text-primary rounded-xl text-xs font-bold hover:bg-primary/20 transition-all flex items-center gap-1"
+                        >
                             <span className="material-symbols-outlined text-[16px]">chat</span>
                             Chat Now
                         </button>

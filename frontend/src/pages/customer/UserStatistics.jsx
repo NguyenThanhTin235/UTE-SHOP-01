@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../redux/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import FABGroup from '../../components/FABGroup';
@@ -9,6 +10,7 @@ import Chart from 'chart.js/auto';
 
 const UserStatistics = () => {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState(null);
@@ -42,6 +44,12 @@ const UserStatistics = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    dispatch(logout());
+    navigate('/login');
   };
 
   useEffect(() => {
@@ -190,14 +198,15 @@ const UserStatistics = () => {
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
               <span>Statistics</span>
             </Link>
-            <Link to="/messages" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">chat</span>
-              <span>Messages</span>
-            </Link>
+
             <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
+            <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer mt-2 border-t border-[#c3c6d7]/30 pt-4">
+              <span className="material-symbols-outlined">logout</span>
+              <span>Logout</span>
+            </button>
           </nav>
         </aside>
 

@@ -149,7 +149,14 @@ const ShopDetail = () => {
   };
 
   const handleChatNow = () => {
-    toast.success(`Connecting to ${shopData?.shop?.name || 'Shop'} Customer Service...`);
+    if (!user) {
+      toast.error('Please log in to chat with the shop');
+      navigate('/login');
+      return;
+    }
+    if (shopData?.shop) {
+      document.dispatchEvent(new CustomEvent('open-shop-chat', { detail: { shopId: shopData.shop.id || shopData.shop._id } }));
+    }
   };
 
   // Processing products for "All Products" tab

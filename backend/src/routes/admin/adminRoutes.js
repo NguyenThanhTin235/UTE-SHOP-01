@@ -98,4 +98,10 @@ router.get('/platform/settings', verifyToken, isAdmin, adminPlatformSettingContr
 router.put('/platform/settings', verifyToken, isAdmin, adminPlatformSettingController.updateSettings);
 router.post('/platform/settings/upload', verifyToken, isAdmin, upload.single('image'), adminPlatformSettingController.uploadImage);
 
+// Support Management
+const adminSupportController = require('../../controllers/admin/adminSupportController');
+router.get('/support/tickets', verifyToken, isAdmin, adminSupportController.getTickets);
+router.put('/support/tickets/:id/status', verifyToken, isAdmin, adminSupportController.updateTicketStatus);
+router.delete('/support/tickets/:id', verifyToken, isAdmin, adminSupportController.deleteTicket);
+
 module.exports = router;
