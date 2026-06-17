@@ -18,14 +18,14 @@ const InputField = ({ label, type, name, value, onChange, placeholder, icon, req
       )}
       <div className="relative flex items-center group">
         {icon && (
-          <span className="absolute left-4 text-[#737686] group-focus-within:text-[#004ac6] transition-colors flex items-center pointer-events-none">
+          <span className="absolute left-4 text-[#737686] group-focus-within:text-primary transition-colors flex items-center pointer-events-none">
             <i className={icon}></i>
           </span>
         )}
         <input
           type={inputType}
           name={name}
-          className={`w-full bg-[#f2f3ff] border ${error ? 'border-red-500 focus:ring-red-500/20' : 'border-[#c3c6d7] focus:border-[#004ac6] focus:ring-[#004ac6]/20'} rounded-xl py-3.5 ${icon ? 'pl-11' : 'pl-4'} ${type === 'password' ? 'pr-12' : 'pr-4'} text-sm text-[#131b2e] placeholder-[#737686] outline-none focus:ring-2 transition-all`}
+          className={`w-full bg-[#f2f3ff] border ${error ? 'border-red-500 focus:ring-red-500/20' : 'border-[#c3c6d7] focus:border-primary focus:ring-primary/20'} rounded-xl py-3.5 ${icon ? 'pl-11' : 'pl-4'} ${type === 'password' ? 'pr-12' : 'pr-4'} text-sm text-[#131b2e] placeholder-[#737686] outline-none focus:ring-2 transition-all`}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -34,7 +34,7 @@ const InputField = ({ label, type, name, value, onChange, placeholder, icon, req
         {type === 'password' && (
           <button
             type="button"
-            className="absolute right-4 text-[#737686] hover:text-[#004ac6] transition-colors flex items-center justify-center h-full"
+            className="absolute right-4 text-[#737686] hover:text-primary transition-colors flex items-center justify-center h-full"
             onClick={togglePassword}
           >
             <i className={showPassword ? "fa-regular fa-eye-slash" : "fa-regular fa-eye"}></i>

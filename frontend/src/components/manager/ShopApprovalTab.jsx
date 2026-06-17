@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -43,6 +44,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState([]);
   const [rowsDropdownOpen, setRowsDropdownOpen] = useState(false);
+  const [rejectModal, setRejectModal] = useState({ isOpen: false, shopId: null, shopName: '' });
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -116,21 +118,25 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
     }
   };
 
-  const handleReject = async (id, shopName) => {
-    const reason = window.prompt(`Reason for rejecting ${shopName}:`);
-    if (reason === null) return; // User cancelled
+  const handleRejectClick = (e, id, shopName) => {
+    e.stopPropagation();
+    setRejectModal({ isOpen: true, shopId: id, shopName });
+  };
+
+  const handleRejectConfirm = async (reason) => {
+    setRejectModal({ isOpen: false, shopId: null, shopName: '' });
     try {
       const { data } = await axios.post(
-        `${API}/manager/shops/${id}/reject`,
-        { reason: reason || 'Not eligible' },
+        `${API}/manager/shops/${rejectModal.shopId}/reject`,
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
-        toast.success(`Rejected ${shopName}`);
-        setShops((prev) => prev.filter((s) => s.id !== id));
+        toast.success(`Rejected ${rejectModal.shopName}`);
+        setShops((prev) => prev.filter((s) => s.id !== rejectModal.shopId));
       }
     } catch (err) {
-      toast.error(`Failed to reject ${shopName}`);
+      toast.error(`Failed to reject ${rejectModal.shopName}`);
     }
   };
 
@@ -244,7 +250,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                         <span className="material-symbols-outlined text-xl">check</span>
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleReject(shop.id, shop.shopName); }}
+                        onClick={(e) => handleRejectClick(e, shop.id, shop.shopName)}
                         className="w-9 h-9 rounded-xl bg-red-50 text-[#dc2626] flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all cursor-pointer"
                         title="Reject"
                       >
@@ -252,7 +258,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); navigate(`/manager/shop_detail/${shop.id}`); }}
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all cursor-pointer"
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-primary hover:text-white transition-all cursor-pointer"
                         title="View Documents"
                       >
                         <span className="material-symbols-outlined text-xl">visibility</span>
@@ -270,7 +276,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
         <div className="p-6 bg-white border-t border-slate-100 flex flex-col md:flex-row items-center justify-between rounded-b-3xl relative z-20">
           <div className="flex items-center gap-4 mb-4 md:mb-0">
             <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, filteredShops.length)}</span> of <span className="text-slate-800">{filteredShops.length}</span> shops
+                Showing <span className="text-primary">{(page - 1) * limit + 1} - {Math.min(page * limit, filteredShops.length)}</span> of <span className="text-slate-800">{filteredShops.length}</span> shops
             </p>
             <div className="w-px h-4 bg-slate-200"></div>
             <div className="flex items-center gap-2">
@@ -298,7 +304,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                           }}
                           className={`w-full text-center py-2 text-xs font-bold transition-colors block ${
                             limit === val
-                              ? 'bg-[#004ac6] text-white'
+                              ? 'bg-primary text-white'
                               : 'text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -315,14 +321,14 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
               <button
                   disabled={page <= 1}
                   onClick={() => setPage(1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
               </button>
               <button
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">chevron_left</span>
               </button>
@@ -343,7 +349,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                                   onClick={() => setPage(i)}
                                   className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                                       page === i
-                                          ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                          ? 'bg-primary text-white shadow-md shadow-blue-200'
                                           : 'text-slate-600 hover:bg-slate-100'
                                   }`}
                               >
@@ -358,20 +364,29 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
               <button
                   disabled={page >= totalPages || totalPages === 0}
                   onClick={() => setPage(page + 1)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">chevron_right</span>
               </button>
               <button
                   disabled={page >= totalPages || totalPages === 0}
                   onClick={() => setPage(totalPages)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
               >
                   <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
               </button>
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal({ isOpen: false, shopId: null, shopName: '' })}
+        onSubmit={handleRejectConfirm}
+        title="Reject Registration"
+        itemName={rejectModal.shopName}
+        type="shop"
+      />
     </div>
   );
 };

@@ -1,0 +1,35 @@
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema({
+  order_code: { type: String, required: true, unique: true },
+  payment_order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PaymentOrder', required: true },
+  customer_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  shop_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop', required: true },
+  shipper_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  shipping_address_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Address' },
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'failed', 'canceled', 'disputed', 'refunded', 'cancel_pending'],
+    default: 'pending'
+  },
+  subtotal_amount: { type: Number, required: true },
+  shipping_fee: { type: Number, default: 0 },
+  coupon_discount: { type: Number, default: 0 },
+  coin_discount: { type: Number, default: 0 },
+  platform_fee_rate: { type: Number },
+  platform_fee_amount: { type: Number },
+  gateway_fee_rate: { type: Number, default: 0 },
+  gateway_fee_amount: { type: Number, default: 0 },
+  total_final: { type: Number, required: true },
+  payment_status: {
+    type: String,
+    enum: ['pending', 'success', 'failed', 'refunded'],
+    default: 'pending'
+  },
+  coin_earned: { type: Number, default: 0 },
+  shipping_partner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner' }
+}, {
+  timestamps: true
+});
+
+module.exports = mongoose.model('Order', orderSchema);

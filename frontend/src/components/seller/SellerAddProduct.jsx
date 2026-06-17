@@ -57,7 +57,7 @@ const SellerAddProduct = ({ setActiveTab }) => {
             const res = await axios.post('http://localhost:5000/api/seller/products/upload', uploadData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
 
@@ -219,13 +219,32 @@ const SellerAddProduct = ({ setActiveTab }) => {
     }, [editProduct]);
 
     const handleAddVariant = () => {
-        setVariants([...variants, { attributes: { color: '', size: '' }, sku: '', stock_quantity: 0, additional_price: 0 }]);
+        const baseSku = formData.sku || 'SKU-VAR';
+        const newSku = `${baseSku}-V${variants.length + 1}`;
+        setVariants([...variants, { attributes: { color: '', size: '' }, sku: newSku, stock_quantity: 0, additional_price: 0 }]);
     };
 
     const handleVariantChange = (index, field, value) => {
         const newVariants = [...variants];
         if (field === 'color' || field === 'size') {
             newVariants[index].attributes[field] = value;
+            
+            // Auto-generate SKU based on color and size
+            const color = newVariants[index].attributes.color;
+            const size = newVariants[index].attributes.size;
+            const baseSku = formData.sku || 'SKU-VAR';
+            
+            const colorCode = color ? color.substring(0, 3).toUpperCase() : '';
+            const sizeCode = size ? size.toUpperCase() : '';
+            
+            let generatedSku = baseSku;
+            if (colorCode) generatedSku += `-${colorCode}`;
+            if (sizeCode) generatedSku += `-${sizeCode}`;
+            
+            // Update if current sku is empty or looks like an auto-generated one
+            if (!newVariants[index].sku || newVariants[index].sku.startsWith(baseSku) || newVariants[index].sku.startsWith('SKU-VAR')) {
+                newVariants[index].sku = generatedSku;
+            }
         } else {
             newVariants[index][field] = value;
         }
@@ -253,12 +272,12 @@ const SellerAddProduct = ({ setActiveTab }) => {
             const res = editProduct
                 ? await axios.put(`http://localhost:5000/api/seller/products/${editProduct._id}`, payload, {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                        Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                     }
                 })
                 : await axios.post('http://localhost:5000/api/seller/products', payload, {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                        Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                     }
                 });
 
@@ -569,19 +588,88 @@ const SellerAddProduct = ({ setActiveTab }) => {
                         </div>
 
                         <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20">
-                            {/* Submitted Item */}
-                            <div className="relative pl-8">
-                                <div className="absolute left-0 top-1 size-[24px] bg-white border-2 border-primary rounded-full flex items-center justify-center z-10 shadow-sm">
-                                    <div className="size-2 bg-primary rounded-full"></div>
-                                </div>
-                                <div className="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/20 space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-black text-secondary uppercase tracking-widest">Draft Created</span>
-                                        <span className="text-[9px] font-bold text-secondary/60">JUST NOW</span>
+                            {editProduct?.approval_history && editProduct.approval_history.length > 0 ? (
+                                editProduct.approval_history.map((historyItem, idx) => {
+                                    let ringColor = 'bg-white border-primary';
+                                    let dotColor = 'bg-primary';
+                                    let boxColor = 'bg-surface-container-low border-outline-variant/20';
+                                    let titleColor = 'text-secondary';
+                                    let title = historyItem.action;
+                                    let subtitle = historyItem.createdAt ? new Date(historyItem.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'JUST NOW';
+                                    let reasonText = historyItem.reason || '';
+
+                                    if (historyItem.action === 'Reject Product') {
+                                        ringColor = 'bg-red-50 border-[#dc2626]';
+                                        dotColor = 'bg-[#dc2626]';
+                                        boxColor = 'bg-red-50 border-red-100';
+                                        titleColor = 'text-[#dc2626]';
+                                        title = 'Product Rejected';
+                                        if (idx === 0) subtitle = 'ACTION REQUIRED';
+                                    } else if (historyItem.action === 'Approve Product') {
+                                        ringColor = 'bg-green-50 border-[#16a34a]';
+                                        dotColor = 'bg-[#16a34a]';
+                                        boxColor = 'bg-green-50 border-green-100';
+                                        titleColor = 'text-[#16a34a]';
+                                        title = 'Product Approved';
+                                    } else if (historyItem.action === 'Product Updated & Re-submitted') {
+                                        ringColor = 'bg-amber-50 border-[#d97706]';
+                                        dotColor = 'bg-[#d97706]';
+                                        boxColor = 'bg-amber-50 border-amber-100';
+                                        titleColor = 'text-[#d97706]';
+                                        title = 'Product Re-submitted';
+                                    }
+
+                                    return (
+                                        <div key={idx} className="relative pl-8">
+                                            <div className={`absolute left-0 top-1 size-[24px] border-2 rounded-full flex items-center justify-center z-10 shadow-sm ${ringColor}`}>
+                                                <div className={`size-2 rounded-full ${dotColor}`}></div>
+                                            </div>
+                                            <div className={`p-5 rounded-2xl border space-y-2 ${boxColor}`}>
+                                                <div className="flex justify-between items-center">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${titleColor}`}>{title}</span>
+                                                    <span className={`text-[9px] font-bold ${historyItem.action === 'Reject Product' && idx === 0 ? 'text-red-400' : 'text-secondary/60'}`}>{subtitle}</span>
+                                                </div>
+                                                <p className={`text-[11px] font-bold leading-relaxed ${historyItem.action === 'Reject Product' ? 'text-red-800' : 'text-secondary'}`}>
+                                                    {historyItem.action === 'Reject Product' ? `Reason: ${reasonText}` : reasonText}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <>
+                                    {editProduct?.currentStatus === 'Violated' && (
+                                        <div className="relative pl-8">
+                                            <div className="absolute left-0 top-1 size-[24px] bg-red-50 border-2 border-[#dc2626] rounded-full flex items-center justify-center z-10 shadow-sm">
+                                                <div className="size-2 bg-[#dc2626] rounded-full"></div>
+                                            </div>
+                                            <div className="bg-red-50 p-5 rounded-2xl border border-red-100 space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-[#dc2626] uppercase tracking-widest">Product Rejected</span>
+                                                    <span className="text-[9px] font-bold text-red-400">ACTION REQUIRED</span>
+                                                </div>
+                                                <p className="text-[11px] font-bold text-red-800 leading-relaxed">
+                                                    Reason: {editProduct.reject_reason || "Violation of policies"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Submitted Item */}
+                                    <div className="relative pl-8">
+                                        <div className="absolute left-0 top-1 size-[24px] bg-white border-2 border-primary rounded-full flex items-center justify-center z-10 shadow-sm">
+                                            <div className="size-2 bg-primary rounded-full"></div>
+                                        </div>
+                                        <div className="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/20 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black text-secondary uppercase tracking-widest">Draft Created</span>
+                                                <span className="text-[9px] font-bold text-secondary/60">{editProduct ? "PAST" : "JUST NOW"}</span>
+                                            </div>
+                                            <p className="text-[11px] font-bold text-secondary leading-relaxed">Initial product listing creation.</p>
+                                        </div>
                                     </div>
-                                    <p className="text-[11px] font-bold text-secondary leading-relaxed">Initial product listing creation.</p>
-                                </div>
-                            </div>
+                                </>
+                            )}
                         </div>
                     </section>
 

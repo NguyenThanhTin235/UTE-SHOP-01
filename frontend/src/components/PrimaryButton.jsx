@@ -4,7 +4,7 @@ const PrimaryButton = ({ children, onClick, type = 'button', isLoading = false, 
   return (
     <button
       type={type}
-      className={`w-full py-3.5 bg-[#004ac6] text-white font-bold rounded-xl shadow-lg shadow-[#004ac6]/20 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`w-full py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
       onClick={onClick}
       disabled={isLoading}
     >

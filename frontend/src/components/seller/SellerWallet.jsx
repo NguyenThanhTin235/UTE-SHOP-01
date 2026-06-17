@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerWallet = () => {
@@ -11,39 +11,132 @@ const SellerWallet = () => {
     const [wallet, setWallet] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
-    const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState('history');
-
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 10;
-
-    useEffect(() => {
-        if (!searchParams.has('page') || !searchParams.has('limit')) {
-            const newParams = new URLSearchParams(searchParams);
-            if (!newParams.has('page')) newParams.set('page', '1');
-            if (!newParams.has('limit')) newParams.set('limit', '10');
-            setSearchParams(newParams, { replace: true });
-        }
-    }, [searchParams, setSearchParams]);
-
-    const setPage = (newPage) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('page', newPage);
-        setSearchParams(params);
-    };
-
-    const setLimit = (newLimit) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('limit', newLimit);
-        params.set('page', 1);
-        setSearchParams(params);
-    };
     
+    // Pagination states
+    const [transPage, setTransPage] = useState(1);
+    const [transLimit, setTransLimit] = useState(5);
+    const [transMeta, setTransMeta] = useState({ total: 0, totalPages: 1 });
+
+    const [withdrawPage, setWithdrawPage] = useState(1);
+    const [withdrawLimit, setWithdrawLimit] = useState(5);
+    const [withdrawMeta, setWithdrawMeta] = useState({ total: 0, totalPages: 1 });
+    const [loading, setLoading] = useState(false);
+
+    // Detail Modal states
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [orderDetail, setOrderDetail] = useState(null);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+
     // Withdrawal form states
     const [withdrawAmount, setWithdrawAmount] = useState('');
-    const [bankAccount, setBankAccount] = useState('Vietcombank (***8829)');
+    const [bankAccount, setBankAccount] = useState('');
+    const [bankAccounts, setBankAccounts] = useState([]);
+    const [loadingBanks, setLoadingBanks] = useState(false);
+    const [bankModalOpen, setBankModalOpen] = useState(false);
+
+    // Add bank form states
+    const [newBankName, setNewBankName] = useState('');
+    const [newAccountName, setNewAccountName] = useState('');
+    const [newAccountNumber, setNewAccountNumber] = useState('');
+
+    const fetchBankAccounts = async () => {
+        setLoadingBanks(true);
+        try {
+            const res = await axios.get('http://localhost:5000/api/seller/wallet/bank-accounts', {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                setBankAccounts(res.data.data);
+                const defaultAcc = res.data.data.find(acc => acc.is_default);
+                if (defaultAcc) {
+                    setBankAccount(`${defaultAcc.bank_name} - ${defaultAcc.account_name} (${defaultAcc.account_number.slice(-4)})`);
+                } else if (res.data.data.length > 0) {
+                    const first = res.data.data[0];
+                    setBankAccount(`${first.bank_name} - ${first.account_name} (${first.account_number.slice(-4)})`);
+                } else {
+                    setBankAccount('');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch bank accounts:', error);
+        } finally {
+            setLoadingBanks(false);
+        }
+    };
+
+    const handleAddBank = async (e) => {
+        e.preventDefault();
+        if (!newBankName || !newAccountName || !newAccountNumber) {
+            toast.error('Please fill in all bank details');
+            return;
+        }
+        try {
+            const res = await axios.post('http://localhost:5000/api/seller/wallet/bank-accounts', 
+                { bank_name: newBankName, account_name: newAccountName, account_number: newAccountNumber },
+                { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
+            );
+            if (res.data.success) {
+                toast.success('Bank account added successfully');
+                setNewBankName('');
+                setNewAccountName('');
+                setNewAccountNumber('');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to add bank account');
+        }
+    };
+
+    const handleDeleteBank = async (id) => {
+        try {
+            const res = await axios.delete(`http://localhost:5000/api/seller/wallet/bank-accounts/${id}`, {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                toast.success('Bank account deleted successfully');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete bank account');
+        }
+    };
+
+    const handleSetDefaultBank = async (id) => {
+        try {
+            const res = await axios.put(`http://localhost:5000/api/seller/wallet/bank-accounts/${id}/default`, {}, {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            if (res.data.success) {
+                toast.success('Default bank account updated');
+                fetchBankAccounts();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update default bank account');
+        }
+    };
+
+    const handleViewDetail = async (trans) => {
+        setSelectedTransaction(trans);
+        setDetailModalOpen(true);
+        if (trans.type === 'earning' && trans.order_id) {
+            setLoadingDetail(true);
+            try {
+                const res = await axios.get(`http://localhost:5000/api/seller/orders/${trans.order_id._id}`, {
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
+                });
+                if (res.data.success) {
+                    setOrderDetail(res.data.data);
+                }
+            } catch (error) {
+                toast.error('Failed to fetch order details');
+            } finally {
+                setLoadingDetail(false);
+            }
+        } else {
+            setOrderDetail(null);
+        }
+    };
 
     const fetchWalletInfo = async () => {
         try {
@@ -62,12 +155,12 @@ const SellerWallet = () => {
         setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/seller/wallet/transactions', {
-                params: { page, limit },
+                params: { page: transPage, limit: transLimit },
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             if (res.data.success) {
                 setTransactions(res.data.data);
-                setMetaData({ total: res.data.meta.total, totalPages: res.data.meta.totalPages });
+                setTransMeta({ total: res.data.meta.total, totalPages: res.data.meta.totalPages });
             }
         } catch (error) {
             toast.error('Failed to fetch transactions');
@@ -80,12 +173,12 @@ const SellerWallet = () => {
         setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/seller/wallet/withdrawals', {
-                params: { page, limit },
+                params: { page: withdrawPage, limit: withdrawLimit },
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             if (res.data.success) {
                 setWithdrawals(res.data.data);
-                setMetaData({ total: res.data.meta.total, totalPages: res.data.meta.totalPages });
+                setWithdrawMeta({ total: res.data.meta.total, totalPages: res.data.meta.totalPages });
             }
         } catch (error) {
             toast.error('Failed to fetch withdrawals');
@@ -96,21 +189,23 @@ const SellerWallet = () => {
 
     useEffect(() => {
         fetchWalletInfo();
+        fetchBankAccounts();
     }, []);
 
     useEffect(() => {
-        if (activeTab === 'history') {
-            fetchTransactions();
-        } else {
-            fetchWithdrawals();
-        }
-    }, [activeTab, page, limit]);
+        fetchTransactions();
+    }, [transPage, transLimit]);
+
+    useEffect(() => {
+        fetchWithdrawals();
+    }, [withdrawPage, withdrawLimit]);
 
     const handleWithdraw = async (e) => {
         e.preventDefault();
         const amount = Number(withdrawAmount);
-        if (!amount || amount < 100000) {
-            toast.error('Minimum withdrawal amount is 100,000 ₫');
+        const minLimit = wallet?.min_withdrawal || 100000;
+        if (!amount || amount < minLimit) {
+            toast.error(`Minimum withdrawal amount is ${formatPrice(minLimit)} ₫`);
             return;
         }
         if (wallet && amount > wallet.available_balance) {
@@ -128,15 +223,16 @@ const SellerWallet = () => {
                 setWithdrawAmount('');
                 fetchWalletInfo();
                 fetchTransactions();
+                fetchWithdrawals();
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to request withdrawal');
         }
     };
 
-    const handleExport = async () => {
+    const handleExport = async (type) => {
         try {
-            const endpoint = activeTab === 'history' 
+            const endpoint = type === 'history' 
                 ? 'http://localhost:5000/api/seller/wallet/transactions/export'
                 : 'http://localhost:5000/api/seller/wallet/withdrawals/export';
             
@@ -148,7 +244,7 @@ const SellerWallet = () => {
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', activeTab === 'history' ? 'transactions.csv' : 'withdrawals.csv');
+            link.setAttribute('download', type === 'history' ? 'transactions.csv' : 'withdrawals.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -172,8 +268,6 @@ const SellerWallet = () => {
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
-            
-
             {/* Main Container */}
             <div className="p-10 max-w-[1200px] mx-auto w-full space-y-8 flex-1">
             
@@ -236,13 +330,31 @@ const SellerWallet = () => {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-secondary uppercase tracking-widest">Select Bank Account</label>
                                 <select 
-                                    className="w-full bg-slate-50 border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                                     value={bankAccount}
                                     onChange={(e) => setBankAccount(e.target.value)}
                                 >
-                                    <option value="Vietcombank (***8829)">Vietcombank (***8829)</option>
-                                    <option value="Techcombank (***4412)">Techcombank (***4412)</option>
+                                    {bankAccounts.length > 0 ? (
+                                        bankAccounts.map(acc => (
+                                            <option 
+                                                key={acc._id} 
+                                                value={`${acc.bank_name} - ${acc.account_name} (${acc.account_number.slice(-4)})`}
+                                            >
+                                                {acc.bank_name} - {acc.account_name} (***{acc.account_number.slice(-4)}) {acc.is_default ? '[Mặc định]' : ''}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="">No bank accounts added</option>
+                                    )}
                                 </select>
+                                <button
+                                    type="button"
+                                    onClick={() => setBankModalOpen(true)}
+                                    className="mt-2 text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-xs">settings</span>
+                                    Manage Bank Accounts
+                                </button>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-secondary uppercase tracking-widest">Amount to Withdraw</label>
@@ -254,7 +366,7 @@ const SellerWallet = () => {
                                         className="w-full bg-slate-50 border-slate-200 rounded-2xl pl-4 pr-16 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none"
                                         value={withdrawAmount}
                                         onChange={(e) => setWithdrawAmount(e.target.value)}
-                                        min="100000"
+                                        min={wallet?.min_withdrawal || 100000}
                                     />
                                     <span className="absolute right-12 top-1/2 -translate-y-1/2 font-black text-secondary text-sm">₫</span>
                                     <button 
@@ -265,9 +377,8 @@ const SellerWallet = () => {
                                         All
                                     </button>
                                 </div>
-                                <div className="flex justify-between items-center px-1">
-                                    <span className="text-[10px] text-secondary font-medium">Withdrawal Fee: <span className="font-bold">11,000 ₫</span></span>
-                                    <span className="text-[10px] text-secondary font-medium">Min: 100,000 ₫</span>
+                                <div className="flex justify-end items-center px-1">
+                                    <span className="text-[10px] text-secondary font-medium">Min: {formatPrice(wallet?.min_withdrawal || 100000)} ₫</span>
                                 </div>
                             </div>
                             <button 
@@ -278,54 +389,17 @@ const SellerWallet = () => {
                             </button>
                         </form>
                     </div>
-
-                    <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Need Help?</h4>
-                            <p className="text-xs font-bold leading-relaxed mb-6 italic text-slate-300">"Withdrawals are usually processed within 24 business hours. If you encounter any issues, please contact our support team."</p>
-                            <a href="#" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-white/10 px-4 py-2 rounded-xl hover:bg-white/20 transition-all">
-                                Contact Support
-                                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                            </a>
-                        </div>
-                        <span className="material-symbols-outlined absolute -bottom-10 -right-10 text-[160px] opacity-5 pointer-events-none">support_agent</span>
-                    </div>
                 </div>
 
-                {/* Transaction History */}
+                {/* Withdrawal Status */}
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Tabs */}
-                    <div className="flex gap-4">
-                        <button 
-                            onClick={() => { setActiveTab('history'); setPage(1); }}
-                            className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all cursor-pointer ${
-                                activeTab === 'history' 
-                                ? 'bg-white text-primary shadow-sm border border-primary/10' 
-                                : 'text-secondary hover:bg-white'
-                            }`}
-                        >
-                            Transaction History
-                        </button>
-                        <button 
-                            onClick={() => { setActiveTab('withdrawals'); setPage(1); }}
-                            className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all cursor-pointer ${
-                                activeTab === 'withdrawals' 
-                                ? 'bg-white text-primary shadow-sm border border-primary/10' 
-                                : 'text-secondary hover:bg-white'
-                            }`}
-                        >
-                            Withdrawal Status
-                        </button>
-                    </div>
-
-                    {/* History Card */}
                     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-level-1 overflow-hidden">
                         <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                             <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">
-                                {activeTab === 'history' ? 'Recent Transactions' : 'Withdrawal Requests'}
+                                Withdrawal Requests
                             </h3>
                             <button 
-                                onClick={handleExport}
+                                onClick={() => handleExport('withdrawals')}
                                 className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[16px]">download</span>
@@ -335,128 +409,70 @@ const SellerWallet = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    {activeTab === 'history' ? (
-                                        <tr className="bg-slate-50">
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Order ID</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Type</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
-                                        </tr>
-                                    ) : (
-                                        <tr className="bg-slate-50">
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Note</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
-                                        </tr>
-                                    )}
+                                    <tr className="bg-slate-50">
+                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Note</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
+                                    </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {loading ? (
-                                        <tr><td colSpan="5" className="text-center py-8 font-bold text-slate-500">Loading...</td></tr>
-                                    ) : activeTab === 'history' ? (
-                                        transactions.length === 0 ? (
-                                            <tr><td colSpan="5" className="text-center py-8 font-bold text-slate-500">No transactions found</td></tr>
-                                        ) : transactions.map(trans => {
-                                            const { date, time } = formatDate(trans.createdAt);
-                                            const isPositive = trans.amount > 0;
-                                            let typeIcon = 'add';
-                                            let typeColor = 'text-green-600 bg-green-100';
-                                            let typeName = 'Sale Credit';
-                                            
-                                            if (trans.type === 'withdraw') {
-                                                typeIcon = 'remove';
-                                                typeColor = 'text-red-600 bg-red-100';
-                                                typeName = 'Withdrawal';
-                                            } else if (trans.type === 'refund') {
-                                                typeIcon = 'undo';
-                                                typeColor = 'text-red-600 bg-red-100';
-                                                typeName = 'Refund Debit';
-                                            } else if (trans.type === 'fee') {
-                                                typeIcon = 'remove';
-                                                typeColor = 'text-orange-600 bg-orange-100';
-                                                typeName = 'Fee Deduction';
-                                            }
+                                        <tr><td colSpan="4" className="text-center py-8 font-bold text-slate-500">Loading...</td></tr>
+                                    ) : withdrawals.length === 0 ? (
+                                        <tr><td colSpan="4" className="text-center py-8 font-bold text-slate-500">No withdrawal requests found</td></tr>
+                                    ) : withdrawals.map(withdraw => {
+                                        const { date, time } = formatDate(withdraw.createdAt);
+                                        let statusClass = 'bg-blue-50 text-primary';
+                                        if (withdraw.status === 'approved' || withdraw.status === 'paid') statusClass = 'bg-green-50 text-[#2e7d32]';
+                                        if (withdraw.status === 'rejected') statusClass = 'bg-red-50 text-[#b3261e]';
 
-                                            return (
-                                                <tr key={trans._id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-8 py-5">
-                                                        <p className="text-xs font-bold text-on-surface">{date}</p>
-                                                        <p className="text-[10px] text-secondary font-medium">{time}</p>
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        {trans.order_id ? (
-                                                            <span className="text-xs font-black text-primary hover:underline cursor-pointer">
-                                                                {trans.order_id.order_code || '---'}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-xs font-bold text-slate-400">---</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center ${typeColor}`}>
-                                                                <span className="material-symbols-outlined text-[14px]">{typeIcon}</span>
-                                                            </span>
-                                                            <span className="text-xs font-bold text-on-surface">{typeName}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className={`px-8 py-5 text-xs font-black ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                                                        {isPositive ? '+' : ''}{formatPrice(trans.amount)} ₫
-                                                    </td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[9px] font-black uppercase rounded-full">Completed</span>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })
-                                    ) : (
-                                        withdrawals.length === 0 ? (
-                                            <tr><td colSpan="4" className="text-center py-8 font-bold text-slate-500">No withdrawal requests found</td></tr>
-                                        ) : withdrawals.map(withdraw => {
-                                            const { date, time } = formatDate(withdraw.createdAt);
-                                            let statusClass = 'bg-blue-50 text-primary';
-                                            if (withdraw.status === 'approved' || withdraw.status === 'paid') statusClass = 'bg-green-50 text-[#2e7d32]';
-                                            if (withdraw.status === 'rejected') statusClass = 'bg-red-50 text-[#b3261e]';
-
-                                            return (
-                                                <tr key={withdraw._id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-8 py-5">
-                                                        <p className="text-xs font-bold text-on-surface">{date}</p>
-                                                        <p className="text-[10px] text-secondary font-medium">{time}</p>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-xs font-black text-on-surface">
-                                                        {formatPrice(withdraw.amount)} ₫
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        <span className="text-xs font-medium text-slate-600">{withdraw.note}</span>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        <span className={`px-3 py-1 text-[9px] font-black uppercase rounded-full ${statusClass}`}>{withdraw.status}</span>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })
-                                    )}
+                                        return (
+                                            <tr key={withdraw._id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-8 py-5">
+                                                    <p className="text-xs font-bold text-on-surface">{date}</p>
+                                                    <p className="text-[10px] text-secondary font-medium">{time}</p>
+                                                </td>
+                                                <td className="px-8 py-5 text-xs font-black text-on-surface">
+                                                    {formatPrice(withdraw.amount)} ₫
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <span className="text-xs font-medium text-slate-600">{withdraw.note}</span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right flex items-center justify-end gap-2">
+                                                    <span className={`px-3 py-1 text-[9px] font-black uppercase rounded-full ${statusClass}`}>{withdraw.status}</span>
+                                                    <button
+                                                        onClick={() => handleViewDetail({ type: 'withdraw', amount: -withdraw.amount, createdAt: withdraw.createdAt, status: withdraw.status, note: withdraw.note, _id: withdraw._id, reject_reason: withdraw.reject_reason })}
+                                                        className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-black uppercase rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
+                                                    >
+                                                        Details
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         </div>
                         {/* Pagination */}
-                        {metaData.totalPages > 0 && (
+                        {withdrawMeta.totalPages > 0 && (
                             <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-3xl">
                                 <div className="flex items-center gap-4">
                                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                        Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, metaData.total)}</span> of <span className="text-slate-800">{metaData.total}</span> transactions
+                                        Showing <span className="text-primary">{(withdrawPage - 1) * withdrawLimit + 1} - {Math.min(withdrawPage * withdrawLimit, withdrawMeta.total)}</span> of <span className="text-slate-800">{withdrawMeta.total}</span> requests
                                     </p>
                                     <div className="w-px h-4 bg-slate-200"></div>
                                     <div className="flex items-center gap-2">
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rows per page:</span>
                                         <select
-                                            value={limit}
-                                            onChange={(e) => setLimit(Number(e.target.value))}
+                                            value={withdrawLimit}
+                                            onChange={(e) => {
+                                                setWithdrawLimit(Number(e.target.value));
+                                                setWithdrawPage(1);
+                                            }}
                                             className="text-xs font-bold text-slate-800 border-none bg-transparent focus:ring-0 cursor-pointer p-0 pr-6"
                                         >
+                                            <option value={5}>5</option>
                                             <option value={10}>10</option>
                                             <option value={20}>20</option>
                                             <option value={50}>50</option>
@@ -464,29 +480,29 @@ const SellerWallet = () => {
                                     </div>
                                 </div>
 
-                                {metaData.totalPages > 1 && (
+                                {withdrawMeta.totalPages > 1 && (
                                     <div className="flex items-center gap-2">
                                         <button
-                                            disabled={page <= 1}
-                                            onClick={() => setPage(1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            disabled={withdrawPage <= 1}
+                                            onClick={() => setWithdrawPage(1)}
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
                                         </button>
                                         <button
-                                            disabled={page <= 1}
-                                            onClick={() => setPage(page - 1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            disabled={withdrawPage <= 1}
+                                            onClick={() => setWithdrawPage(withdrawPage - 1)}
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">chevron_left</span>
                                         </button>
                                         
                                         <div className="flex items-center gap-1 mx-2">
                                             {(() => {
-                                                const { totalPages } = metaData;
+                                                const { totalPages } = withdrawMeta;
                                                 const pages = [];
-                                                let startPage = Math.max(1, page - 2);
-                                                let endPage = Math.min(totalPages, page + 2);
+                                                let startPage = Math.max(1, withdrawPage - 2);
+                                                let endPage = Math.min(totalPages, withdrawPage + 2);
                                                 if (endPage - startPage < 4) {
                                                     if (startPage === 1) endPage = Math.min(totalPages, 5);
                                                     if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
@@ -495,10 +511,10 @@ const SellerWallet = () => {
                                                     pages.push(
                                                         <button
                                                             key={i}
-                                                            onClick={() => setPage(i)}
+                                                            onClick={() => setWithdrawPage(i)}
                                                             className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                                                                page === i
-                                                                    ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                                                withdrawPage === i
+                                                                    ? 'bg-primary text-white shadow-md shadow-blue-200'
                                                                     : 'text-slate-600 hover:bg-slate-100'
                                                             }`}
                                                         >
@@ -511,16 +527,16 @@ const SellerWallet = () => {
                                         </div>
 
                                         <button
-                                            disabled={page >= metaData.totalPages}
-                                            onClick={() => setPage(page + 1)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            disabled={withdrawPage >= withdrawMeta.totalPages}
+                                            onClick={() => setWithdrawPage(withdrawPage + 1)}
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">chevron_right</span>
                                         </button>
                                         <button
-                                            disabled={page >= metaData.totalPages}
-                                            onClick={() => setPage(metaData.totalPages)}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                            disabled={withdrawPage >= withdrawMeta.totalPages}
+                                            onClick={() => setWithdrawPage(withdrawMeta.totalPages)}
+                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                         >
                                             <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
                                         </button>
@@ -531,7 +547,496 @@ const SellerWallet = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Transaction History (at the bottom) */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-level-1 overflow-hidden">
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">
+                        Recent Transactions
+                    </h3>
+                    <button 
+                        onClick={() => handleExport('history')}
+                        className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">download</span>
+                        Export CSV
+                    </button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50">
+                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Order ID</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Type</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr><td colSpan="5" className="text-center py-8 font-bold text-slate-500">Loading...</td></tr>
+                            ) : transactions.length === 0 ? (
+                                <tr><td colSpan="5" className="text-center py-8 font-bold text-slate-500">No transactions found</td></tr>
+                            ) : transactions.map(trans => {
+                                const { date, time } = formatDate(trans.createdAt);
+                                const isPositive = trans.amount > 0;
+                                let typeIcon = 'add';
+                                let typeColor = 'text-green-600 bg-green-100';
+                                let typeName = 'Sale Credit';
+                                
+                                if (trans.type === 'withdraw') {
+                                    typeIcon = 'remove';
+                                    typeColor = 'text-red-600 bg-red-100';
+                                    typeName = 'Withdrawal';
+                                } else if (trans.type === 'refund') {
+                                    typeIcon = 'undo';
+                                    typeColor = 'text-red-600 bg-red-100';
+                                    typeName = 'Refund Debit';
+                                } else if (trans.type === 'fee') {
+                                    typeIcon = 'remove';
+                                    typeColor = 'text-orange-600 bg-orange-100';
+                                    typeName = 'Fee Deduction';
+                                }
+
+                                const transStatusText = trans.status || 'Completed';
+                                let transStatusClass = 'bg-slate-100 text-slate-600';
+                                if (transStatusText === 'pending') {
+                                    transStatusClass = 'bg-blue-50 text-primary';
+                                } else if (transStatusText === 'approved') {
+                                    transStatusClass = 'bg-green-50 text-[#2e7d32]';
+                                } else if (transStatusText === 'rejected') {
+                                    transStatusClass = 'bg-red-50 text-[#b3261e]';
+                                }
+
+                                return (
+                                    <tr key={trans._id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-8 py-5">
+                                            <p className="text-xs font-bold text-on-surface">{date}</p>
+                                            <p className="text-[10px] text-secondary font-medium">{time}</p>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            {trans.order_id ? (
+                                                <span className="text-xs font-black text-primary hover:underline cursor-pointer">
+                                                    {trans.order_id.order_code || '---'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs font-bold text-slate-400">---</span>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center ${typeColor}`}>
+                                                    <span className="material-symbols-outlined text-[14px]">{typeIcon}</span>
+                                                </span>
+                                                <span className="text-xs font-bold text-on-surface">{typeName}</span>
+                                            </div>
+                                        </td>
+                                        <td className={`px-8 py-5 text-xs font-black ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                            {isPositive ? '+' : ''}{formatPrice(trans.amount)} ₫
+                                        </td>
+                                        <td className="px-8 py-5 text-right flex items-center justify-end gap-2">
+                                            <span className={`px-3 py-1 text-[9px] font-black uppercase rounded-full ${transStatusClass}`}>{transStatusText}</span>
+                                            <button
+                                                onClick={() => handleViewDetail(trans)}
+                                                className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-black uppercase rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
+                                            >
+                                                Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+                {/* Pagination */}
+                {transMeta.totalPages > 0 && (
+                    <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-3xl">
+                        <div className="flex items-center gap-4">
+                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                                Showing <span className="text-primary">{(transPage - 1) * transLimit + 1} - {Math.min(transPage * transLimit, transMeta.total)}</span> of <span className="text-slate-800">{transMeta.total}</span> transactions
+                            </p>
+                            <div className="w-px h-4 bg-slate-200"></div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rows per page:</span>
+                                <select
+                                    value={transLimit}
+                                    onChange={(e) => {
+                                        setTransLimit(Number(e.target.value));
+                                        setTransPage(1);
+                                    }}
+                                    className="text-xs font-bold text-slate-800 border-none bg-transparent focus:ring-0 cursor-pointer p-0 pr-6"
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {transMeta.totalPages > 1 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    disabled={transPage <= 1}
+                                    onClick={() => setTransPage(1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
+                                </button>
+                                <button
+                                    disabled={transPage <= 1}
+                                    onClick={() => setTransPage(transPage - 1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                </button>
+                                
+                                <div className="flex items-center gap-1 mx-2">
+                                    {(() => {
+                                        const { totalPages } = transMeta;
+                                        const pages = [];
+                                        let startPage = Math.max(1, transPage - 2);
+                                        let endPage = Math.min(totalPages, transPage + 2);
+                                        if (endPage - startPage < 4) {
+                                            if (startPage === 1) endPage = Math.min(totalPages, 5);
+                                            if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+                                        }
+                                        for (let i = startPage; i <= endPage; i++) {
+                                            pages.push(
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setTransPage(i)}
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                                                        transPage === i
+                                                            ? 'bg-primary text-white shadow-md shadow-blue-200'
+                                                            : 'text-slate-600 hover:bg-slate-100'
+                                                    }`}
+                                                >
+                                                    {i}
+                                                </button>
+                                            );
+                                        }
+                                        return pages;
+                                    })()}
+                                </div>
+
+                                <button
+                                    disabled={transPage >= transMeta.totalPages}
+                                    onClick={() => setTransPage(transPage + 1)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                                </button>
+                                <button
+                                    disabled={transPage >= transMeta.totalPages}
+                                    onClick={() => setTransPage(transMeta.totalPages)}
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
+
+            </div>
+
+        {/* Transaction Detail Modal */}
+        {detailModalOpen && selectedTransaction && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 max-w-[500px] w-full p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">Transaction Details</h3>
+                            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mt-1">
+                                {selectedTransaction.type === 'earning' ? 'Completed Order Earning' : 'Withdrawal Request'}
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => setDetailModalOpen(false)}
+                            className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-secondary hover:text-on-surface transition-all cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-lg">close</span>
+                        </button>
+                    </div>
+
+                    {/* Content */}
+                    {loadingDetail ? (
+                        <div className="py-12 flex flex-col items-center justify-center gap-3">
+                            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">Loading details...</p>
+                        </div>
+                    ) : selectedTransaction.type === 'earning' && orderDetail ? (
+                        <div className="space-y-6">
+                            {/* Order Info */}
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex justify-between items-center">
+                                <div>
+                                    <p className="text-[10px] font-black text-secondary uppercase tracking-widest">Order Code</p>
+                                    <p className="text-sm font-black text-on-surface mt-1">{orderDetail.order_code}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-secondary uppercase tracking-widest">Delivery Date</p>
+                                    <p className="text-xs font-bold text-on-surface mt-1">
+                                        {new Date(orderDetail.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Financial Breakdown */}
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Payout Breakdown</h4>
+                                <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl overflow-hidden bg-white">
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                        <span>Subtotal (Base Revenue)</span>
+                                        <span className="font-bold text-green-600">+{formatPrice(orderDetail.subtotal_amount)} ₫</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                        <span>Shipping Fee (Paid to Carrier)</span>
+                                        <span className="font-bold text-slate-500">{formatPrice(orderDetail.shipping_fee)} ₫ (Excluded)</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                        <span>Platform Commission Fee ({orderDetail.platform_fee_rate}%)</span>
+                                        <span className="font-bold text-red-600">-{formatPrice(orderDetail.platform_fee_amount)} ₫</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                        <span>Online Payment Gateway Fee ({orderDetail.gateway_fee_rate}%)</span>
+                                        <span className="font-bold text-red-600">-{formatPrice(orderDetail.gateway_fee_amount)} ₫</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-4 py-4 text-sm font-black text-slate-900 bg-slate-50">
+                                        <span>Total Net Payout</span>
+                                        <span className="text-primary text-base">
+                                            {formatPrice(orderDetail.subtotal_amount - orderDetail.platform_fee_amount - orderDetail.gateway_fee_amount)} ₫
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Promotion Absorption */}
+                            {(orderDetail.coin_discount > 0 || orderDetail.coupon_discount > 0) && (
+                                <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl space-y-2">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-sm">info</span>
+                                        Platform Absorb Promotion
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-600">
+                                        {orderDetail.coin_discount > 0 && (
+                                            <div>Coins Discount: <span className="text-primary">{formatPrice(orderDetail.coin_discount)} ₫</span></div>
+                                        )}
+                                        {orderDetail.coupon_discount > 0 && (
+                                            <div>Coupon Discount: <span className="text-primary">{formatPrice(orderDetail.coupon_discount)} ₫</span></div>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] font-medium text-slate-500 leading-normal">
+                                        * The customer used coin/coupon discounts to pay. This cost is 100% absorbed by UTEShop and is NOT deducted from your payout.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        // Withdrawal request details
+                        <div className="space-y-6">
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                                <p className="text-[10px] font-black text-secondary uppercase tracking-widest">Requested Withdrawal Amount</p>
+                                <p className="text-3xl font-black text-primary mt-2">{formatPrice(Math.abs(selectedTransaction.amount))} ₫</p>
+                            </div>
+
+                            <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl overflow-hidden bg-white">
+                                <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                    <span>Status</span>
+                                    <span className={`px-3 py-1 text-[9px] font-black uppercase rounded-full ${
+                                        selectedTransaction.status === 'pending' ? 'bg-blue-50 text-primary' :
+                                        selectedTransaction.status === 'approved' ? 'bg-green-50 text-[#2e7d32]' :
+                                        selectedTransaction.status === 'rejected' ? 'bg-red-50 text-[#b3261e]' :
+                                        'bg-slate-100 text-slate-600'
+                                    }`}>
+                                        {selectedTransaction.status === 'paid' ? 'Completed' : (selectedTransaction.status || 'Completed')}
+                                    </span>
+                                </div>
+                                {selectedTransaction.status === 'rejected' && selectedTransaction.reject_reason && (
+                                    <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700 bg-red-50/30">
+                                        <span className="text-[#b3261e] font-bold">Reject Reason</span>
+                                        <span className="font-bold text-[#b3261e] text-right max-w-[60%]">
+                                            {selectedTransaction.reject_reason}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                    <span>Date & Time Requested</span>
+                                    <span className="font-bold text-slate-900">
+                                        {new Date(selectedTransaction.createdAt).toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                    <span>Destination Account</span>
+                                    <span className="font-bold text-slate-900">
+                                        {selectedTransaction.note || 'Bank Account'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center px-4 py-3 text-xs font-medium text-slate-700">
+                                    <span>Processing Speed</span>
+                                    <span className="font-bold text-slate-900">T+1 Business Day</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Footer Actions */}
+                    <div className="mt-8">
+                        <button 
+                            onClick={() => setDetailModalOpen(false)}
+                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                        >
+                            Close Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Bank Management Modal */}
+        {bankModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 max-w-[650px] w-full p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">Manage Bank Accounts</h3>
+                            <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mt-1">
+                                Add or configure your store settlement accounts
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => setBankModalOpen(false)}
+                            className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-secondary hover:text-on-surface transition-all cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-lg">close</span>
+                        </button>
+                    </div>
+
+                    {/* Bank list */}
+                    <div className="space-y-4 mb-8">
+                        <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Your Bank Accounts</h4>
+                        {loadingBanks ? (
+                            <div className="py-6 flex flex-col items-center justify-center gap-2">
+                                <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-[9px] font-black text-secondary uppercase tracking-widest">Loading bank accounts...</p>
+                            </div>
+                        ) : bankAccounts.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {bankAccounts.map(acc => (
+                                    <div 
+                                        key={acc._id} 
+                                        className={`p-5 rounded-2xl border ${acc.is_default ? 'border-primary/30 bg-primary/5' : 'border-slate-200 bg-slate-50/50'} relative flex flex-col justify-between h-36`}
+                                    >
+                                        <div>
+                                            <div className="flex justify-between items-start">
+                                                <span className="text-xs font-black text-slate-800">{acc.bank_name}</span>
+                                                {acc.is_default && (
+                                                    <span className="bg-primary text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                                                        Default
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="font-mono text-sm font-black text-slate-900 mt-2 tracking-wide select-all">
+                                                {acc.account_number}
+                                            </p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                                                {acc.account_name}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-100/50">
+                                            {!acc.is_default && (
+                                                <button 
+                                                    onClick={() => handleSetDefaultBank(acc._id)}
+                                                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer"
+                                                >
+                                                    Set Default
+                                                </button>
+                                            )}
+                                            <button 
+                                                onClick={() => handleDeleteBank(acc._id)}
+                                                className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline cursor-pointer flex items-center gap-0.5"
+                                            >
+                                                <span className="material-symbols-outlined text-xs">delete</span>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-6 text-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/30">
+                                <span className="material-symbols-outlined text-slate-300 text-3xl mb-1">account_balance</span>
+                                <p className="text-xs text-slate-400 font-bold">No bank accounts added yet.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Add Bank Form */}
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                        <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Add New Bank Account</h4>
+                        <form onSubmit={handleAddBank} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Bank Name</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g., Vietcombank, Techcombank"
+                                        value={newBankName}
+                                        onChange={(e) => setNewBankName(e.target.value)}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Account Holder Name</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g., NGUYEN VAN A"
+                                        value={newAccountName}
+                                        onChange={(e) => setNewAccountName(e.target.value.toUpperCase())}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-secondary uppercase tracking-widest">Account Number</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g., 0123456789"
+                                    value={newAccountNumber}
+                                    onChange={(e) => setNewAccountNumber(e.target.value.replace(/\D/g, ''))}
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                    required
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                className="w-full bg-primary hover:bg-primary text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-primary/10"
+                            >
+                                Add Bank Account
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end">
+                        <button 
+                            onClick={() => setBankModalOpen(false)}
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
         </div>
     );
 };

@@ -68,7 +68,7 @@ const SellerProducts = ({ setActiveTab }) => {
                     sortBy
                 },
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -86,7 +86,7 @@ const SellerProducts = ({ setActiveTab }) => {
         try {
             const res = await axios.delete(`http://localhost:5000/api/seller/products/${deleteModal.productId}`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -107,7 +107,7 @@ const SellerProducts = ({ setActiveTab }) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/seller/products/export`, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 },
                 responseType: 'blob'
             });
@@ -255,7 +255,12 @@ const SellerProducts = ({ setActiveTab }) => {
                                             <td className="px-6 py-5 text-center">
                                                 {product.currentStatus === 'Selling' && <span className="px-3 py-1.5 bg-[#e6f4ea] text-[#1e7e34] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#1e7e34]/10 shadow-sm inline-block">Selling</span>}
                                                 {product.currentStatus === 'Pending' && <span className="px-3 py-1.5 bg-[#fef3c7] text-[#b45309] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#b45309]/10 shadow-sm inline-block">Pending</span>}
-                                                {product.currentStatus === 'Violated' && <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Violated</span>}
+                                                {product.currentStatus === 'Violated' && (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="px-3 py-1.5 bg-[#fdecea] text-[#c62828] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#c62828]/10 shadow-sm inline-block">Violated</span>
+                                                        {product.reject_reason && <span className="text-[9px] text-[#c62828] font-bold max-w-[100px] text-center line-clamp-2" title={product.reject_reason}>{product.reject_reason}</span>}
+                                                    </div>
+                                                )}
                                                 {product.currentStatus === 'Out of Stock' && <span className="px-3 py-1.5 bg-surface-container-high text-secondary rounded-lg text-[10px] font-black uppercase tracking-wider border border-outline-variant/30 shadow-sm inline-block">Out of Stock</span>}
                                             </td>
                                             <td className="px-8 py-5">
@@ -286,7 +291,7 @@ const SellerProducts = ({ setActiveTab }) => {
                         <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-2xl">
                             <div className="flex items-center gap-4">
                                 <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                    Showing <span className="text-[#004ac6]">{(page - 1) * limit + 1} - {Math.min(page * limit, metaData.total)}</span> of <span className="text-slate-800">{metaData.total}</span> products
+                                    Showing <span className="text-primary">{(page - 1) * limit + 1} - {Math.min(page * limit, metaData.total)}</span> of <span className="text-slate-800">{metaData.total}</span> products
                                 </p>
                                 <div className="w-px h-4 bg-slate-200"></div>
                                 <div className="flex items-center gap-2">
@@ -307,14 +312,14 @@ const SellerProducts = ({ setActiveTab }) => {
                                 <button
                                     disabled={page <= 1}
                                     onClick={() => setPage(1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">keyboard_double_arrow_left</span>
                                 </button>
                                 <button
                                     disabled={page <= 1}
                                     onClick={() => setPage(page - 1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">chevron_left</span>
                                 </button>
@@ -336,7 +341,7 @@ const SellerProducts = ({ setActiveTab }) => {
                                                     onClick={() => setPage(i)}
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                                                         page === i
-                                                            ? 'bg-[#004ac6] text-white shadow-md shadow-blue-200'
+                                                            ? 'bg-primary text-white shadow-md shadow-blue-200'
                                                             : 'text-slate-600 hover:bg-slate-100'
                                                     }`}
                                                 >
@@ -351,14 +356,14 @@ const SellerProducts = ({ setActiveTab }) => {
                                 <button
                                     disabled={page >= metaData.totalPages}
                                     onClick={() => setPage(page + 1)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">chevron_right</span>
                                 </button>
                                 <button
                                     disabled={page >= metaData.totalPages}
                                     onClick={() => setPage(metaData.totalPages)}
-                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#004ac6] disabled:opacity-30 transition-all bg-white shadow-sm"
+                                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all bg-white shadow-sm"
                                 >
                                     <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
                                 </button>

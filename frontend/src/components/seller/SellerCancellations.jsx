@@ -5,7 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNotifications } from '../../hooks/useNotifications';
 
-const SellerCancellations = ({ setActiveTab }) => {
+const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
     const { user } = useSelector(state => state.auth);
     const { unreadCount } = useNotifications();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -51,7 +51,7 @@ const SellerCancellations = ({ setActiveTab }) => {
                     limit
                 },
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
             if (res.data.success) {
@@ -94,7 +94,7 @@ const SellerCancellations = ({ setActiveTab }) => {
         try {
             const res = await axios.put(`http://localhost:5000/api/seller/cancellations/${id}/status`, { status: type }, {
                 headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+                    Authorization: `Bearer ${(localStorage.getItem('token') || sessionStorage.getItem('token') || '')}`
                 }
             });
 
@@ -262,7 +262,7 @@ const SellerCancellations = ({ setActiveTab }) => {
                                                         ) : (
                                                             <div className="text-[10px] font-bold text-secondary italic mr-2">Processed</div>
                                                         )}
-                                                        <button className="p-2.5 rounded-xl bg-surface-container-high text-secondary hover:bg-on-surface hover:text-white transition-all group/btn shadow-sm flex items-center justify-center" title="View Detail">
+                                                        <button onClick={() => onViewDetails && onViewDetails(cancel.order_id?._id)} className="p-2.5 rounded-xl bg-surface-container-high text-secondary hover:bg-on-surface hover:text-white transition-all group/btn shadow-sm flex items-center justify-center" title="View Detail">
                                                             <span className="material-symbols-outlined text-[18px] font-bold">visibility</span>
                                                         </button>
                                                     </div>

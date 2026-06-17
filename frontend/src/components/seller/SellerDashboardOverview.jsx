@@ -12,7 +12,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
   const fetchDashboardData = async () => {
     setDashboardLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
+      const token = (localStorage.getItem('token') || sessionStorage.getItem('token') || '');
       // 1. Fetch 7 days analytics data
       const analyticsRes = await axios.get('http://localhost:5000/api/seller/analytics?range=last7days', {
         headers: { Authorization: `Bearer ${token}` }
@@ -183,10 +183,10 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
       {/* Bento Grid Stats (4 cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Revenue (7 Days) */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-primary transition-all">
           <div>
             <div className="flex justify-between items-start mb-4">
-              <span className="material-symbols-outlined text-[#004ac6]">payments</span>
+              <span className="material-symbols-outlined text-primary">payments</span>
               <span className={`text-xs font-bold px-2 py-1 rounded-full ${dashboardData.kpis?.revenue?.growth >= 0
                 ? 'text-[#2e7d32] bg-[#2e7d32]/10'
                 : 'text-[#b3261e] bg-[#b3261e]/10'
@@ -202,11 +202,11 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
         </div>
 
         {/* Card 2: Pending Orders */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-[#004ac6] transition-all">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-primary transition-all">
           <div>
             <div className="flex justify-between items-start mb-4">
               <span className="material-symbols-outlined text-slate-600">local_shipping</span>
-              <span className="text-xs font-bold text-[#004ac6] bg-blue-50 px-2 py-1 rounded-full">Pending</span>
+              <span className="text-xs font-bold text-primary bg-blue-50 px-2 py-1 rounded-full">Pending</span>
             </div>
             <p className="text-slate-500 text-sm font-medium">Pending Orders</p>
             <h3 className="text-2xl font-bold text-slate-900 mt-1">
@@ -264,7 +264,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
             <p className="text-slate-500 text-sm font-medium mt-1">Performance comparison across different time periods</p>
           </div>
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60">
-            <button onClick={() => setActiveTab('analytics')} className="px-5 py-1.5 text-sm font-bold bg-white text-[#004ac6] rounded-lg shadow-sm cursor-pointer hover:bg-slate-50 transition-all">
+            <button onClick={() => setActiveTab('analytics')} className="px-5 py-1.5 text-sm font-bold bg-white text-primary rounded-lg shadow-sm cursor-pointer hover:bg-slate-50 transition-all">
               Detailed Analytics
             </button>
           </div>
@@ -282,7 +282,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Recent Orders</h3>
-            <button onClick={() => setActiveTab('orders')} className="text-[#004ac6] text-xs font-bold hover:underline cursor-pointer">View All</button>
+            <button onClick={() => setActiveTab('orders')} className="text-primary text-xs font-bold hover:underline cursor-pointer">View All</button>
           </div>
           <div className="overflow-x-auto flex-1">
             <table className="w-full text-left border-collapse">
@@ -303,7 +303,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
                           setSelectedOrderId && setSelectedOrderId(order._id);
                           setActiveTab('order-detail');
                         }}
-                        className="px-6 py-4 text-xs font-mono font-bold text-[#004ac6] hover:underline cursor-pointer"
+                        className="px-6 py-4 text-xs font-mono font-bold text-primary hover:underline cursor-pointer"
                       >
                         {order.order_code}
                       </td>
@@ -314,12 +314,12 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
                         {order.total_final?.toLocaleString('vi-VN')}₫
                       </td>
                       <td className="px-6 py-4">
-                        {order.status === 'delivered' ? (
+                        {order.status === 'completed' ? (
                           <span className="px-2 py-0.5 rounded-full bg-green-50 text-[#2e7d32] text-[10px] font-bold border border-green-100">Completed</span>
                         ) : order.status === 'canceled' ? (
                           <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#b3261e] text-[10px] font-bold border border-red-100">Cancelled</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#004ac6] text-[10px] font-bold border border-blue-100">Processing</span>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-primary text-[10px] font-bold border border-blue-100">Processing</span>
                         )}
                       </td>
                     </tr>
@@ -340,7 +340,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
             </span>
             <button
               onClick={() => setActiveTab('orders')}
-              className="text-[11px] text-[#004ac6] font-bold hover:underline cursor-pointer"
+              className="text-[11px] text-primary font-bold hover:underline cursor-pointer"
             >
               Go to Order Management →
             </button>
@@ -355,10 +355,10 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
             <div className="space-y-4">
               <div className="flex justify-between items-end">
                 <span className="text-xs text-slate-500 font-medium">Fulfillment Rate</span>
-                <span className="text-sm font-bold text-[#004ac6]">98%</span>
+                <span className="text-sm font-bold text-primary">98%</span>
               </div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#004ac6]" style={{ width: '98%' }}></div>
+                <div className="h-full bg-primary" style={{ width: '98%' }}></div>
               </div>
               <div className="flex justify-between items-end">
                 <span className="text-xs text-slate-500 font-medium">Response Time</span>
@@ -385,7 +385,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
                       <p className="text-[10px] text-slate-500 font-medium">{prod.orders} units sold</p>
                     </div>
                     <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${idx === 0
-                      ? 'text-[#004ac6] bg-blue-50 border-blue-100'
+                      ? 'text-primary bg-blue-50 border-blue-100'
                       : 'text-slate-600 bg-slate-100 border-slate-200'
                       }`}>
                       #{idx + 1}
@@ -405,7 +405,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
         <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-blue-100">
-              <span className="material-symbols-outlined text-[#004ac6]">auto_graph</span>
+              <span className="material-symbols-outlined text-primary">auto_graph</span>
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">Growth Insight</h4>
@@ -414,7 +414,7 @@ const SellerDashboardOverview = ({ setActiveTab, setSelectedOrderId }) => {
               </p>
             </div>
           </div>
-          <button onClick={() => setActiveTab('analytics')} className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-bold rounded-xl shadow-md shadow-[#004ac6]/20 hover:brightness-110 transition-all shrink-0 cursor-pointer">
+          <button onClick={() => setActiveTab('analytics')} className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md shadow-primary/20 hover:brightness-110 transition-all shrink-0 cursor-pointer">
             View Report
           </button>
         </div>

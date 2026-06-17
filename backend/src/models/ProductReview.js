@@ -1,0 +1,17 @@
+const mongoose = require('mongoose');
+
+const productReviewSchema = new mongoose.Schema({
+     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+     product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+     order_item_id: { type: mongoose.Schema.Types.ObjectId, ref: 'OrderItem', required: true },
+     rating: { type: Number, min: 1, max: 5, required: true },
+     comment: { type: String },
+     coin_earned: { type: Number, default: 0 },
+     reply_comment: { type: String },
+     reply_createdAt: { type: Date }
+}, { timestamps: true });
+
+// Unique: mỗi order_item chỉ được đánh giá một lần bởi một user
+productReviewSchema.index({ order_item_id: 1, user_id: 1 }, { unique: true });
+
+module.exports = mongoose.model('ProductReview', productReviewSchema);

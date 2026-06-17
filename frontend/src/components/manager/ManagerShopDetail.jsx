@@ -3,6 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -15,6 +16,8 @@ const ManagerShopDetail = ({ shopId }) => {
   const [loading, setLoading] = useState(true);
   const [shopDetail, setShopDetail] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [requestInfoModalOpen, setRequestInfoModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchShopDetail = async () => {
@@ -54,13 +57,12 @@ const ManagerShopDetail = ({ shopId }) => {
     }
   };
 
-  const handleReject = async () => {
-    const reason = window.prompt(`Reason for rejecting ${shopDetail?.shopName}:`);
-    if (reason === null) return;
+  const handleRejectConfirm = async (reason) => {
+    setRejectModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/shops/${shopId}/reject`,
-        { reason: reason || 'Not eligible' },
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -72,13 +74,12 @@ const ManagerShopDetail = ({ shopId }) => {
     }
   };
 
-  const handleRequestInfo = async () => {
-    const note = window.prompt(`Information requested for ${shopDetail?.shopName}:`);
-    if (note === null) return;
+  const handleRequestInfoConfirm = async (note) => {
+    setRequestInfoModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/shops/${shopId}/request-info`,
-        { note: note || 'Please provide additional information.' },
+        { note },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -134,7 +135,7 @@ const ManagerShopDetail = ({ shopId }) => {
   if (loading) {
     return (
       <div className="p-10 flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -163,7 +164,7 @@ const ManagerShopDetail = ({ shopId }) => {
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">{shopDetail.shopName}</h2>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="px-3 py-1 bg-blue-50 text-[#004ac6] text-[10px] font-black rounded-lg uppercase">Standard Shop</span>
+                    <span className="px-3 py-1 bg-blue-50 text-primary text-[10px] font-black rounded-lg uppercase">Standard Shop</span>
                     <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
                       Applied: {new Date(shopDetail.appliedAt).toLocaleDateString()}
                     </span>
@@ -210,7 +211,7 @@ const ManagerShopDetail = ({ shopId }) => {
           <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-lg font-black text-slate-900 tracking-tight">Legal Documents</h3>
-              <button onClick={handleDownloadPDF} className="text-[#004ac6] text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Download All (PDF)</button>
+              <button onClick={handleDownloadPDF} className="text-primary text-xs font-black hover:underline uppercase tracking-widest cursor-pointer">Download All (PDF)</button>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div 
@@ -265,7 +266,7 @@ const ManagerShopDetail = ({ shopId }) => {
                   iconBg = 'bg-green-50 text-[#16a34a]';
                   iconName = 'description';
                 } else if (isInfoReq) {
-                  iconBg = 'bg-blue-50 text-[#004ac6]';
+                  iconBg = 'bg-blue-50 text-primary';
                   iconName = 'edit_note';
                 } else if (isAppOpened) {
                   iconBg = 'bg-slate-50 text-slate-400';
@@ -286,7 +287,7 @@ const ManagerShopDetail = ({ shopId }) => {
                       </div>
                       <p className="text-xs text-slate-500 leading-relaxed font-medium">"{evt.note}"</p>
                       {!isDocSubmitted && (
-                        <p className={`text-[10px] font-black uppercase mt-2 ${isInfoReq ? 'text-[#004ac6]' : 'text-slate-400'}`}>By {evt.actorName}</p>
+                        <p className={`text-[10px] font-black uppercase mt-2 ${isInfoReq ? 'text-primary' : 'text-slate-400'}`}>By {evt.actorName}</p>
                       )}
                     </div>
                   </div>
@@ -311,13 +312,13 @@ const ManagerShopDetail = ({ shopId }) => {
                       Approve Registration
                     </button>
                     <button 
-                      onClick={handleRequestInfo}
+                      onClick={() => setRequestInfoModalOpen(true)}
                       className="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">help</span>
                       Request More Info
                     </button>
                     <button 
-                      onClick={handleReject}
+                      onClick={() => setRejectModalOpen(true)}
                       className="w-full py-4 bg-red-50 text-[#dc2626] rounded-2xl font-black text-sm hover:bg-[#dc2626] hover:text-white transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">cancel</span>
                       Reject Application
@@ -364,6 +365,24 @@ const ManagerShopDetail = ({ shopId }) => {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        onSubmit={handleRejectConfirm}
+        title="Reject Registration"
+        itemName={shopDetail.shopName}
+        type="shop"
+      />
+
+      <ActionReasonModal
+        isOpen={requestInfoModalOpen}
+        onClose={() => setRequestInfoModalOpen(false)}
+        onSubmit={handleRequestInfoConfirm}
+        title="Request Information"
+        itemName={shopDetail.shopName}
+        type="info"
+      />
     </>
   );
 };

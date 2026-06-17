@@ -6,12 +6,12 @@ const ManagerSidebar = ({ navItems, activeTab, setActiveTab, stats, handleLogout
       {/* Brand */}
       <div className="p-8 border-b border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#004ac6] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">
             UM
           </div>
           <div>
             <h2 className="font-black text-slate-900 text-lg leading-tight tracking-tighter">Manager</h2>
-            <p className="text-[10px] text-[#004ac6] font-black uppercase tracking-widest">Operations Hub</p>
+            <p className="text-[10px] text-primary font-black uppercase tracking-widest">Operations Hub</p>
           </div>
         </div>
       </div>
@@ -33,7 +33,7 @@ const ManagerSidebar = ({ navItems, activeTab, setActiveTab, stats, handleLogout
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-sm font-medium group cursor-pointer ${
                   activeTab === item.id || (activeTab === 'shop_detail' && item.id === 'shop_approval') || (activeTab === 'product_detail' && item.id === 'product_approval') || (activeTab === 'violation_detail' && item.id === 'violations')
-                    ? 'bg-[#E8EFFF] text-[#004ac6] font-bold shadow-sm'
+                    ? 'bg-[#E8EFFF] text-primary font-bold shadow-sm'
                     : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >

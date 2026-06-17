@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import ActionReasonModal from './ActionReasonModal';
 
 const API = 'http://localhost:5000/api';
 
@@ -15,6 +16,8 @@ const ManagerProductDetail = ({ productId }) => {
   const [productDetail, setProductDetail] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showAI, setShowAI] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [requestInfoModalOpen, setRequestInfoModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchProductDetail = async () => {
@@ -54,13 +57,12 @@ const ManagerProductDetail = ({ productId }) => {
     }
   };
 
-  const handleReject = async () => {
-    const reason = window.prompt(`Reason for rejecting ${productDetail?.name}:`);
-    if (reason === null) return;
+  const handleRejectConfirm = async (reason) => {
+    setRejectModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/products/${productId}/reject`,
-        { reason: reason || 'Violation of policies' },
+        { reason },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -72,13 +74,12 @@ const ManagerProductDetail = ({ productId }) => {
     }
   };
 
-  const handleRequestInfo = async () => {
-    const note = window.prompt(`Information requested for ${productDetail?.name}:`);
-    if (note === null) return;
+  const handleRequestInfoConfirm = async (note) => {
+    setRequestInfoModalOpen(false);
     try {
       const { data } = await axios.post(
         `${API}/manager/products/${productId}/request-info`,
-        { note: note || 'Please provide additional information.' },
+        { note },
         { headers: getAuthHeader() }
       );
       if (data.success) {
@@ -93,7 +94,7 @@ const ManagerProductDetail = ({ productId }) => {
   if (loading) {
     return (
       <div className="p-10 flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#004ac6]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -123,7 +124,7 @@ const ManagerProductDetail = ({ productId }) => {
                 {productDetail.images.slice(0, 3).map((img, idx) => (
                   <div 
                     key={idx} 
-                    className={`aspect-square rounded-2xl overflow-hidden ${idx === 0 ? 'border-2 border-[#004ac6]' : 'border border-slate-100'} bg-slate-50 cursor-pointer`}
+                    className={`aspect-square rounded-2xl overflow-hidden ${idx === 0 ? 'border-2 border-primary' : 'border border-slate-100'} bg-slate-50 cursor-pointer`}
                     onClick={() => setSelectedImage(img)}
                   >
                     <img src={img} alt="Thumb" className="w-full h-full object-cover" />
@@ -214,13 +215,13 @@ const ManagerProductDetail = ({ productId }) => {
           <div className="lg:col-span-7 space-y-8">
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10">
               <div className="flex items-center justify-between mb-8">
-                <span className="px-3 py-1 bg-blue-50 text-[#004ac6] text-[10px] font-black rounded-lg uppercase tracking-widest">{productDetail.category}</span>
+                <span className="px-3 py-1 bg-blue-50 text-primary text-[10px] font-black rounded-lg uppercase tracking-widest">{productDetail.category}</span>
                 <span className="text-xs text-slate-400 font-bold tracking-widest uppercase">ID: {productDetail.sku}</span>
               </div>
               
               <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-4">{productDetail.name}</h2>
               <div className="flex items-center gap-4">
-                <p className="text-2xl font-black text-[#004ac6]">${productDetail.price}</p>
+                <p className="text-2xl font-black text-primary">${productDetail.price}</p>
                 {productDetail.mrp_price > productDetail.price && (
                   <p className="text-lg font-bold text-slate-400 line-through">${productDetail.mrp_price}</p>
                 )}
@@ -240,11 +241,11 @@ const ManagerProductDetail = ({ productId }) => {
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Attributes</p>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#004ac6]"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         Stock: {productDetail.stock} Units
                       </li>
                       <li className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#004ac6]"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         Variants: {productDetail.attributes.length}
                       </li>
                     </ul>
@@ -253,7 +254,7 @@ const ManagerProductDetail = ({ productId }) => {
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Status</p>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#004ac6]"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         Current: <span className="uppercase text-[#f59e0b]">{productDetail.status}</span>
                       </li>
                     </ul>
@@ -270,13 +271,13 @@ const ManagerProductDetail = ({ productId }) => {
                     Approve Listing
                   </button>
                   <button 
-                    onClick={handleReject}
+                    onClick={() => setRejectModalOpen(true)}
                     className="w-14 h-14 bg-red-50 text-[#dc2626] rounded-2xl flex items-center justify-center hover:bg-[#dc2626] hover:text-white transition-all shadow-sm cursor-pointer" title="Reject">
                     <span className="material-symbols-outlined">block</span>
                   </button>
                   <button 
-                    onClick={handleRequestInfo}
-                    className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-[#004ac6] hover:text-white transition-all shadow-sm cursor-pointer" title="Edit/Request Info">
+                    onClick={() => setRequestInfoModalOpen(true)}
+                    className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm cursor-pointer" title="Edit/Request Info">
                     <span className="material-symbols-outlined">edit</span>
                   </button>
                 </div>
@@ -309,6 +310,24 @@ const ManagerProductDetail = ({ productId }) => {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        onSubmit={handleRejectConfirm}
+        title="Reject Product"
+        itemName={productDetail.name}
+        type="product"
+      />
+
+      <ActionReasonModal
+        isOpen={requestInfoModalOpen}
+        onClose={() => setRequestInfoModalOpen(false)}
+        onSubmit={handleRequestInfoConfirm}
+        title="Request Information"
+        itemName={productDetail.name}
+        type="info"
+      />
     </>
   );
 };
