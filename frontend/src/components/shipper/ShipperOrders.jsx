@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-
 import { useParams, useNavigate } from 'react-router-dom';
 
 const ShipperOrders = () => {
   const { status: statusParam } = useParams();
   const navigate = useNavigate();
   
-  const validFilters = ['all', 'preparing', 'shipping', 'completed', 'failed'];
+  const validFilters = ['all', 'shipping', 'completed', 'failed'];
   const currentFilter = validFilters.includes(statusParam) ? statusParam : 'all';
 
   const [orders, setOrders] = useState([]);
@@ -18,21 +17,36 @@ const ShipperOrders = () => {
   const [failedReason, setFailedReason] = useState('Khách không nghe máy');
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
+  
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Reset page when filter changes
   useEffect(() => {
-    fetchOrders(currentFilter);
+    setCurrentPage(1);
   }, [currentFilter]);
 
-  const fetchOrders = async (filter) => {
+  useEffect(() => {
+    fetchOrders(currentFilter, currentPage);
+  }, [currentFilter, currentPage]);
+
+  const fetchOrders = async (filter, page) => {
     try {
       setLoading(true);
-      const endpoint = filter === 'all' ? `http://localhost:5000/api/shipper/orders?limit=50` : `http://localhost:5000/api/shipper/orders/${filter}?limit=50`;
+      const endpoint = filter === 'all' 
+        ? `http://localhost:5000/api/shipper/orders?page=${page}&limit=${limit}` 
+        : `http://localhost:5000/api/shipper/orders/${filter}?page=${page}&limit=${limit}`;
+      
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` }
       });
       if (response.data.success) {
         setOrders(response.data.data.orders);
+        setTotalPages(response.data.data.pagination.totalPages || 1);
       }
     } catch (error) {
       toast.error('Failed to fetch orders');
@@ -79,7 +93,7 @@ const ShipperOrders = () => {
       if (response.data.success) {
         toast.success(`Order marked as ${status}`);
         setModalConfig({ isOpen: false, status: null, orderId: null });
-        fetchOrders(currentFilter);
+        fetchOrders(currentFilter, currentPage);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status');
@@ -93,7 +107,7 @@ const ShipperOrders = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-black text-slate-900">Assigned Orders</h2>
         <div className="flex bg-slate-100 p-1 rounded-xl">
-          {['all', 'preparing', 'shipping', 'completed', 'failed'].map((status) => (
+          {['all', 'shipping', 'completed', 'failed'].map((status) => (
             <button
               key={status}
               onClick={() => navigate(status === 'all' ? '/shipper/orders' : `/shipper/orders/${status}`)}
@@ -114,7 +128,7 @@ const ShipperOrders = () => {
           type="text" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by order code, customer name, phone, or address..."
+          placeholder="Search current page..."
           className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#004ac6]/20 focus:border-[#004ac6] outline-none transition-all shadow-sm"
         />
         {searchQuery && (
@@ -127,7 +141,7 @@ const ShipperOrders = () => {
         )}
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         {loading ? (
           <div className="p-10 text-center">Loading orders...</div>
         ) : orders.length === 0 ? (
@@ -137,7 +151,7 @@ const ShipperOrders = () => {
             <p className="text-slate-500 mt-2">There are no orders matching the selected filter.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-sm font-bold uppercase tracking-wider border-b border-slate-200">
@@ -185,28 +199,61 @@ const ShipperOrders = () => {
                         {order.status}
                       </span>
                     </td>
-                    <td className="p-6 text-right space-x-2">
+                    <td className="p-6">
+                      <div className="flex items-center justify-end gap-2">
                       {order.status === 'shipping' && (
                         <>
                           <button
                             onClick={() => handleOpenModal(order._id || order.id, 'completed')}
-                            className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-200 transition-colors cursor-pointer"
+                            className="bg-emerald-50 text-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-colors cursor-pointer group shadow-sm"
+                            title="Mark Completed"
                           >
-                            mark completed
+                            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">check_circle</span>
                           </button>
                           <button
                             onClick={() => handleOpenModal(order._id || order.id, 'failed')}
-                            className="bg-red-100 text-red-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-200 transition-colors cursor-pointer"
+                            className="bg-red-50 text-red-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer group shadow-sm"
+                            title="Mark Failed"
                           >
-                            Mark Failed
+                            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">cancel</span>
                           </button>
                         </>
                       )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white">
+                <p className="text-sm text-slate-500 font-medium">
+                  Page <span className="font-bold text-slate-900">{currentPage}</span> of <span className="font-bold text-slate-900">{totalPages}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                      currentPage === 1 ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                      currentPage === totalPages ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

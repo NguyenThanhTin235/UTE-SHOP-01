@@ -103,7 +103,7 @@ const cleanHtmlImg = (html) => {
 };
 
 
-const dataDir = path.join(__dirname, '../DATA');
+const dataDir = path.join(__dirname, '../../DATA');
 
 function scanDataDirectory() {
   const productsFiles = [];
@@ -210,6 +210,7 @@ const seedFashionData = async () => {
     const managerRole = await Role.findOne({ name: 'MANAGER' }) || await Role.create({ name: 'MANAGER', description: 'Operational management, moderation, and support oversight.' });
     const sellerRole = await Role.findOne({ name: 'SELLER' }) || await Role.create({ name: 'SELLER', description: 'Merchant access to store management, products, and wallet.' });
     const customerRole = await Role.findOne({ name: 'CUSTOMER' }) || await Role.create({ name: 'CUSTOMER', description: 'Standard consumer access to browse, buy, and review.' });
+    const shipperRole = await Role.findOne({ name: 'SHIPPER' }) || await Role.create({ name: 'SHIPPER', description: 'Delivery personnel access to manage shipments.' });
 
     // Link permissions
     await RolePermission.deleteMany({});
@@ -245,6 +246,22 @@ const seedFashionData = async () => {
         status: 'active'
       });
       await UserRole.create({ user_id: manager._id, role_id: managerRole._id });
+    }
+
+    console.log('🚚 Seeding Shippers...');
+    const shippers = [];
+    for (let i = 1; i <= 3; i++) {
+      let shipper = await User.findOne({ email: `shipper${i}@uteshop.vn` });
+      if (!shipper) {
+        shipper = await User.create({
+          full_name: `UTEShop Shipper ${i}`,
+          email: `shipper${i}@uteshop.vn`,
+          password: hashedPassword,
+          status: 'active'
+        });
+        await UserRole.create({ user_id: shipper._id, role_id: shipperRole._id });
+      }
+      shippers.push(shipper);
     }
 
     const sellerEmails = [
@@ -340,6 +357,15 @@ const seedFashionData = async () => {
           gender: gender
         });
         await UserRole.create({ user_id: u._id, role_id: customerRole._id });
+        await Address.create({
+          user_id: u._id,
+          label: 'Nhà riêng',
+          recipient_name: `${fn} ${mn} ${ln}`,
+          recipient_phone: `09${Math.floor(10000000 + Math.random() * 90000000)}`,
+          street_address: `${Math.floor(Math.random() * 999) + 1} Đường số ${Math.floor(Math.random() * 20) + 1}, Phường ${Math.floor(Math.random() * 15) + 1}`,
+          city: ['TP.HCM', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng'][Math.floor(Math.random() * 5)],
+          is_default: true
+        });
       }
       customers.push(u);
     }
@@ -650,7 +676,8 @@ const seedFashionData = async () => {
       payment_order_id: paymentOrder._id,
       customer_id: customers[0]._id,
       shop_id: fashionShop._id,
-      status: 'delivered',
+      shipper_id: shippers[0]._id,
+      status: 'completed',
       subtotal_amount: p1.selling_price,
       shipping_fee: 15000,
       coupon_discount: 20000,
@@ -667,6 +694,7 @@ const seedFashionData = async () => {
       payment_order_id: paymentOrder._id,
       customer_id: customers[0]._id,
       shop_id: sneakerShop._id,
+      shipper_id: shippers[1]._id,
       status: 'canceled',
       subtotal_amount: p2.selling_price,
       shipping_fee: 15000,
@@ -706,8 +734,8 @@ const seedFashionData = async () => {
 
     await OrderStatusHistory.insertMany([
       { order_id: order1._id, status: 'confirmed', note: 'Order confirmed', updated_by: sellerUsers['fashion@gmail.com']._id },
-      { order_id: order1._id, status: 'shipped', note: 'Shipped by partner', updated_by: sellerUsers['fashion@gmail.com']._id },
-      { order_id: order1._id, status: 'delivered', note: 'Delivered', updated_by: sellerUsers['fashion@gmail.com']._id },
+      { order_id: order1._id, status: 'shipping', note: 'Shipped by partner', updated_by: sellerUsers['fashion@gmail.com']._id },
+      { order_id: order1._id, status: 'completed', note: 'Delivered', updated_by: sellerUsers['fashion@gmail.com']._id },
       { order_id: order2._id, status: 'canceled', note: 'Canceled by user', updated_by: customers[0]._id }
     ]);
 
@@ -722,6 +750,7 @@ const seedFashionData = async () => {
     console.log('📦 Seeding bulk orders for realistic sold counts...');
     const allShops = [fashionShop, sneakerShop, sportsShop, kidsShop, unisexShop];
     const bulkOrderItems = [];
+    const bulkHistories = [];
     let orderCodeCounter = 3;
     const orderCustomerMap = {};
 
@@ -763,12 +792,18 @@ const seedFashionData = async () => {
         transaction_id: `VN-BULK-${orderCodeCounter}`
       });
 
+      const randomShipper = shippers[Math.floor(Math.random() * shippers.length)];
+      const bulkOrderStatus = ['shipping', 'completed', 'completed', 'completed', 'failed'][Math.floor(Math.random() * 5)];
+      const address = await Address.findOne({ user_id: randomCustomer._id, is_default: true });
+
       const bulkOrder = await Order.create({
         order_code: `ORD-2026-${String(orderCodeCounter).padStart(4, '0')}`,
         payment_order_id: bulkPaymentOrder._id,
         customer_id: randomCustomer._id,
+        shipping_address_id: address ? address._id : null,
         shop_id: randomShop._id,
-        status: 'delivered',
+        shipper_id: randomShipper._id,
+        status: bulkOrderStatus,
         subtotal_amount: subtotal,
         shipping_fee: shippingFee,
         coupon_discount: 0,
@@ -793,6 +828,25 @@ const seedFashionData = async () => {
         });
       }
 
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() - Math.floor(Math.random() * 30));
+      const createDate = new Date(baseDate); createDate.setHours(createDate.getHours() - 48);
+      const confDate = new Date(baseDate); confDate.setHours(confDate.getHours() - 24);
+      const shipDate = new Date(baseDate); shipDate.setHours(shipDate.getHours() - 12);
+
+      bulkHistories.push({ order_id: bulkOrder._id, status: 'pending', note: 'Order placed', updated_by: randomCustomer._id, createdAt: createDate });
+      bulkHistories.push({ order_id: bulkOrder._id, status: 'confirmed', note: 'Order confirmed by seller', updated_by: randomShop.owner_user_id, createdAt: confDate });
+
+      if (bulkOrderStatus === 'shipping' || bulkOrderStatus === 'completed' || bulkOrderStatus === 'failed') {
+        bulkHistories.push({ order_id: bulkOrder._id, status: 'shipping', note: 'Handed to shipper', updated_by: randomShipper._id, createdAt: shipDate });
+      }
+
+      if (bulkOrderStatus === 'completed') {
+        bulkHistories.push({ order_id: bulkOrder._id, status: 'completed', note: 'Delivered successfully', updated_by: randomShipper._id, createdAt: baseDate });
+      } else if (bulkOrderStatus === 'failed') {
+        bulkHistories.push({ order_id: bulkOrder._id, status: 'failed', note: 'Delivery failed', updated_by: randomShipper._id, createdAt: baseDate });
+      }
+
       orderCodeCounter++;
     }
 
@@ -800,7 +854,10 @@ const seedFashionData = async () => {
     if (bulkOrderItems.length > 0) {
       createdOrderItems = await OrderItem.insertMany(bulkOrderItems);
     }
-    console.log(`✅ Created ${numBulkOrders} delivered orders with ${bulkOrderItems.length} order items`);
+    if (bulkHistories.length > 0) {
+      await OrderStatusHistory.insertMany(bulkHistories);
+    }
+    console.log(`✅ Created ${numBulkOrders} delivered orders with ${bulkOrderItems.length} order items and ${bulkHistories.length} histories`);
 
     console.log('🛒 Seeding Carts & Wishlist...');
     const cart = await Cart.create({ user_id: customers[1]._id });
@@ -844,16 +901,16 @@ const seedFashionData = async () => {
       order_id: order1._id,
       shipping_partner_id: partner._id,
       tracking_code: 'GHTK-2026-0001',
-      status: 'delivered',
+      status: 'completed',
       label_url: imageUrl
     });
 
     await ShipmentEvent.create({
       shipment_id: shipment._id,
-      status: 'delivered',
+      status: 'completed',
       location: 'TP.HCM',
       event_time: new Date(),
-      raw_payload: { status: 'delivered' }
+      raw_payload: { status: 'completed' }
     });
 
     const returnReq = await ReturnRequest.create({

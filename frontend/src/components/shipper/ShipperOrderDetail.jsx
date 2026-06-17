@@ -147,7 +147,7 @@ const ShipperOrderDetail = () => {
           </button>
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-              Order #{order.order_code}
+              Order #{order.orderCode}
               <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full tracking-widest ${
                 order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                 order.status === 'failed' ? 'bg-red-100 text-red-700' :
@@ -252,8 +252,8 @@ const ShipperOrderDetail = () => {
                         {completed && historyRecord?.image_url && (
                           <div className="mt-3">
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Proof of Delivery</p>
-                            <a href={historyRecord.image_url} target="_blank" rel="noopener noreferrer">
-                              <img src={historyRecord.image_url} alt="Proof" className="w-32 h-32 object-cover rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-zoom-in" />
+                            <a href={historyRecord.imageUrl} target="_blank" rel="noopener noreferrer">
+                              <img src={historyRecord.imageUrl} alt="Proof" className="w-32 h-32 object-cover rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-zoom-in" />
                             </a>
                           </div>
                         )}
@@ -272,8 +272,8 @@ const ShipperOrderDetail = () => {
               Products ({orderItems.length})
             </h3>
             <div className="space-y-4">
-              {orderItems.map((item) => (
-                <div key={item._id} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
+              {orderItems.map((item, index) => (
+                <div key={item._id || item.id || `item-${index}`} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
                   <div className="w-20 h-20 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200/50">
                     <img src={item.imageUrl} alt={item.product?.name} className="w-full h-full object-cover mix-blend-multiply" />
                   </div>
@@ -288,11 +288,11 @@ const ShipperOrderDetail = () => {
                     )}
                     <div className="flex justify-between items-center mt-2">
                       <div className="text-sm font-bold text-[#004ac6]">
-                        {item.price_at_buy?.toLocaleString('vi-VN')}₫ 
+                        {item.priceAtBuy?.toLocaleString('vi-VN')}₫ 
                         <span className="text-slate-400 text-xs font-medium ml-1">x{item.quantity}</span>
                       </div>
                       <div className="text-sm font-black text-slate-900">
-                        {(item.price_at_buy * item.quantity).toLocaleString('vi-VN')}₫
+                        {(item.priceAtBuy * item.quantity).toLocaleString('vi-VN')}₫
                       </div>
                     </div>
                   </div>
@@ -322,13 +322,13 @@ const ShipperOrderDetail = () => {
                 <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Recipient</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">
-                    {(shippingAddress?.recipient_name || order.customer_id?.full_name || 'U').charAt(0).toUpperCase()}
+                    {(shippingAddress?.recipientName || order.customerId?.fullName || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-bold text-lg">{shippingAddress?.recipient_name || order.customer_id?.full_name}</p>
-                    <a href={`tel:${shippingAddress?.recipient_phone || order.customer_id?.phone}`} className="text-sm text-cyan-300 hover:text-white transition-colors flex items-center gap-1 mt-0.5">
+                    <p className="font-bold text-lg">{shippingAddress?.recipientName || order.customerId?.fullName}</p>
+                    <a href={`tel:${shippingAddress?.recipientPhone || order.customerId?.phone}`} className="text-sm text-cyan-300 hover:text-white transition-colors flex items-center gap-1 mt-0.5">
                       <span className="material-symbols-outlined text-[14px]">call</span>
-                      {shippingAddress?.recipient_phone || order.customer_id?.phone || 'No phone'}
+                      {shippingAddress?.recipientPhone || order.customerId?.phone || 'No phone'}
                     </a>
                   </div>
                 </div>
@@ -339,8 +339,8 @@ const ShipperOrderDetail = () => {
                 <div className="flex items-start gap-2">
                   <span className="material-symbols-outlined text-cyan-300 text-[18px] mt-0.5 shrink-0">location_on</span>
                   <p className="text-sm font-medium leading-relaxed">
-                    {shippingAddress?.street_address ? (
-                      <>{shippingAddress.street_address}<br/>{shippingAddress.city}</>
+                    {shippingAddress?.streetAddress ? (
+                      <>{shippingAddress.streetAddress}<br/>{shippingAddress.city}</>
                     ) : (
                       <span className="italic text-white/50">Address not provided for this order</span>
                     )}
@@ -353,8 +353,8 @@ const ShipperOrderDetail = () => {
                 <div className="flex items-start gap-2">
                   <span className="material-symbols-outlined text-amber-300 text-[18px] mt-0.5 shrink-0">storefront</span>
                   <p className="text-sm font-medium leading-relaxed">
-                    {order.shop_id?.name}<br/>
-                    <span className="text-white/70">{order.shop_id?.address || 'Shop address not specified'}</span>
+                    {order.shopId?.name}<br/>
+                    <span className="text-white/70">{order.shopId?.address || 'Shop address not specified'}</span>
                   </p>
                 </div>
               </div>
@@ -371,22 +371,22 @@ const ShipperOrderDetail = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center text-sm font-medium text-slate-500">
                 <span>Subtotal</span>
-                <span className="text-slate-900">{order.subtotal_amount?.toLocaleString('vi-VN')}₫</span>
+                <span className="text-slate-900">{order.subtotalAmount?.toLocaleString('vi-VN')}₫</span>
               </div>
               <div className="flex justify-between items-center text-sm font-medium text-slate-500">
                 <span>Shipping Fee</span>
-                <span className="text-slate-900">+{order.shipping_fee?.toLocaleString('vi-VN')}₫</span>
+                <span className="text-slate-900">+{order.shippingFee?.toLocaleString('vi-VN')}₫</span>
               </div>
-              {order.coupon_discount > 0 && (
+              {order.couponDiscount > 0 && (
                 <div className="flex justify-between items-center text-sm font-medium text-emerald-600">
                   <span>Coupon Discount</span>
-                  <span>-{order.coupon_discount?.toLocaleString('vi-VN')}₫</span>
+                  <span>-{order.couponDiscount?.toLocaleString('vi-VN')}₫</span>
                 </div>
               )}
-              {order.coin_discount > 0 && (
+              {order.coinDiscount > 0 && (
                 <div className="flex justify-between items-center text-sm font-medium text-amber-500">
                   <span>Coin Discount</span>
-                  <span>-{order.coin_discount?.toLocaleString('vi-VN')}₫</span>
+                  <span>-{order.coinDiscount?.toLocaleString('vi-VN')}₫</span>
                 </div>
               )}
               
@@ -395,7 +395,7 @@ const ShipperOrderDetail = () => {
               <div className="flex justify-between items-end">
                 <span className="text-sm font-bold text-slate-900">Total Final</span>
                 <span className="text-2xl font-black text-[#004ac6]">
-                  {order.total_final?.toLocaleString('vi-VN')}₫
+                  {order.totalFinal?.toLocaleString('vi-VN')}₫
                 </span>
               </div>
 
@@ -404,10 +404,10 @@ const ShipperOrderDetail = () => {
                 <div>
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Payment Status</div>
                   <div className="text-sm font-bold text-slate-900 capitalize flex items-center gap-2">
-                    {order.payment_status}
-                    {order.payment_status === 'pending' ? (
+                    {order.paymentStatus}
+                    {order.paymentStatus === 'pending' ? (
                       <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                    ) : order.payment_status === 'success' ? (
+                    ) : order.paymentStatus === 'success' ? (
                       <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     ) : (
                       <span className="w-2 h-2 rounded-full bg-red-500"></span>
