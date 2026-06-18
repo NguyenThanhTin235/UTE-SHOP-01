@@ -67,5 +67,14 @@ router.get('/recently-viewed', verifyToken, userController.getRecentlyViewed);
 router.delete('/recently-viewed/:productId', verifyToken, userController.removeFromRecentlyViewed);
 router.delete('/recently-viewed', verifyToken, userController.clearRecentlyViewed);
 
-module.exports = router;
+const roleUpgradeController = require('../../controllers/customer/roleUpgradeController');
+const { uploadProof } = require('../../config/cloudinary');
 
+/**
+ * ── ROLE UPGRADE ──
+ */
+router.post('/role-upgrades/seller', verifyToken, uploadProof.fields([{ name: 'identity_card', maxCount: 1 }, { name: 'business_license', maxCount: 1 }]), roleUpgradeController.registerSeller);
+router.post('/role-upgrades/shipper', verifyToken, uploadProof.fields([{ name: 'cccd_front', maxCount: 1 }, { name: 'cccd_back', maxCount: 1 }]), roleUpgradeController.registerShipper);
+router.get('/role-upgrades/status', verifyToken, roleUpgradeController.getUpgradeStatus);
+
+module.exports = router;

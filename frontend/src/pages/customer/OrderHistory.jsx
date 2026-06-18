@@ -203,6 +203,10 @@ const OrderHistory = () => {
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
+            </Link>
           </nav>
 
           <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">

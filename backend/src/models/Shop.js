@@ -8,7 +8,8 @@ const shopSchema = new mongoose.Schema({
   phone: { type: String },
   logo_url: { type: String },
   banner_url: { type: String },
-  status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },
+  status: { type: String, enum: ['pending', 'active', 'inactive', 'suspended', 'rejected'], default: 'pending' },
+  rejection_reason: { type: String },
   description: { type: String },
   followers: { type: Number, default: 0 },
   response_rate: { type: Number, default: 0 }, // Percentage

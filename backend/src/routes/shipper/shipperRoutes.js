@@ -16,4 +16,8 @@ router.get('/orders/:status', shipperController.getOrders);
 router.put('/orders/:id/status', uploadProof.single('image'), shipperController.updateOrderStatus);
 router.get('/statistics', shipperController.getStatistics);
 
+// Profile
+router.get('/profile', shipperController.getShipperProfile);
+router.put('/profile', shipperController.updateShipperProfile);
+
 module.exports = router;

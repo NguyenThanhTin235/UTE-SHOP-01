@@ -33,6 +33,8 @@ const SellerDashboard = () => {
   const location = useLocation();
 
   const [walletBalance, setWalletBalance] = useState(0);
+  const [shopStatus, setShopStatus] = useState('loading');
+  const [shopReason, setShopReason] = useState('');
 
   const fetchWalletBalance = async () => {
     try {
@@ -48,6 +50,33 @@ const SellerDashboard = () => {
       console.error('Failed to fetch wallet balance for sidebar:', error);
     }
   };
+
+  const fetchShopStatus = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (!token) return;
+      const res = await axios.get('http://localhost:5000/api/seller/settings', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        if (!res.data.data) {
+          setShopStatus('not_created');
+        } else {
+          setShopStatus(res.data.data.status || 'pending');
+          setShopReason(res.data.data.rejection_reason || '');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch shop status:', error);
+      setShopStatus('error');
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchShopStatus();
+    }
+  }, [user]);
 
   const getTabFromUrl = () => {
     const pathParts = location.pathname.split('/').filter(Boolean);
@@ -71,6 +100,13 @@ const SellerDashboard = () => {
       navigate('/seller/dashboard', { replace: true });
     }
   }, [location.pathname, navigate]);
+
+  // Gate access to other tabs if shop is not active
+  useEffect(() => {
+    if (shopStatus !== 'loading' && shopStatus !== 'active' && activeTab !== 'settings') {
+      navigate('/seller/settings', { replace: true });
+    }
+  }, [shopStatus, activeTab, navigate]);
 
   const [selectedOrderId, setSelectedOrderId] = useState(() => {
     return sessionStorage.getItem('sellerSelectedOrderId') || null;
@@ -141,6 +177,7 @@ const SellerDashboard = () => {
         navItems={navItems}
         handleLogout={handleLogout}
         walletBalance={walletBalance}
+        shopStatus={shopStatus}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
@@ -152,37 +189,63 @@ const SellerDashboard = () => {
           navigate={navigate}
         />
 
-        <Routes>
-          <Route path="dashboard" element={
-            <SellerDashboardOverview setActiveTab={setActiveTab} setSelectedOrderId={setSelectedOrderId} />
-          } />
-          <Route path="products" element={<SellerProducts setActiveTab={setActiveTab} />} />
-          <Route path="add-product" element={<SellerAddProduct setActiveTab={setActiveTab} />} />
-          <Route path="orders" element={<SellerOrders onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
-          <Route path="orders/:orderId" element={<SellerOrderDetailWrapper />} />
-          <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
-          <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
-          <Route path="wallet" element={<SellerWallet />} />
-          <Route path="reviews" element={<SellerReviews />} />
-          <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
-          <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
+        {shopStatus === 'loading' ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : shopStatus !== 'active' && activeTab !== 'settings' ? (
+           <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8 flex-1">
+             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
+               <span className="material-symbols-outlined text-6xl text-orange-500 mb-4">
+                 storefront
+               </span>
+               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                 Shop Configuration Required
+               </h2>
+               <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                 You must configure your shop profile and have it approved by the manager before you can access this feature.
+               </p>
+               <button
+                 onClick={() => navigate('/seller/settings')}
+                 className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-blue-200"
+               >
+                 Go to Settings
+               </button>
+             </div>
+           </div>
+        ) : (
+          <Routes>
+            <Route path="dashboard" element={
+              <SellerDashboardOverview setActiveTab={setActiveTab} setSelectedOrderId={setSelectedOrderId} />
+            } />
+            <Route path="products" element={<SellerProducts setActiveTab={setActiveTab} />} />
+            <Route path="add-product" element={<SellerAddProduct setActiveTab={setActiveTab} />} />
+            <Route path="orders" element={<SellerOrders onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
+            <Route path="orders/:orderId" element={<SellerOrderDetailWrapper />} />
+            <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
+            <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
+            <Route path="wallet" element={<SellerWallet />} />
+            <Route path="reviews" element={<SellerReviews />} />
+            <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
+            <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
 
-          <Route path="*" element={
-            <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
-              <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-                <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
-                  {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
-                </span>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-                  {navItems.find(i => i.id === activeTab)?.label || 'Page'} Management
-                </h2>
-                <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                  Manage your store {navItems.find(i => i.id === activeTab)?.label?.toLowerCase() || 'features'} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
-                </p>
+            <Route path="*" element={
+              <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
+                <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
+                  <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
+                    {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
+                  </span>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                    {navItems.find(i => i.id === activeTab)?.label || 'Page'} Management
+                  </h2>
+                  <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                    Manage your store {navItems.find(i => i.id === activeTab)?.label?.toLowerCase() || 'features'} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
+                  </p>
+                </div>
               </div>
-            </div>
-          } />
-        </Routes>
+            } />
+          </Routes>
+        )}
 
         <SellerAIChat />
       </main>

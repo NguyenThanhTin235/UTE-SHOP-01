@@ -189,52 +189,52 @@ function timeAgo(date) {
 
 const getShopDetail = async (req, res) => {
   try {
-    const { id } = req.params;
-    const profile = await SellerProfile.findById(id).populate('user_id', 'full_name email phone');
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id?._id });
+    const { id } = req.params; // This is now Shop ID
+    const shop = await Shop.findById(id).populate('owner_user_id', 'full_name email phone');
     if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
+
+    // Try to get seller profile for document urls
+    const profile = await SellerProfile.findOne({ user_id: shop.owner_user_id?._id });
 
     // Build approval history from AuditLog
     const auditLogs = await AuditLog.find({
       entity_type: 'Shop',
-      entity_id: { $in: [shop._id, profile._id] }
+      entity_id: shop._id
     })
       .sort({ createdAt: -1 })
       .populate('actor_id', 'full_name');
 
     const history = auditLogs.map(log => ({
       id: log._id,
-      action: log.action === 'APPROVE_SHOP' ? 'Approved Registration' :
-        log.action === 'REJECT_SHOP' ? 'Rejected Registration' : log.action,
-      note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Application reviewed and approved.' : 'No additional note'),
+      action: log.action === 'APPROVE_SHOP' ? 'Approved Shop' :
+        log.action === 'REJECT_SHOP' ? 'Rejected Shop' : log.action,
+      note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Shop configuration reviewed and approved.' : 'No additional note'),
       actorName: log.actor_id?.full_name || 'System',
       date: log.createdAt
     }));
 
     history.push({
-      id: 'init_' + profile._id,
-      action: 'Documents Submitted',
-      note: 'Initial registration documents received from applicant.',
-      actorName: profile.user_id?.full_name || 'Applicant',
-      date: profile.createdAt
+      id: 'init_' + shop._id,
+      action: 'Configuration Submitted',
+      note: 'Initial shop configuration received.',
+      actorName: shop.owner_user_id?.full_name || 'Seller',
+      date: shop.createdAt
     });
 
     return response.success(res, {
       message: 'Shop detail retrieved',
       data: {
-        id: profile._id,
+        id: shop._id,
         shopName: shop.name,
-        taxId: profile.gst_number || 'N/A',
-        legalRep: profile.user_id?.full_name || 'Unknown',
-        email: profile.user_id?.email || shop.email || 'N/A',
-        phone: shop.phone || 'N/A',
-        address: shop.address || profile.pickup_address || 'N/A',
-        identity_card_url: profile.identity_card_url,
-        business_license_url: profile.business_license_url,
-        status: profile.status,
-        appliedAt: profile.createdAt,
+        taxId: profile?.gst_number || 'N/A',
+        legalRep: shop.owner_user_id?.full_name || 'Unknown',
+        email: shop.email || shop.owner_user_id?.email || 'N/A',
+        phone: shop.phone || shop.owner_user_id?.phone || 'N/A',
+        address: shop.address || 'N/A',
+        identity_card_url: profile?.identity_card_url,
+        business_license_url: profile?.business_license_url,
+        status: shop.status,
+        appliedAt: shop.createdAt,
         history
       }
     });
@@ -246,23 +246,22 @@ const getShopDetail = async (req, res) => {
 
 const getPendingShops = async (req, res) => {
   try {
-    const pendingProfiles = await SellerProfile.find({ status: 'pending' })
-      .populate('user_id', 'full_name email')
+    const pendingShops = await Shop.find({ status: 'pending' })
+      .populate('owner_user_id', 'full_name email')
       .sort({ createdAt: -1 });
 
-    const ownerIds = pendingProfiles.map(p => p.user_id?._id).filter(Boolean);
-    const shops = await Shop.find({ owner_user_id: { $in: ownerIds } });
+    const ownerIds = pendingShops.map(s => s.owner_user_id?._id).filter(Boolean);
+    const profiles = await SellerProfile.find({ user_id: { $in: ownerIds } });
 
-    // Map shop data to profile
-    const results = pendingProfiles.map(profile => {
-      const shop = shops.find(s => s.owner_user_id.toString() === profile.user_id?._id?.toString());
+    const results = pendingShops.map(shop => {
+      const profile = profiles.find(p => p.user_id?.toString() === shop.owner_user_id?._id?.toString());
       return {
-        id: profile._id,
-        shopName: shop?.name || 'Unknown Shop',
-        taxId: profile.gst_number || 'N/A',
-        legalRep: profile.user_id?.full_name || 'Unknown',
-        appliedAt: profile.createdAt,
-        timeAgo: timeAgo(profile.createdAt),
+        id: shop._id,
+        shopName: shop.name,
+        taxId: profile?.gst_number || 'N/A',
+        legalRep: shop.owner_user_id?.full_name || 'Unknown',
+        appliedAt: shop.createdAt,
+        timeAgo: timeAgo(shop.createdAt),
       };
     });
 
@@ -278,27 +277,19 @@ const getPendingShops = async (req, res) => {
 
 const approveShop = async (req, res) => {
   try {
-    const { id } = req.params;
-    const profile = await SellerProfile.findById(id);
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+    const { id } = req.params; // Shop ID
+    const shop = await Shop.findById(id);
+    if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
 
-    profile.status = 'active';
-    profile.approved_by = req.user._id;
-    profile.approved_at = new Date();
-    await profile.save();
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
-    if (shop) {
-      shop.status = 'active';
-      await shop.save();
-    }
+    shop.status = 'active';
+    await shop.save();
 
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'APPROVE_SHOP',
       entity_type: 'Shop',
-      entity_id: shop ? shop._id : profile._id,
-      metadata: { name: shop?.name || 'A shop' }
+      entity_id: shop._id,
+      metadata: { name: shop.name }
     });
 
     return response.success(res, { message: 'Shop approved successfully', data: {} });
@@ -310,27 +301,21 @@ const approveShop = async (req, res) => {
 
 const rejectShop = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Shop ID
     const { reason } = req.body;
-    const profile = await SellerProfile.findById(id);
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+    const shop = await Shop.findById(id);
+    if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
 
-    profile.status = 'rejected';
-    profile.rejection_reason = reason || 'No reason provided';
-    await profile.save();
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
-    if (shop) {
-      shop.status = 'suspended';
-      await shop.save();
-    }
+    shop.status = 'rejected';
+    shop.rejection_reason = reason || 'No reason provided';
+    await shop.save();
 
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'REJECT_SHOP',
       entity_type: 'Shop',
-      entity_id: shop ? shop._id : profile._id,
-      metadata: { name: shop?.name || 'A shop', reason }
+      entity_id: shop._id,
+      metadata: { name: shop.name, reason }
     });
 
     return response.success(res, { message: 'Shop rejected successfully', data: {} });

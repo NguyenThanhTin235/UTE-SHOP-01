@@ -308,7 +308,7 @@ const ManagerShopDetail = ({ shopId }) => {
                       onClick={handleApprove}
                       className="w-full py-4 bg-[#16a34a] text-white rounded-2xl font-black text-sm shadow-lg shadow-green-100 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">check_circle</span>
-                      Approve Registration
+                      Approve Shop
                     </button>
                     <button 
                       onClick={handleRequestInfo}
@@ -320,7 +320,7 @@ const ManagerShopDetail = ({ shopId }) => {
                       onClick={handleReject}
                       className="w-full py-4 bg-red-50 text-[#dc2626] rounded-2xl font-black text-sm hover:bg-[#dc2626] hover:text-white transition-all flex items-center justify-center gap-3 cursor-pointer">
                       <span className="material-symbols-outlined">cancel</span>
-                      Reject Application
+                      Reject Shop
                     </button>
                   </div>
                 ) : (

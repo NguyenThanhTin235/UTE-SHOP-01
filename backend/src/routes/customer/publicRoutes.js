@@ -75,4 +75,6 @@ router.get('/blog', publicController.getBlogPosts);
 router.get('/blog/:slug', publicController.getBlogPostBySlug);
 router.post('/newsletter/subscribe', publicController.subscribeNewsletter);
 
+router.get('/shipping-partners', publicController.getShippingPartners);
+
 module.exports = router;

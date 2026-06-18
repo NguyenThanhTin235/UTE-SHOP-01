@@ -63,6 +63,7 @@ const CoinTransaction = require('../src/models/CoinTransaction');
 const PlatformFeeSetting = require('../src/models/PlatformFeeSetting');
 const CoinSetting = require('../src/models/CoinSetting');
 const WithdrawRequest = require('../src/models/WithdrawRequest');
+const ShipperProfile = require('../src/models/ShipperProfile');
 const OTP = require('../src/models/OTP');
 
 const slugify = (text) => {
@@ -250,17 +251,87 @@ const seedFashionData = async () => {
 
     console.log('🚚 Seeding Shippers...');
     const shippers = [];
+    const shipperProfiles = [
+      {
+        full_name: 'Nguyễn Văn Tài',
+        phone: '0901234567',
+        gender: 'male',
+        dob: '1998-03-15',
+        cccd_number: '079098001234',
+        vehicle_type: 'motorbike',
+        vehicle_plate: '59F1-12345',
+        shipping_company: 'Giao Hàng Nhanh (GHN)',
+        operating_area: 'TP.HCM - Quận 1, 3, 5, 10, Bình Thạnh',
+        emergency_contact: '0912345678',
+        emergency_contact_name: 'Nguyễn Thị Lan (Mẹ)',
+        bank_name: 'Vietcombank',
+        bank_account_name: 'NGUYEN VAN TAI',
+        bank_account_number: '0071000123456'
+      },
+      {
+        full_name: 'Trần Minh Đức',
+        phone: '0987654321',
+        gender: 'male',
+        dob: '1995-07-22',
+        cccd_number: '079095005678',
+        vehicle_type: 'motorbike',
+        vehicle_plate: '59C1-67890',
+        shipping_company: 'Giao Hàng Tiết Kiệm (GHTK)',
+        operating_area: 'TP.HCM - Thủ Đức, Quận 9, Quận 2',
+        emergency_contact: '0923456789',
+        emergency_contact_name: 'Trần Văn Hoàng (Bố)',
+        bank_name: 'MB Bank',
+        bank_account_name: 'TRAN MINH DUC',
+        bank_account_number: '0801000567890'
+      },
+      {
+        full_name: 'Lê Thị Hương',
+        phone: '0976543210',
+        gender: 'female',
+        dob: '2000-11-08',
+        cccd_number: '079100009012',
+        vehicle_type: 'motorbike',
+        vehicle_plate: '59D1-11223',
+        shipping_company: 'Tự do (Freelance)',
+        operating_area: 'TP.HCM - Gò Vấp, Tân Bình, Phú Nhuận',
+        emergency_contact: '0934567890',
+        emergency_contact_name: 'Lê Văn Sơn (Anh trai)',
+        bank_name: 'Techcombank',
+        bank_account_name: 'LE THI HUONG',
+        bank_account_number: '1903000789012'
+      }
+    ];
+
     for (let i = 1; i <= 3; i++) {
+      const sp = shipperProfiles[i - 1];
       let shipper = await User.findOne({ email: `shipper${i}@uteshop.vn` });
       if (!shipper) {
         shipper = await User.create({
-          full_name: `UTEShop Shipper ${i}`,
+          full_name: sp.full_name,
           email: `shipper${i}@uteshop.vn`,
           password: hashedPassword,
+          phone: sp.phone,
+          gender: sp.gender,
+          dob: sp.dob,
           status: 'active'
         });
         await UserRole.create({ user_id: shipper._id, role_id: shipperRole._id });
       }
+      await ShipperProfile.create({
+        user_id: shipper._id,
+        cccd_number: sp.cccd_number,
+        vehicle_type: sp.vehicle_type,
+        vehicle_plate: sp.vehicle_plate,
+        shipping_company: sp.shipping_company,
+        operating_area: sp.operating_area,
+        emergency_contact: sp.emergency_contact,
+        emergency_contact_name: sp.emergency_contact_name,
+        bank_name: sp.bank_name,
+        bank_account_name: sp.bank_account_name,
+        bank_account_number: sp.bank_account_number,
+        status: 'active',
+        joined_date: new Date('2025-06-01')
+      });
       shippers.push(shipper);
     }
 

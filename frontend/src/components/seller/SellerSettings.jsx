@@ -20,7 +20,9 @@ const SellerSettings = ({ setActiveTab }) => {
             ghtk: true,
             grab: false,
             jt: true
-        }
+        },
+        status: '',
+        rejection_reason: ''
     });
 
     const fetchSettings = async () => {
@@ -40,8 +42,12 @@ const SellerSettings = ({ setActiveTab }) => {
                     address: data.address || '',
                     banner_url: data.banner_url || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
                     logo_url: data.logo_url || '',
-                    shipping_carriers: data.shipping_carriers || { ghtk: true, grab: false, jt: true }
+                    shipping_carriers: data.shipping_carriers || { ghtk: true, grab: false, jt: true },
+                    status: data.status || 'not_created',
+                    rejection_reason: data.rejection_reason || ''
                 });
+            } else {
+                setShopData(prev => ({ ...prev, status: 'not_created' }));
             }
         } catch (error) {
             toast.error('Failed to load shop settings');
@@ -55,10 +61,12 @@ const SellerSettings = ({ setActiveTab }) => {
     }, []);
 
     const handleInputChange = (field, value) => {
+        if (shopData.status === 'pending') return;
         setShopData(prev => ({ ...prev, [field]: value }));
     };
 
     const handleCarrierToggle = (carrier) => {
+        if (shopData.status === 'pending') return;
         setShopData(prev => ({
             ...prev,
             shipping_carriers: {
@@ -145,6 +153,38 @@ const SellerSettings = ({ setActiveTab }) => {
             {/* Body Content */}
             <div className="p-10 max-w-[1000px] mx-auto w-full space-y-6">
                 
+                {shopData.status === 'not_created' && (
+                    <div className="bg-blue-50 border border-blue-200 text-blue-800 p-6 rounded-[2rem] flex items-start gap-4">
+                        <span className="material-symbols-outlined text-3xl">info</span>
+                        <div>
+                            <h3 className="font-bold text-lg mb-1">Welcome to Seller Center!</h3>
+                            <p className="text-sm">Please fill out your shop information below to start selling. Your shop will need to be approved by a manager before you can add products.</p>
+                        </div>
+                    </div>
+                )}
+
+                {shopData.status === 'pending' && (
+                    <div className="bg-orange-50 border border-orange-200 text-orange-800 p-6 rounded-[2rem] flex items-start gap-4">
+                        <span className="material-symbols-outlined text-3xl">hourglass_empty</span>
+                        <div>
+                            <h3 className="font-bold text-lg mb-1">Shop Under Review</h3>
+                            <p className="text-sm">Your shop configuration is currently pending approval by the manager. You will be able to manage products and orders once approved. Information is read-only during this time.</p>
+                        </div>
+                    </div>
+                )}
+
+                {shopData.status === 'rejected' && (
+                    <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-[2rem] flex items-start gap-4">
+                        <span className="material-symbols-outlined text-3xl">error</span>
+                        <div>
+                            <h3 className="font-bold text-lg mb-1">Shop Registration Rejected</h3>
+                            <p className="text-sm mb-2">Your shop configuration was rejected for the following reason:</p>
+                            <p className="text-sm font-bold bg-white/50 p-3 rounded-xl border border-red-100">{shopData.rejection_reason}</p>
+                            <p className="text-sm mt-3">Please update your shop information and save settings to submit for review again.</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Section: Shop Profile */}
                 <section className="bg-white rounded-[2rem] border border-slate-200 shadow-level-1 overflow-hidden">
                     <div className="p-8 border-b border-slate-100">
@@ -158,11 +198,13 @@ const SellerSettings = ({ setActiveTab }) => {
                             <div className="relative h-48 w-full bg-slate-100 rounded-3xl overflow-hidden group">
                                 <img src={shopData.banner_url} alt="Shop Banner" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <label className="bg-white text-on-surface px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors">
-                                        <span className="material-symbols-outlined text-lg">edit</span>
-                                        Change Banner
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'banner_url')} />
-                                    </label>
+                                    {shopData.status !== 'pending' && (
+                                        <label className="bg-white text-on-surface px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors">
+                                            <span className="material-symbols-outlined text-lg">edit</span>
+                                            Change Banner
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'banner_url')} disabled={shopData.status === 'pending'} />
+                                        </label>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -177,10 +219,12 @@ const SellerSettings = ({ setActiveTab }) => {
                                     ) : (
                                         <span className="text-3xl font-black text-primary">{shopData.name?.charAt(0).toUpperCase() || 'US'}</span>
                                     )}
-                                    <label className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                                        <span className="material-symbols-outlined text-white">photo_camera</span>
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'logo_url')} />
-                                    </label>
+                                    {shopData.status !== 'pending' && (
+                                        <label className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                            <span className="material-symbols-outlined text-white">photo_camera</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'logo_url')} disabled={shopData.status === 'pending'} />
+                                        </label>
+                                    )}
                                 </div>
                             </div>
 
@@ -193,7 +237,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                             type="text" 
                                             value={shopData.name} 
                                             onChange={(e) => handleInputChange('name', e.target.value)}
-                                            className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none" 
+                                            disabled={shopData.status === 'pending'}
+                                            className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed" 
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -204,7 +249,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                                 type="text" 
                                                 value={shopData.slug} 
                                                 onChange={(e) => handleInputChange('slug', e.target.value)}
-                                                className="flex-1 bg-[#F8FAFC] border-slate-200 rounded-r-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none" 
+                                                disabled={shopData.status === 'pending'}
+                                                className="flex-1 bg-[#F8FAFC] border-slate-200 rounded-r-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed" 
                                             />
                                         </div>
                                     </div>
@@ -215,7 +261,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                         rows="4" 
                                         value={shopData.description} 
                                         onChange={(e) => handleInputChange('description', e.target.value)}
-                                        className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                        disabled={shopData.status === 'pending'}
+                                        className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                                     ></textarea>
                                 </div>
                             </div>
@@ -239,7 +286,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                     type="email" 
                                     value={shopData.email} 
                                     onChange={(e) => handleInputChange('email', e.target.value)}
-                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20" 
+                                    disabled={shopData.status === 'pending'}
+                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed" 
                                 />
                             </div>
                             <div className="space-y-2">
@@ -248,7 +296,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                     type="tel" 
                                     value={shopData.phone} 
                                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20" 
+                                    disabled={shopData.status === 'pending'}
+                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed" 
                                 />
                             </div>
                         </div>
@@ -259,7 +308,8 @@ const SellerSettings = ({ setActiveTab }) => {
                                     rows="2" 
                                     value={shopData.address} 
                                     onChange={(e) => handleInputChange('address', e.target.value)}
-                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                    disabled={shopData.status === 'pending'}
+                                    className="w-full bg-[#F8FAFC] border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
                                     placeholder="Enter full pickup address..."
                                 ></textarea>
                             </div>
@@ -290,9 +340,10 @@ const SellerSettings = ({ setActiveTab }) => {
                                     type="checkbox" 
                                     checked={shopData.shipping_carriers.ghtk} 
                                     onChange={() => handleCarrierToggle('ghtk')}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10"
+                                    disabled={shopData.status === 'pending'}
+                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
-                                <label className="block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary cursor-pointer transition-colors duration-300"></label>
+                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
                             </div>
                         </div>
 
@@ -312,9 +363,10 @@ const SellerSettings = ({ setActiveTab }) => {
                                     type="checkbox" 
                                     checked={shopData.shipping_carriers.grab} 
                                     onChange={() => handleCarrierToggle('grab')}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10"
+                                    disabled={shopData.status === 'pending'}
+                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
-                                <label className="block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary cursor-pointer transition-colors duration-300"></label>
+                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
                             </div>
                         </div>
 
@@ -334,9 +386,10 @@ const SellerSettings = ({ setActiveTab }) => {
                                     type="checkbox" 
                                     checked={shopData.shipping_carriers.jt} 
                                     onChange={() => handleCarrierToggle('jt')}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10"
+                                    disabled={shopData.status === 'pending'}
+                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
-                                <label className="block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary cursor-pointer transition-colors duration-300"></label>
+                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
                             </div>
                         </div>
                     </div>

@@ -18,6 +18,12 @@ router.get('/users/:id', verifyToken, isAdmin, adminController.getUserDetails);
 router.put('/users/:id/status', verifyToken, isAdmin, adminController.updateUserStatus);
 router.put('/users/:id/role', verifyToken, isAdmin, adminController.updateUserRole);
 
+// Role Upgrade Requests (Seller/Shipper)
+const adminRoleUpgradeController = require('../../controllers/admin/adminRoleUpgradeController');
+router.get('/role-upgrades', verifyToken, isAdmin, adminRoleUpgradeController.getPendingRequests);
+router.put('/role-upgrades/:type/:id/approve', verifyToken, isAdmin, adminRoleUpgradeController.approveRequest);
+router.put('/role-upgrades/:type/:id/reject', verifyToken, isAdmin, adminRoleUpgradeController.rejectRequest);
+
 // Promotions & Campaigns Routes
 router.get('/promotions/stats', verifyToken, isAdmin, adminPromotionController.getPromotionsStats);
 

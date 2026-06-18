@@ -18,6 +18,7 @@ const { toCamelCase } = require('../../utils/formatter');
 
 const ThemeSetting = require('../../models/ThemeSetting');
 const PlatformSetting = require('../../models/PlatformSetting');
+const ShippingPartner = require('../../models/ShippingPartner');
 
 // Cache lưu trữ lượt xem theo IP + Slug để tránh StrictMode gọi 2 lần hoặc spam refresh
 const viewedCache = new Map();
@@ -857,6 +858,20 @@ exports.subscribeNewsletter = async (req, res, next) => {
       success: true,
       code: 201,
       message: 'Subscribed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getShippingPartners = async (req, res, next) => {
+  try {
+    const partners = await ShippingPartner.find({ is_active: true }).sort({ name: 1 });
+    res.status(200).json({
+      success: true,
+      code: 200,
+      data: toCamelCase(partners),
+      message: 'Shipping partners fetched successfully'
     });
   } catch (error) {
     next(error);

@@ -203,6 +203,10 @@ const UserStatistics = () => {
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
+            </Link>
             <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer mt-2 border-t border-[#c3c6d7]/30 pt-4">
               <span className="material-symbols-outlined">logout</span>
               <span>Logout</span>

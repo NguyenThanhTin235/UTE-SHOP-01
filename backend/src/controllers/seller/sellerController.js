@@ -1008,7 +1008,7 @@ const getSettings = async (req, res, next) => {
         const userId = req.user.id;
         const shop = await Shop.findOne({ owner_user_id: userId });
         if (!shop) {
-            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+            return res.status(200).json({ success: true, code: 200, message: 'Shop not found', data: null });
         }
         res.status(200).json({
             success: true,
@@ -1024,13 +1024,38 @@ const getSettings = async (req, res, next) => {
 const updateSettings = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const shop = await Shop.findOne({ owner_user_id: userId });
-        if (!shop) {
-            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
-        }
-
+        let shop = await Shop.findOne({ owner_user_id: userId });
+        
         const { name, slug, description, email, phone, address, shipping_carriers, banner_url, logo_url } = req.body;
 
+        if (!shop) {
+            // Create new shop
+            if (!name || !slug) {
+                return res.status(400).json({ success: false, code: 400, message: 'Name and slug are required to create a shop' });
+            }
+            shop = new Shop({
+                owner_user_id: userId,
+                name,
+                slug,
+                description,
+                email,
+                phone,
+                address,
+                shipping_carriers,
+                banner_url,
+                logo_url,
+                status: 'pending'
+            });
+            await shop.save();
+            return res.status(201).json({
+                success: true,
+                code: 201,
+                message: 'Shop created successfully and is pending approval',
+                data: shop
+            });
+        }
+
+        // Update existing shop
         if (name !== undefined) shop.name = name;
         if (slug !== undefined) shop.slug = slug;
         if (description !== undefined) shop.description = description;
@@ -1040,6 +1065,12 @@ const updateSettings = async (req, res, next) => {
         if (shipping_carriers !== undefined) shop.shipping_carriers = shipping_carriers;
         if (banner_url !== undefined) shop.banner_url = banner_url;
         if (logo_url !== undefined) shop.logo_url = logo_url;
+
+        // If it was rejected, setting new info changes it to pending for re-review
+        if (shop.status === 'rejected') {
+            shop.status = 'pending';
+            shop.rejection_reason = '';
+        }
 
         await shop.save();
 

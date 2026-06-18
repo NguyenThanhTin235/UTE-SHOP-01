@@ -219,8 +219,8 @@ const ShipperDashboardOverview = ({ setActiveTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentOrders.map((order) => (
-                  <tr key={order._id} className="hover:bg-slate-50/50 transition-colors">
+                {recentOrders.map((order, index) => (
+                  <tr key={order._id || order.id || index} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-slate-900">#{order?.orderCode || order?.order_code || order?._id?.substring(0, 8) || 'N/A'}</span>
                     </td>

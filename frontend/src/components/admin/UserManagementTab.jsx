@@ -78,7 +78,6 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  // Action Loading
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
   // Active page input state (integrated directly into the center button)
@@ -540,13 +539,15 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
           </div>
         </div>
 
-        <button
-          onClick={handleExportData}
-          className="px-6 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-sm">download</span>
-          <span>Export User Data</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportData}
+            className="px-6 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm">download</span>
+            <span>Export User Data</span>
+          </button>
+        </div>
       </div>
 
       {/* Users Table */}

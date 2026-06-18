@@ -176,9 +176,9 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
       <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div>
-          <h2 className="text-xl font-black text-slate-900">Pending Registrations</h2>
+          <h2 className="text-xl font-black text-slate-900">Pending Shop Configurations</h2>
           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-            Review new seller business documents
+            Review new shop configurations
           </p>
         </div>
         <div className="flex gap-2">
@@ -238,7 +238,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
                   </td>
                   <td className="px-8 py-6">
                     <p className="text-sm font-bold text-slate-700">{shop.legalRep}</p>
-                    <p className="text-[10px] text-[#16a34a] font-medium">Verified Identity</p>
+                    <p className="text-[10px] text-[#16a34a] font-medium">Identity Verified</p>
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center justify-center gap-2">
@@ -383,7 +383,7 @@ const ShopApprovalTab = ({ searchTerm = '' }) => {
         isOpen={rejectModal.isOpen}
         onClose={() => setRejectModal({ isOpen: false, shopId: null, shopName: '' })}
         onSubmit={handleRejectConfirm}
-        title="Reject Registration"
+        title="Reject Shop Configuration"
         itemName={rejectModal.shopName}
         type="shop"
       />

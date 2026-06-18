@@ -24,6 +24,8 @@ import DashboardProfile from './pages/customer/DashboardProfile';
 import DashboardSecurity from './pages/customer/DashboardSecurity';
 import DashboardBankAccounts from './pages/customer/DashboardBankAccounts';
 import UserStatistics from './pages/customer/UserStatistics';
+import DashboardShipperInfo from './pages/customer/DashboardShipperInfo';
+import RoleUpgrade from './pages/customer/RoleUpgrade';
 import ShipperDashboard from './pages/shipper/ShipperDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/customer/Checkout';
@@ -140,6 +142,7 @@ function App() {
         <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
         <Route path="/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
         <Route path="/user/statistics" element={<ProtectedRoute><UserStatistics /></ProtectedRoute>} />
+        <Route path="/role-upgrade" element={<ProtectedRoute><RoleUpgrade /></ProtectedRoute>} />
         <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
@@ -171,7 +174,9 @@ function App() {
         <Route path="/seller/bank-accounts" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardBankAccounts /></ProtectedRoute>} />
         <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
 
+
         <Route path="/shipper/profile" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardProfile /></ProtectedRoute>} />
+        <Route path="/shipper/info" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardShipperInfo /></ProtectedRoute>} />
         <Route path="/shipper/security" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardSecurity /></ProtectedRoute>} />
         <Route path="/shipper/*" element={<ProtectedRoute allowedRoles={['shipper']}><ShipperDashboard /></ProtectedRoute>} />
 

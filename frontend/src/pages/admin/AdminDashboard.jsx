@@ -24,6 +24,8 @@ import BlogManagementTab from '../../components/admin/BlogManagementTab';
 import BlogEditor from '../../components/admin/BlogEditor';
 import PlatformSettingsTab from '../../components/admin/PlatformSettingsTab';
 import UserSupportTab from '../../components/admin/UserSupportTab';
+import RoleUpgradesTab from '../../components/admin/RoleUpgradesTab';
+
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -140,6 +142,7 @@ const AdminDashboard = () => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard Overview', icon: 'dashboard', category: 'General' },
     { id: 'users', label: 'User Management', icon: 'group', category: 'Management' },
+    { id: 'role_upgrades', label: 'Role Upgrades', icon: 'verified_user', category: 'Management' },
     { id: 'promotions', label: 'Promotions', icon: 'campaign', category: 'Management' },
     { id: 'support', label: 'User Support', icon: 'support_agent', category: 'Management' },
     { id: 'finance_config', label: 'Finance Settings', icon: 'account_balance', category: 'Management' },
@@ -228,6 +231,10 @@ const AdminDashboard = () => {
               <UserSupportTab searchTerm={searchTerm} />
             )}
 
+            {activeTab === 'role_upgrades' && (
+              <RoleUpgradesTab searchTerm={searchTerm} />
+            )}
+
             {activeTab === 'finance_config' && (
               <FinanceSettingsTab 
                 searchTerm={searchTerm} 
@@ -259,7 +266,7 @@ const AdminDashboard = () => {
               <BlogManagementTab searchTerm={searchTerm} navigate={navigate} />
             )}
 
-            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'support' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && activeTab !== 'platform_settings' && (
+            {activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'promotions' && activeTab !== 'support' && activeTab !== 'finance_config' && activeTab !== 'withdrawals' && activeTab !== 'logistics' && activeTab !== 'security_logs' && activeTab !== 'ui_config' && activeTab !== 'rbac' && activeTab !== 'blog' && activeTab !== 'platform_settings' && activeTab !== 'role_upgrades' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find(i => i.id === activeTab)?.icon}

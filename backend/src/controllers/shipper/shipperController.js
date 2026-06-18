@@ -5,6 +5,7 @@ const User = require('../../models/User');
 const Shop = require('../../models/Shop');
 const Address = require('../../models/Address');
 const ProductMedia = require('../../models/ProductMedia');
+const ShipperProfile = require('../../models/ShipperProfile');
 const { successResponse, errorResponse } = require('../../utils/responseHelper');
 
 /**
@@ -262,6 +263,144 @@ exports.getOrderDetail = async (req, res) => {
 
   } catch (error) {
     console.error('Error getting shipper order detail:', error);
+    errorResponse(res, 'Internal server error', 500, error.message);
+  }
+};
+
+/**
+ * Get Shipper Profile
+ */
+exports.getShipperProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password -failed_login_attempts -lockout_until');
+    if (!user) {
+      return errorResponse(res, 'User not found', 404);
+    }
+
+    let profile = await ShipperProfile.findOne({ user_id: userId });
+    if (!profile) {
+      profile = await ShipperProfile.create({ user_id: userId });
+    }
+
+    successResponse(res, 'Shipper profile retrieved successfully', {
+      user: {
+        id: user._id,
+        fullName: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        avatarUrl: user.avatar_url,
+        gender: user.gender,
+        dob: user.dob,
+        status: user.status,
+        createdAt: user.createdAt
+      },
+      profile: {
+        id: profile._id,
+        cccdNumber: profile.cccd_number,
+        cccdFrontUrl: profile.cccd_front_url,
+        cccdBackUrl: profile.cccd_back_url,
+        vehicleType: profile.vehicle_type,
+        vehiclePlate: profile.vehicle_plate,
+        shippingCompany: profile.shipping_company,
+        operatingArea: profile.operating_area,
+        emergencyContact: profile.emergency_contact,
+        emergencyContactName: profile.emergency_contact_name,
+        bankName: profile.bank_name,
+        bankAccountName: profile.bank_account_name,
+        bankAccountNumber: profile.bank_account_number,
+        profileStatus: profile.status,
+        joinedDate: profile.joined_date
+      }
+    });
+  } catch (error) {
+    console.error('Error getting shipper profile:', error);
+    errorResponse(res, 'Internal server error', 500, error.message);
+  }
+};
+
+/**
+ * Update Shipper Profile
+ */
+exports.updateShipperProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      phone, fullName, gender, dob,
+      cccdNumber, cccdFrontUrl, cccdBackUrl,
+      vehicleType, vehiclePlate, shippingCompany, operatingArea,
+      emergencyContact, emergencyContactName,
+      bankName, bankAccountName, bankAccountNumber
+    } = req.body;
+
+    // Update User basic info
+    const userUpdate = {};
+    if (fullName !== undefined) userUpdate.full_name = fullName;
+    if (phone !== undefined) userUpdate.phone = phone;
+    if (gender !== undefined) userUpdate.gender = gender;
+    if (dob !== undefined) userUpdate.dob = dob;
+
+    if (Object.keys(userUpdate).length > 0) {
+      await User.findByIdAndUpdate(userId, userUpdate);
+    }
+
+    // Update ShipperProfile (upsert)
+    const profileUpdate = {};
+    if (cccdNumber !== undefined) profileUpdate.cccd_number = cccdNumber;
+    if (cccdFrontUrl !== undefined) profileUpdate.cccd_front_url = cccdFrontUrl;
+    if (cccdBackUrl !== undefined) profileUpdate.cccd_back_url = cccdBackUrl;
+    if (vehicleType !== undefined) profileUpdate.vehicle_type = vehicleType;
+    if (vehiclePlate !== undefined) profileUpdate.vehicle_plate = vehiclePlate;
+    if (shippingCompany !== undefined) profileUpdate.shipping_company = shippingCompany;
+    if (operatingArea !== undefined) profileUpdate.operating_area = operatingArea;
+    if (emergencyContact !== undefined) profileUpdate.emergency_contact = emergencyContact;
+    if (emergencyContactName !== undefined) profileUpdate.emergency_contact_name = emergencyContactName;
+    if (bankName !== undefined) profileUpdate.bank_name = bankName;
+    if (bankAccountName !== undefined) profileUpdate.bank_account_name = bankAccountName;
+    if (bankAccountNumber !== undefined) profileUpdate.bank_account_number = bankAccountNumber;
+
+    await ShipperProfile.findOneAndUpdate(
+      { user_id: userId },
+      { $set: profileUpdate },
+      { upsert: true, new: true }
+    );
+
+    // Return updated full profile
+    const user = await User.findById(userId).select('-password -failed_login_attempts -lockout_until');
+    const profile = await ShipperProfile.findOne({ user_id: userId });
+
+    successResponse(res, 'Shipper profile updated successfully', {
+      user: {
+        id: user._id,
+        fullName: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        avatarUrl: user.avatar_url,
+        gender: user.gender,
+        dob: user.dob,
+        status: user.status,
+        createdAt: user.createdAt
+      },
+      profile: {
+        id: profile._id,
+        cccdNumber: profile.cccd_number,
+        cccdFrontUrl: profile.cccd_front_url,
+        cccdBackUrl: profile.cccd_back_url,
+        vehicleType: profile.vehicle_type,
+        vehiclePlate: profile.vehicle_plate,
+        shippingCompany: profile.shipping_company,
+        operatingArea: profile.operating_area,
+        emergencyContact: profile.emergency_contact,
+        emergencyContactName: profile.emergency_contact_name,
+        bankName: profile.bank_name,
+        bankAccountName: profile.bank_account_name,
+        bankAccountNumber: profile.bank_account_number,
+        profileStatus: profile.status,
+        joinedDate: profile.joined_date
+      }
+    });
+  } catch (error) {
+    console.error('Error updating shipper profile:', error);
     errorResponse(res, 'Internal server error', 500, error.message);
   }
 };
