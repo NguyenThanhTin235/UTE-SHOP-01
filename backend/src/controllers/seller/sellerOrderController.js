@@ -30,6 +30,7 @@ const getOrders = async (req, res, next) => {
         if (status && status !== 'All Orders') {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'To Process') query.status = 'confirmed';
+            else if (status === 'Ready to Ship') query.status = 'ready_to_ship';
             else if (status === 'Shipping') query.status = 'shipping';
             else if (status === 'Completed') query.status = 'completed';
             else if (status === 'Return/Refund') query.status = { $in: ['disputed', 'refunded'] };
@@ -87,6 +88,7 @@ const getOrders = async (req, res, next) => {
             'All Orders': 0,
             'Pending': 0,
             'To Process': 0,
+            'Ready to Ship': 0,
             'Shipping': 0,
             'Completed': 0,
             'Return/Refund': 0
@@ -96,6 +98,7 @@ const getOrders = async (req, res, next) => {
             summary['All Orders'] += s.count;
             if (s._id === 'pending') summary['Pending'] += s.count;
             else if (s._id === 'confirmed') summary['To Process'] += s.count;
+            else if (s._id === 'ready_to_ship') summary['Ready to Ship'] += s.count;
             else if (s._id === 'shipping') summary['Shipping'] += s.count;
             else if (s._id === 'completed') summary['Completed'] += s.count;
             else if (['disputed', 'refunded'].includes(s._id)) summary['Return/Refund'] += s.count;
@@ -157,7 +160,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -169,6 +172,20 @@ const updateOrderStatus = async (req, res, next) => {
 
         const isAlreadyDelivered = order.status === 'completed';
         order.status = status;
+
+        if (status === 'ready_to_ship' && !order.shipping_partner_id) {
+            const ShippingPartner = require('../../models/ShippingPartner');
+            let defaultPartner = await ShippingPartner.findOne({ is_active: true });
+            if (!defaultPartner) {
+                defaultPartner = await ShippingPartner.create({
+                    name: 'SPX Express',
+                    code: 'SPX',
+                    shipping_fee: 5000,
+                    is_active: true
+                });
+            }
+            order.shipping_partner_id = defaultPartner._id;
+        }
 
         if (status === 'completed' && !isAlreadyDelivered) {
             // Add funds to seller's wallet

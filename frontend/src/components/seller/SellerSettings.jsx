@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import MapPicker from '../MapPicker';
 
 const SellerSettings = ({ setActiveTab }) => {
     const { user } = useSelector(state => state.auth);
@@ -14,6 +15,8 @@ const SellerSettings = ({ setActiveTab }) => {
         email: '',
         phone: '',
         address: '',
+        latitude: null,
+        longitude: null,
         banner_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
         logo_url: '',
         shipping_carriers: {
@@ -24,6 +27,7 @@ const SellerSettings = ({ setActiveTab }) => {
         status: '',
         rejection_reason: ''
     });
+    const [showMap, setShowMap] = useState(false);
 
     const fetchSettings = async () => {
         setLoading(true);
@@ -40,6 +44,8 @@ const SellerSettings = ({ setActiveTab }) => {
                     email: data.email || '',
                     phone: data.phone || '',
                     address: data.address || '',
+                    latitude: data.latitude || null,
+                    longitude: data.longitude || null,
                     banner_url: data.banner_url || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
                     logo_url: data.logo_url || '',
                     shipping_carriers: data.shipping_carriers || { ghtk: true, grab: false, jt: true },
@@ -302,7 +308,18 @@ const SellerSettings = ({ setActiveTab }) => {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-secondary ml-1">Warehouse Address (Pickup)</label>
+                            <div className="flex justify-between items-center ml-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-secondary">Warehouse Address (Pickup)</label>
+                                <button 
+                                  type="button" 
+                                  onClick={() => setShowMap(true)}
+                                  disabled={shopData.status === 'pending'}
+                                  className="text-[#004ac6] text-[10px] font-bold flex items-center gap-1 hover:underline bg-[#e2e7ff] px-2 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  <span className="material-symbols-outlined text-[12px]">map</span>
+                                  Select on map
+                                </button>
+                            </div>
                             <div className="flex flex-col gap-2">
                                 <textarea 
                                     rows="2" 
@@ -317,83 +334,7 @@ const SellerSettings = ({ setActiveTab }) => {
                     </div>
                 </section>
 
-                {/* Section: Shipping Carriers */}
-                <section className="bg-white rounded-[2rem] border border-slate-200 shadow-level-1 overflow-hidden">
-                    <div className="p-8 border-b border-slate-100">
-                        <h3 className="text-lg font-black text-on-surface">Shipping Carriers</h3>
-                        <p className="text-xs text-secondary font-medium">Select which services can deliver your products</p>
-                    </div>
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* GHTK */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5 border border-slate-100 overflow-hidden shrink-0">
-                                    <img src="https://jtexpress.vn/themes/jtexpress/assets/images/logo.png" className="w-full h-auto object-contain" alt="Carrier" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-on-surface">Giao Hàng Tiết Kiệm</p>
-                                    <p className="text-[10px] text-success font-black uppercase">Popular</p>
-                                </div>
-                            </div>
-                            <div className="relative inline-block w-12 align-middle select-none">
-                                <input 
-                                    type="checkbox" 
-                                    checked={shopData.shipping_carriers.ghtk} 
-                                    onChange={() => handleCarrierToggle('ghtk')}
-                                    disabled={shopData.status === 'pending'}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                />
-                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
-                            </div>
-                        </div>
 
-                        {/* GrabExpress */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5 border border-slate-100 overflow-hidden shrink-0">
-                                    <img src="https://jtexpress.vn/themes/jtexpress/assets/images/logo.png" className="w-full h-auto object-contain" alt="Carrier" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-on-surface">GrabExpress (Instant)</p>
-                                    <p className="text-[10px] text-secondary font-black uppercase">On-demand</p>
-                                </div>
-                            </div>
-                            <div className="relative inline-block w-12 align-middle select-none">
-                                <input 
-                                    type="checkbox" 
-                                    checked={shopData.shipping_carriers.grab} 
-                                    onChange={() => handleCarrierToggle('grab')}
-                                    disabled={shopData.status === 'pending'}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                />
-                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
-                            </div>
-                        </div>
-
-                        {/* J&T */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5 border border-slate-100 overflow-hidden shrink-0">
-                                    <img src="https://jtexpress.vn/themes/jtexpress/assets/images/logo.png" className="w-full h-auto object-contain" alt="Carrier" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-on-surface">J&T Express</p>
-                                    <p className="text-[10px] text-secondary font-black uppercase">Standard</p>
-                                </div>
-                            </div>
-                            <div className="relative inline-block w-12 align-middle select-none">
-                                <input 
-                                    type="checkbox" 
-                                    checked={shopData.shipping_carriers.jt} 
-                                    onChange={() => handleCarrierToggle('jt')}
-                                    disabled={shopData.status === 'pending'}
-                                    className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none outline-none transition-all duration-300 right-6 checked:right-0 checked:border-primary z-10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                />
-                                <label className={`block overflow-hidden h-6 rounded-full bg-slate-300 peer-checked:bg-primary transition-colors duration-300 ${shopData.status === 'pending' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}></label>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 {/* Danger Zone */}
                 <section className="bg-red-50 rounded-[2rem] border border-red-100 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -440,6 +381,21 @@ const SellerSettings = ({ setActiveTab }) => {
                     </div>
                 )}
 
+                {/* MapPicker Component */}
+                <MapPicker 
+                  isOpen={showMap}
+                  onClose={() => setShowMap(false)}
+                  onConfirm={(data) => {
+                    setShopData(prev => ({
+                        ...prev,
+                        address: data.addressString,
+                        latitude: data.lat,
+                        longitude: data.lng
+                    }));
+                  }}
+                  initialLat={shopData.latitude}
+                  initialLng={shopData.longitude}
+                />
             </div>
         </div>
     );

@@ -118,6 +118,7 @@ const OrderHistory = () => {
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
     { key: 'preparing', label: 'Preparing' },
+    { key: 'ready_to_ship', label: 'Ready to Ship' },
     { key: 'shipping', label: 'Shipping' },
     { key: 'completed', label: 'Completed' },
     { key: 'cancel_pending', label: 'Cancel Pending' },
@@ -133,6 +134,8 @@ const OrderHistory = () => {
         return { text: 'Confirmed', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: 'verified' };
       case 'preparing':
         return { text: 'Preparing', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: 'inventory_2' };
+      case 'ready_to_ship':
+        return { text: 'Ready to Ship', color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20', icon: 'box' };
       case 'shipping':
         return { text: 'Shipping', color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20', icon: 'local_shipping' };
       case 'completed':
@@ -358,6 +361,11 @@ const OrderHistory = () => {
                             <p className="text-xs text-[#737686] font-semibold">
                               Order Code: <span className="text-[#131b2e] font-extrabold">{order.orderCode}</span>
                             </p>
+                            {order.shipperId && (
+                              <p className="text-xs text-[#737686] font-semibold">
+                                Shipper: <span className="text-[#131b2e] font-extrabold">{order.shipperId.fullName}</span>
+                              </p>
+                            )}
                             {order.paymentOrderId && (
                               <p className="text-xs text-[#737686] font-semibold">
                                 Payment: <span className={`font-bold ${

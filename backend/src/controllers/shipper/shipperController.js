@@ -52,10 +52,33 @@ exports.getOrders = async (req, res) => {
     const { page = 1, limit = 10, search } = req.query;
     const status = req.params.status || req.query.status;
 
-    const query = { shipper_id: shipperId };
+    let query = {};
 
     if (status && status !== 'all') {
+      query.shipper_id = shipperId;
       query.status = status;
+    } else {
+      // For 'all', we need to fetch assigned orders AND available orders
+      const profile = await ShipperProfile.findOne({ user_id: shipperId });
+      const ShippingPartner = require('../../models/ShippingPartner');
+      let partner;
+      if (profile && profile.shipping_company) {
+         if (profile.shipping_company.length === 24) {
+            partner = await ShippingPartner.findById(profile.shipping_company);
+         }
+         if (!partner) {
+            partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+         }
+      }
+
+      if (partner) {
+        query.$or = [
+          { shipper_id: shipperId },
+          { status: 'ready_to_ship', shipping_partner_id: partner._id }
+        ];
+      } else {
+        query.shipper_id = shipperId;
+      }
     }
 
     if (search) {
@@ -85,6 +108,115 @@ exports.getOrders = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting shipper orders:', error);
+    errorResponse(res, 'Internal server error', 500, error.message);
+  }
+};
+
+/**
+ * Get Available Orders for Shipper
+ */
+exports.getAvailableOrders = async (req, res) => {
+  try {
+    const shipperId = req.user.id;
+    const { page = 1, limit = 10, search } = req.query;
+
+    const profile = await ShipperProfile.findOne({ user_id: shipperId });
+    if (!profile || !profile.shipping_company) {
+       return errorResponse(res, 'Shipper profile not found or no shipping company assigned', 400);
+    }
+    
+    const ShippingPartner = require('../../models/ShippingPartner');
+    let partner;
+    if (profile.shipping_company.length === 24) {
+       partner = await ShippingPartner.findById(profile.shipping_company);
+    }
+    if (!partner) {
+       partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+    }
+
+    if (!partner) {
+       return errorResponse(res, 'Shipping partner not found', 404);
+    }
+
+    const query = { status: 'ready_to_ship', shipping_partner_id: partner._id };
+
+    if (search) {
+      query.order_code = { $regex: search, $options: 'i' };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const orders = await Order.find(query)
+      .populate('customer_id', 'full_name phone email')
+      .populate('shop_id', 'name address phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const totalOrders = await Order.countDocuments(query);
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    successResponse(res, 'Available orders retrieved successfully', {
+      orders,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalOrders,
+        totalPages
+      }
+    });
+  } catch (error) {
+    console.error('Error getting available orders:', error);
+    errorResponse(res, 'Internal server error', 500, error.message);
+  }
+};
+
+/**
+ * Accept an Available Order
+ */
+exports.acceptOrder = async (req, res) => {
+  try {
+    const shipperId = req.user.id;
+    const { id } = req.params;
+
+    const order = await Order.findOne({ _id: id, status: 'ready_to_ship' });
+
+    if (!order) {
+      return errorResponse(res, 'Order not found or no longer available', 404);
+    }
+
+    if (order.shipper_id) {
+       return errorResponse(res, 'Order is already taken by another shipper', 400);
+    }
+
+    const profile = await ShipperProfile.findOne({ user_id: shipperId });
+    const ShippingPartner = require('../../models/ShippingPartner');
+    let partner;
+    if (profile && profile.shipping_company && profile.shipping_company.length === 24) {
+       partner = await ShippingPartner.findById(profile.shipping_company);
+    }
+    if (!partner && profile) {
+       partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+    }
+
+    if (!partner || order.shipping_partner_id.toString() !== partner._id.toString()) {
+       return errorResponse(res, 'You are not authorized to accept this order', 403);
+    }
+
+    order.shipper_id = shipperId;
+    order.status = 'shipping';
+    await order.save();
+
+    await OrderStatusHistory.create({
+      order_id: order._id,
+      status: 'shipping',
+      note: 'Order accepted by shipper and is now shipping',
+      updated_by: shipperId
+    });
+
+    successResponse(res, 'Order accepted successfully', { order });
+  } catch (error) {
+    console.error('Error accepting order:', error);
     errorResponse(res, 'Internal server error', 500, error.message);
   }
 };
@@ -214,7 +346,7 @@ exports.getOrderDetail = async (req, res) => {
 
     const order = await Order.findOne({ _id: id, shipper_id: shipperId })
       .populate('customer_id', 'full_name email phone avatar')
-      .populate('shop_id', 'name slug address logo')
+      .populate('shop_id', 'name slug address logo latitude longitude')
       .populate('shipping_address_id');
 
     if (!order) {

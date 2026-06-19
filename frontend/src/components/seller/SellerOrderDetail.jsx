@@ -79,16 +79,19 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
 
     const getTimelineSteps = () => {
         const steps = [
-            { id: 'pending', label: 'Order Placed', icon: 'check', date: order.createdAt },
-            { id: 'confirmed', label: 'Payment Confirmed', icon: 'check', date: order.createdAt },
-            { id: 'to_ship', label: 'To Ship', icon: 'inventory_2', date: ['shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
+            { id: 'pending', label: 'Order Placed', icon: 'receipt_long', date: order.createdAt },
+            { id: 'confirmed', label: 'Confirmed', icon: 'check', date: order.createdAt },
+            { id: 'preparing', label: 'Preparing', icon: 'inventory_2', date: ['preparing', 'ready_to_ship', 'shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
+            { id: 'ready_to_ship', label: 'Ready to Ship', icon: 'box', date: ['ready_to_ship', 'shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
             { id: 'shipping', label: 'Shipping', icon: 'local_shipping', date: ['shipping', 'completed'].includes(order.status) ? order.updatedAt : null },
             { id: 'completed', label: 'Completed', icon: 'verified', date: order.status === 'completed' ? order.updatedAt : null }
         ];
 
         let currentStepIndex = 0;
-        if (order.status === 'confirmed') currentStepIndex = 2;
-        if (order.status === 'shipping') currentStepIndex = 3;
+        if (order.status === 'confirmed') currentStepIndex = 1;
+        if (order.status === 'preparing') currentStepIndex = 2;
+        if (order.status === 'ready_to_ship') currentStepIndex = 3;
+        if (order.status === 'shipping') currentStepIndex = 4;
         if (order.status === 'completed') currentStepIndex = 5;
         if (['canceled', 'refunded', 'disputed'].includes(order.status)) currentStepIndex = -1;
 
@@ -170,9 +173,55 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                         <button onClick={() => handleStatusUpdate('canceled')} className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-sm">
                             Cancel Order
                         </button>
-                        <button onClick={() => setShowShipmentModal(true)} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-green-600/20 cursor-pointer">
-                            Confirm Shipment
+                        <button onClick={() => handleStatusUpdate('preparing')} className="px-8 py-4 bg-primary text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20 cursor-pointer">
+                            Prepare Goods
                         </button>
+                    </div>
+                </div>
+            );
+        }
+
+        if (order.status === 'preparing') {
+            return (
+                <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                        <div className="size-20 rounded-3xl bg-primary flex items-center justify-center text-white shadow-2xl shadow-primary/30">
+                            <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Preparing</span>
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Order is being prepared</h2>
+                            <p className="text-slate-600 font-medium mt-1">Pack the items and set it ready to ship.</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => handleStatusUpdate('canceled')} className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-sm">
+                            Cancel Order
+                        </button>
+                        <button onClick={() => handleStatusUpdate('ready_to_ship')} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:brightness-110 transition-all shadow-lg shadow-green-600/20 cursor-pointer">
+                            Ready to Ship
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        if (order.status === 'ready_to_ship') {
+            return (
+                <div className="bg-blue-50 border border-blue-100 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                        <div className="size-20 rounded-3xl bg-blue-500 flex items-center justify-center text-white shadow-2xl shadow-blue-500/30">
+                            <span className="material-symbols-outlined text-4xl">local_shipping</span>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="px-4 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Ready to Ship</span>
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Waiting for Shipper</h2>
+                            <p className="text-slate-600 font-medium mt-1">The package is ready and waiting for the shipping partner to pick up.</p>
+                        </div>
                     </div>
                 </div>
             );

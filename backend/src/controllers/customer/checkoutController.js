@@ -22,6 +22,25 @@ const ShippingPartner = require('../../models/ShippingPartner');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../../utils/promotionHelper');
 const { toCamelCase } = require('../../utils/formatter');
 
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 10; // Fallback distance 10km if missing coordinates
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2-lat1);
+  const dLon = deg2rad(lon2-lon1); 
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
 function sortObject(obj) {
   let sorted = {};
   let str = [];
@@ -61,22 +80,40 @@ class CheckoutController {
   async previewCheckout(req, res) {
     try {
       const userId = req.user.id;
-      const { itemIds, couponCode, useCoins, shippingPartnerId } = req.body;
+      const { itemIds, couponCode, useCoins, shippingPartnerId, addressId } = req.body;
+
+      // Resolve customer coordinates
+      let customerLat = null;
+      let customerLng = null;
+      
+      if (addressId) {
+         const addr = await Address.findOne({ _id: addressId, user_id: userId });
+         if (addr) {
+            customerLat = addr.latitude;
+            customerLng = addr.longitude;
+         }
+      } else {
+         const defaultAddr = await Address.findOne({ user_id: userId, is_default: true });
+         if (defaultAddr) {
+            customerLat = defaultAddr.latitude;
+            customerLng = defaultAddr.longitude;
+         }
+      }
 
       const activePartners = await ShippingPartner.find({ is_active: true });
 
-      // Resolve selected shipping partner fee
+      // Resolve selected shipping partner fee/km
       let selectedPartner = null;
-      let partnerShippingFee = 35000; // default
+      let partnerFeePerKm = 5000; // default 5k/km
       if (shippingPartnerId) {
         selectedPartner = activePartners.find(p => p._id.toString() === shippingPartnerId);
         if (selectedPartner) {
-          partnerShippingFee = selectedPartner.shipping_fee || 0;
+          partnerFeePerKm = selectedPartner.shipping_fee || 5000;
         }
       } else if (activePartners.length > 0) {
         // Auto-select first active partner
         selectedPartner = activePartners[0];
-        partnerShippingFee = selectedPartner.shipping_fee || 0;
+        partnerFeePerKm = selectedPartner.shipping_fee || 5000;
       }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
@@ -159,6 +196,12 @@ class CheckoutController {
         const imageUrl = media ? media.media_url : 'https://via.placeholder.com/150';
 
         if (!shopsMap[shopIdStr]) {
+          let distance = 10;
+          if (shop.latitude && shop.longitude && customerLat && customerLng) {
+              distance = getDistanceFromLatLonInKm(customerLat, customerLng, shop.latitude, shop.longitude);
+          }
+          const shopShippingFee = distance < 50 ? 20000 : Math.round(distance * partnerFeePerKm);
+
           shopsMap[shopIdStr] = {
             shop: {
               id: shopIdStr,
@@ -167,7 +210,8 @@ class CheckoutController {
             },
             items: [],
             subtotal: 0,
-            shippingFee: partnerShippingFee,
+            shippingFee: shopShippingFee,
+            distance: Math.round(distance * 10) / 10,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -194,8 +238,8 @@ class CheckoutController {
 
       const shopsArray = Object.values(shopsMap);
 
-      // Shipping total using selected partner fee
-      const overallShipping = shopsArray.length * partnerShippingFee;
+      // Shipping total sum from shops
+      const overallShipping = shopsArray.reduce((acc, shop) => acc + shop.shippingFee, 0);
 
       // Handle Coupon
       let couponDiscount = 0;
@@ -322,6 +366,7 @@ class CheckoutController {
             name: p.name,
             code: p.code,
             shipping_fee: p.shipping_fee,
+            fee_per_km: p.shipping_fee || 5000,
             avatar_url: p.avatar_url || ''
           })),
           selectedPartnerId: selectedPartner ? selectedPartner._id.toString() : null
@@ -347,21 +392,6 @@ class CheckoutController {
     try {
       const userId = req.user.id;
       const { itemIds, addressId, couponCode, useCoins, paymentMethod, shippingPartnerId } = req.body;
-
-      // Resolve shipping partner fee
-      let partnerShippingFee = 35000; // default
-      if (shippingPartnerId) {
-        const partner = await ShippingPartner.findOne({ _id: shippingPartnerId, is_active: true });
-        if (partner) {
-          partnerShippingFee = partner.shipping_fee || 0;
-        }
-      } else {
-        // Try to use first active partner
-        const firstPartner = await ShippingPartner.findOne({ is_active: true });
-        if (firstPartner) {
-          partnerShippingFee = firstPartner.shipping_fee || 0;
-        }
-      }
 
       if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(422).json({
@@ -395,6 +425,36 @@ class CheckoutController {
           code: 404,
           message: 'Shipping address not found'
         });
+      }
+
+      // Resolve customer coordinates
+      const customerLat = address.latitude;
+      const customerLng = address.longitude;
+
+      // Resolve shipping partner fee/km
+      let partnerFeePerKm = 5000; // default 5k/km
+      let resolvedPartnerId = null;
+      if (shippingPartnerId) {
+        const partner = await ShippingPartner.findOne({ _id: shippingPartnerId, is_active: true });
+        if (partner) {
+          partnerFeePerKm = partner.shipping_fee || 5000;
+          resolvedPartnerId = partner._id;
+        }
+      } 
+      
+      if (!resolvedPartnerId) {
+        // Try to use first active partner or create one
+        let firstPartner = await ShippingPartner.findOne({ is_active: true });
+        if (!firstPartner) {
+            firstPartner = await ShippingPartner.create({
+                name: 'SPX Express',
+                code: 'SPX',
+                shipping_fee: 5000,
+                is_active: true
+            });
+        }
+        partnerFeePerKm = firstPartner.shipping_fee || 5000;
+        resolvedPartnerId = firstPartner._id;
       }
 
       // 2. Fetch User & Cart
@@ -474,11 +534,24 @@ class CheckoutController {
         const shopIdStr = product.shop_id ? product.shop_id.toString() : 'default';
 
         if (!shopsMap[shopIdStr]) {
+          let distance = 10;
+          let shopLat = null;
+          let shopLng = null;
+          
+          if (shopIdStr !== 'default' && product.shop_id) {
+             shopLat = product.shop_id.latitude;
+             shopLng = product.shop_id.longitude;
+          }
+          if (shopLat && shopLng && customerLat && customerLng) {
+              distance = getDistanceFromLatLonInKm(customerLat, customerLng, shopLat, shopLng);
+          }
+          const shopShippingFee = distance < 50 ? 20000 : Math.round(distance * partnerFeePerKm);
+
           shopsMap[shopIdStr] = {
             shopId: shopIdStr,
             items: [],
             subtotal: 0,
-            shippingFee: partnerShippingFee,
+            shippingFee: shopShippingFee,
             couponDiscount: 0,
             coinDiscount: 0,
             totalFinal: 0
@@ -495,7 +568,7 @@ class CheckoutController {
       }
 
       const shopsArray = Object.values(shopsMap);
-      const overallShipping = shopsArray.length * partnerShippingFee;
+      const overallShipping = shopsArray.reduce((acc, shop) => acc + shop.shippingFee, 0);
 
       // Handle Coupon
       let couponDiscount = 0;
@@ -668,6 +741,7 @@ class CheckoutController {
           payment_order_id: paymentOrder._id,
           customer_id: userId,
           shipping_address_id: addressId,
+          shipping_partner_id: resolvedPartnerId,
           shop_id: s.shopId === 'default' ? new mongoose.Types.ObjectId() : s.shopId,
           status: 'pending',
           subtotal_amount: s.subtotal,

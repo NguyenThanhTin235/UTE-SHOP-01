@@ -13,6 +13,8 @@ import ManagerViolationDetail from '../../components/manager/ManagerViolationDet
 import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import ManagerHeader from '../../components/manager/ManagerHeader';
 import ManagerStatistics from '../../components/manager/ManagerStatistics';
+import ManagerOrdersTab from '../../components/manager/ManagerOrdersTab';
+import ManagerOrderDetail from '../../components/manager/ManagerOrderDetail';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -78,6 +80,8 @@ const ManagerDashboard = () => {
         return 'Search reports, shop IDs...';
       case 'statistics':
         return 'Search metrics, reports, date ranges...';
+      case 'orders':
+        return 'Search order code...';
       default:
         return 'Search tasks, shops, or products...';
     }
@@ -169,6 +173,7 @@ const ManagerDashboard = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard Overview', icon: 'dashboard', category: 'General' },
+    { id: 'orders', label: 'Order Monitoring', icon: 'receipt_long', category: 'General' },
     { id: 'shop_approval', label: 'Shop Approval', icon: 'storefront', category: 'Approvals' },
     { id: 'product_approval', label: 'Product Approval', icon: 'inventory_2', category: 'Approvals' },
     { id: 'violations', label: 'Violations', icon: 'report_problem', category: 'Safety & Monitoring' },
@@ -479,8 +484,14 @@ const ManagerDashboard = () => {
           {/* Statistics Tab */}
           {activeTab === 'statistics' && <ManagerStatistics searchTerm={searchTerm} />}
 
+          {/* Orders Tab */}
+          {activeTab === 'orders' && <ManagerOrdersTab searchTerm={searchTerm} />}
+
+          {/* Order Detail Tab */}
+          {activeTab === 'order_detail' && <ManagerOrderDetail orderId={pathParts[2]} />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && activeTab !== 'orders' && activeTab !== 'order_detail' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}

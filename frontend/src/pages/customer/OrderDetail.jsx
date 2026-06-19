@@ -266,6 +266,8 @@ const OrderDetail = () => {
         return 'bg-blue-500/10 text-blue-600 border border-blue-500/20';
       case 'preparing':
         return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
+      case 'ready_to_ship':
+        return 'bg-cyan-500/10 text-cyan-600 border border-cyan-500/20';
       case 'shipping':
         return 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20';
       case 'completed':
@@ -285,6 +287,7 @@ const OrderDetail = () => {
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
   const isPreparing = order.status === 'preparing';
+  const isReadyToShip = order.status === 'ready_to_ship';
   const isShipped = order.status === 'shipping';
   const isDelivered = order.status === 'completed';
   const isCanceled = order.status === 'canceled';
@@ -292,7 +295,7 @@ const OrderDetail = () => {
   const isRefunded = order.status === 'refunded';
 
   const step1Active = !isCanceled && !isCancelPending && !isRefunded;
-  const step2Active = isConfirmed || isPreparing || isShipped || isDelivered;
+  const step2Active = isConfirmed || isPreparing || isReadyToShip || isShipped || isDelivered;
   const step3Active = isShipped || isDelivered;
   const step4Active = isDelivered;
 
@@ -388,6 +391,7 @@ const OrderDetail = () => {
                 {isPending ? 'Pending' :
                  isConfirmed ? 'Confirmed' :
                  isPreparing ? 'Preparing' :
+                 isReadyToShip ? 'Ready to Ship' :
                  isShipped ? 'Shipping' :
                  isDelivered ? 'Completed' :
                  isCanceled ? 'Cancelled' :
@@ -515,6 +519,27 @@ const OrderDetail = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Shipper Information */}
+                {order.shipperId && (
+                  <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
+                    <span className="material-symbols-outlined text-primary text-2xl">local_shipping</span>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-2">Shipper Information</p>
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={order.shipperId.avatarUrl ? (order.shipperId.avatarUrl.startsWith('http') ? order.shipperId.avatarUrl : `http://localhost:5000${order.shipperId.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(order.shipperId.fullName || 'Shipper')}&background=e2e8f0&color=475569`} 
+                          alt="Shipper" 
+                          className="w-10 h-10 rounded-full border border-[#c3c6d7]/30 object-cover"
+                        />
+                        <div>
+                          <p className="font-extrabold text-[#131b2e] text-sm">{order.shipperId.fullName}</p>
+                          <p className="text-xs text-[#434655] font-medium mt-0.5">{order.shipperId.phone || 'No phone number'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Địa chỉ giao hàng */}
                 <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">

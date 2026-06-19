@@ -331,7 +331,7 @@ exports.updateProfile = async (req, res) => {
     return response.success(res, {
       message: 'Profile updated successfully',
       data: {
-        user: {
+        user: toCamelCase({
           id: updatedUser._id,
           full_name: updatedUser.full_name,
           email: updatedUser.email,
@@ -339,8 +339,8 @@ exports.updateProfile = async (req, res) => {
           phone: updatedUser.phone,
           dob: updatedUser.dob,
           gender: updatedUser.gender,
-          role: updatedUser.role,
-        }
+          role: req.user.role,
+        })
       }
     });
   } catch (err) {
@@ -381,7 +381,7 @@ exports.uploadAvatar = async (req, res) => {
       message: 'Avatar uploaded successfully',
       data: {
         avatarUrl: req.file.path,
-        user: {
+        user: toCamelCase({
           id: user._id,
           full_name: user.full_name,
           email: user.email,
@@ -389,8 +389,8 @@ exports.uploadAvatar = async (req, res) => {
           phone: user.phone,
           dob: user.dob,
           gender: user.gender,
-          role: user.role
-        }
+          role: req.user.role
+        })
       }
     });
   } catch (err) {

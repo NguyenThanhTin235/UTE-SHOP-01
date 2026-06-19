@@ -483,6 +483,7 @@ const getOrders = async (req, res, next) => {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'Confirmed') query.status = 'confirmed';
             else if (status === 'Preparing') query.status = 'preparing';
+            else if (status === 'Ready to Ship') query.status = 'ready_to_ship';
             else if (status === 'Shipping') query.status = 'shipping';
             else if (status === 'Completed') query.status = 'completed';
             else if (status === 'Cancel Pending') query.status = 'cancel_pending';
@@ -542,6 +543,7 @@ const getOrders = async (req, res, next) => {
             'Pending': 0,
             'Confirmed': 0,
             'Preparing': 0,
+            'Ready to Ship': 0,
             'Shipping': 0,
             'Completed': 0,
             'Cancel Pending': 0,
@@ -554,6 +556,7 @@ const getOrders = async (req, res, next) => {
             if (s._id === 'pending') summary['Pending'] += s.count;
             else if (s._id === 'confirmed') summary['Confirmed'] += s.count;
             else if (s._id === 'preparing') summary['Preparing'] += s.count;
+            else if (s._id === 'ready_to_ship') summary['Ready to Ship'] += s.count;
             else if (s._id === 'shipping') summary['Shipping'] += s.count;
             else if (s._id === 'completed') summary['Completed'] += s.count;
             else if (s._id === 'cancel_pending') summary['Cancel Pending'] += s.count;
@@ -617,7 +620,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'completed', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -1026,7 +1029,7 @@ const updateSettings = async (req, res, next) => {
         const userId = req.user.id;
         let shop = await Shop.findOne({ owner_user_id: userId });
         
-        const { name, slug, description, email, phone, address, shipping_carriers, banner_url, logo_url } = req.body;
+        const { name, slug, description, email, phone, address, shipping_carriers, banner_url, logo_url, latitude, longitude } = req.body;
 
         if (!shop) {
             // Create new shop
@@ -1041,6 +1044,8 @@ const updateSettings = async (req, res, next) => {
                 email,
                 phone,
                 address,
+                latitude,
+                longitude,
                 shipping_carriers,
                 banner_url,
                 logo_url,
@@ -1062,6 +1067,8 @@ const updateSettings = async (req, res, next) => {
         if (email !== undefined) shop.email = email;
         if (phone !== undefined) shop.phone = phone;
         if (address !== undefined) shop.address = address;
+        if (latitude !== undefined) shop.latitude = latitude;
+        if (longitude !== undefined) shop.longitude = longitude;
         if (shipping_carriers !== undefined) shop.shipping_carriers = shipping_carriers;
         if (banner_url !== undefined) shop.banner_url = banner_url;
         if (logo_url !== undefined) shop.logo_url = logo_url;

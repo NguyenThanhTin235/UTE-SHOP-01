@@ -1071,6 +1071,117 @@ const getStatisticsStatuses = async (req, res) => {
   }
 };
 
+// ─── ORDER MONITORING ─────────────────────────────────────────────────────────
+const getAllOrders = async (req, res) => {
+  try {
+    const Order = require('../../models/Order');
+    const { page = 1, limit = 10, status, search, shopId } = req.query;
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+    if (shopId && shopId !== 'all') {
+      filter.shop_id = shopId;
+    }
+    if (search) {
+      filter.order_code = { $regex: search, $options: 'i' };
+    }
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .populate('shop_id', 'name slug')
+      .populate('customer_id', 'full_name email')
+      .populate('shipper_id', 'full_name phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const formattedOrders = orders.map(order => ({
+      id: order._id,
+      order_code: order.order_code,
+      shop_name: order.shop_id?.name || 'Unknown Shop',
+      shop_id: order.shop_id?._id,
+      customer_name: order.customer_id?.full_name || 'Unknown',
+      shipper_name: order.shipper_id?.full_name || 'Not assigned',
+      status: order.status,
+      payment_status: order.payment_status,
+      total_final: order.total_final,
+      createdAt: order.createdAt,
+    }));
+
+    return response.success(res, {
+      message: 'Orders retrieved successfully',
+      data: formattedOrders,
+      meta: {
+        pagination: {
+          total,
+          count: formattedOrders.length,
+          perPage: parseInt(limit),
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('getAllOrders error:', error);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const getOrderDetail = async (req, res) => {
+  try {
+    const Order = require('../../models/Order');
+    const OrderItem = require('../../models/OrderItem');
+    const ProductMedia = require('../../models/ProductMedia');
+
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate('shop_id', 'name slug email phone')
+      .populate('customer_id', 'full_name email phone')
+      .populate('shipper_id', 'full_name phone')
+      .populate('shipping_address_id')
+      .populate('payment_order_id')
+      .populate('shipping_partner_id');
+
+    if (!order) {
+      return response.error(res, { statusCode: 404, message: 'Order not found' });
+    }
+
+    const items = await OrderItem.find({ order_id: order._id })
+      .populate('product_id', 'name slug sku')
+      .populate('variant_id', 'attributes sku');
+
+    const productIds = items.map(oi => oi.product_id ? oi.product_id._id : null).filter(Boolean);
+    const medias = await ProductMedia.find({ product_id: { $in: productIds } });
+
+    const itemsWithMedia = items.map(item => {
+      const itemObj = item.toObject();
+      if (itemObj.product_id) {
+        const productMedia = medias.find(m => m.product_id.toString() === itemObj.product_id._id.toString());
+        itemObj.product_id.media_url = productMedia ? productMedia.media_url : null;
+      }
+      return itemObj;
+    });
+
+    const data = {
+      ...order.toObject(),
+      items: itemsWithMedia
+    };
+
+    return response.success(res, {
+      message: 'Order detail retrieved successfully',
+      data
+    });
+
+  } catch (error) {
+    console.error('getOrderDetail error:', error);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getPendingShops,
@@ -1091,5 +1202,7 @@ module.exports = {
   getStatistics,
   getStatisticsCategories,
   getStatisticsDateRanges,
-  getStatisticsStatuses
+  getStatisticsStatuses,
+  getAllOrders,
+  getOrderDetail
 };

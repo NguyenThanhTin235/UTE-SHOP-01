@@ -364,11 +364,11 @@ const UserStatistics = () => {
                             <td className="px-6 py-4 text-sm text-[#434655]">{new Date(order.createdAt).toLocaleDateString()}</td>
                             <td className="px-6 py-4 text-sm font-bold text-[#131b2e]">{formatCurrency(order.total_final)}</td>
                             <td className="px-6 py-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize
-                                ${order.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                                ${['pending', 'confirmed', 'preparing', 'shipping'].includes(order.status) ? 'bg-blue-100 text-blue-800' : ''}
-                                ${['canceled', 'disputed', 'refunded'].includes(order.status) ? 'bg-red-100 text-red-800' : ''}
-                              `}>
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize
+                                  ${order.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                                  ${['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping'].includes(order.status) ? 'bg-blue-100 text-blue-800' : ''}
+                                  ${['canceled', 'disputed', 'refunded'].includes(order.status) ? 'bg-red-100 text-red-800' : ''}
+                                `}>
                                 {order.status}
                               </span>
                             </td>

@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { logout } from '../../redux/authSlice';
 import Layout from '../../components/Layout';
 import FABGroup from '../../components/FABGroup';
+import MapPicker from '../../components/MapPicker';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -28,12 +29,17 @@ const AddressBook = () => {
   const [editingId, setEditingId] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   
+  const [showMap, setShowMap] = useState(false);
+  
   const [formData, setFormData] = useState({
+    labelType: 'Home',
     label: '',
     recipient_name: '',
     recipient_phone: '',
     street_address: '',
     city: '',
+    latitude: null,
+    longitude: null,
     is_default: false
   });
 
@@ -80,6 +86,8 @@ const AddressBook = () => {
       recipient_phone: '',
       street_address: '',
       city: '',
+      latitude: null,
+      longitude: null,
       is_default: false
     });
     setEditingId(null);
@@ -93,13 +101,15 @@ const AddressBook = () => {
     setFormData({
       labelType: isCommon ? currentLabel : 'Other',
       label: isCommon ? '' : currentLabel,
-      recipient_name: address.recipientName,
-      recipient_phone: address.recipientPhone,
-      street_address: address.streetAddress,
+      recipient_name: address.recipientName || address.recipient_name,
+      recipient_phone: address.recipientPhone || address.recipient_phone,
+      street_address: address.streetAddress || address.street_address,
       city: address.city || '',
-      is_default: address.isDefault || false
+      latitude: address.latitude || null,
+      longitude: address.longitude || null,
+      is_default: address.isDefault || address.is_default || false
     });
-    setEditingId(address.id);
+    setEditingId(address.id || address._id);
     setShowForm(true);
   };
 
@@ -148,6 +158,15 @@ const AddressBook = () => {
     });
   };
 
+  const handleMapConfirm = (data) => {
+    setFormData((prev) => ({
+      ...prev,
+      street_address: data.addressString,
+      latitude: data.lat,
+      longitude: data.lng
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -179,6 +198,8 @@ const AddressBook = () => {
       recipient_phone: phone,
       street_address: street,
       city: formData.city?.trim() || '',
+      latitude: formData.latitude,
+      longitude: formData.longitude,
       label: formData.labelType === 'Other' ? formData.label.trim() : formData.labelType
     };
 
@@ -366,7 +387,17 @@ const AddressBook = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-[#434655] mb-1">Detailed Address *</label>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-bold text-[#434655]">Detailed Address *</label>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowMap(true)}
+                          className="text-[#004ac6] text-xs font-bold flex items-center gap-1 hover:underline bg-[#e2e7ff] px-2 py-1 rounded-md transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">map</span>
+                          Select on map
+                        </button>
+                      </div>
                       <textarea 
                         name="street_address" value={formData.street_address} onChange={handleInputChange} required
                         className="w-full bg-[#f2f3ff] border border-[#c3c6d7] rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" 
@@ -505,6 +536,14 @@ const AddressBook = () => {
           </div>
         </div>
       )}
+
+      <MapPicker 
+        isOpen={showMap}
+        onClose={() => setShowMap(false)}
+        onConfirm={handleMapConfirm}
+        initialLat={formData.latitude}
+        initialLng={formData.longitude}
+      />
     </Layout>
   );
 };

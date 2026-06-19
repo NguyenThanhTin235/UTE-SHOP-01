@@ -7,6 +7,8 @@ const sellerProfileSchema = new mongoose.Schema({
      bank_account_name: { type: String },
      bank_account_number: { type: String },
      pickup_address: { type: String },
+     latitude: { type: Number },
+     longitude: { type: Number },
      identity_card_url: { type: String },
      business_license_url: { type: String },
      status: { type: String, enum: ['pending', 'active', 'rejected', 'suspended'], default: 'pending' },

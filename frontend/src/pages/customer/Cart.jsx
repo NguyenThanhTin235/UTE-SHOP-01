@@ -628,7 +628,7 @@ const Cart = () => {
                     </div>
                     <div className="flex justify-between text-sm text-[#505f76]">
                       <span>Shipping Fee</span>
-                      <span className="text-primary font-bold">Free</span>
+                      <span className="text-[#131b2e] italic">Calculated at checkout</span>
                     </div>
                     
                     <div className="h-px bg-[#c3c6d7]/30 my-2"></div>

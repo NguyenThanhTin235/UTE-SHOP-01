@@ -5,6 +5,8 @@ const shopSchema = new mongoose.Schema({
   owner_user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   slug: { type: String, required: true, unique: true },
   address: { type: String },
+  latitude: { type: Number },
+  longitude: { type: Number },
   phone: { type: String },
   logo_url: { type: String },
   banner_url: { type: String },

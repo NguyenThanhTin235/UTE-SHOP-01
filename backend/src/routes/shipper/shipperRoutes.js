@@ -11,6 +11,8 @@ router.use(isShipper);
 
 router.get('/dashboard', shipperController.getDashboardOverview);
 router.get('/orders', shipperController.getOrders);
+router.get('/orders/available', shipperController.getAvailableOrders);
+router.put('/orders/:id/accept', shipperController.acceptOrder);
 router.get('/orders/:id/detail', shipperController.getOrderDetail);
 router.get('/orders/:status', shipperController.getOrders);
 router.put('/orders/:id/status', uploadProof.single('image'), shipperController.updateOrderStatus);

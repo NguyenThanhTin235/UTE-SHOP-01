@@ -320,7 +320,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
                 <div className="pt-4 border-t border-slate-100/80 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                      Shipping Rate
+                      Base Fee per km
                     </span>
                     <span className="text-base font-black text-slate-900 mt-0.5">
                       {fee.toLocaleString('vi-VN')} <span className="text-xs font-semibold text-slate-500">₫</span>
@@ -441,7 +441,7 @@ const LogisticsPartnersTab = ({ searchTerm, setAddPartnerTrigger }) => {
 
                 {/* Shipping Fee */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-black text-slate-600 uppercase tracking-wider">Shipping Fee (VND)</label>
+                  <label className="block text-xs font-black text-slate-600 uppercase tracking-wider">Base Fee per km (VND)</label>
                   <div className="relative">
                     <input
                       type="number"

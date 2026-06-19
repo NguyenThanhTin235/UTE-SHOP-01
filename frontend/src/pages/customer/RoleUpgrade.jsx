@@ -5,6 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import Layout from '../../components/Layout';
 import FABGroup from '../../components/FABGroup';
+import MapPicker from '../../components/MapPicker';
 import { logout } from '../../redux/authSlice';
 
 const RoleUpgrade = () => {
@@ -16,6 +17,7 @@ const RoleUpgrade = () => {
   const [statusData, setStatusData] = useState({ seller: null, shipper: null });
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingStatus, setIsFetchingStatus] = useState(true);
+  const [showMap, setShowMap] = useState(false);
 
   // Form states
   const [sellerForm, setSellerForm] = useState({
@@ -23,7 +25,9 @@ const RoleUpgrade = () => {
     bank_name: '',
     bank_account_name: '',
     bank_account_number: '',
-    pickup_address: ''
+    pickup_address: '',
+    latitude: null,
+    longitude: null
   });
   const [sellerFiles, setSellerFiles] = useState({ identity_card: null, business_license: null });
 
@@ -66,7 +70,9 @@ const RoleUpgrade = () => {
             bank_account_name: seller.bank_account_name || '',
             bank_account_number: seller.bank_account_number || '',
             gst_number: seller.gst_number || '',
-            pickup_address: seller.pickup_address || ''
+            pickup_address: seller.pickup_address || '',
+            latitude: seller.latitude || null,
+            longitude: seller.longitude || null
         });
       }
       if (response.data.data.shipper) {
@@ -410,7 +416,18 @@ const RoleUpgrade = () => {
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Pickup Address</label>
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-[#434655]">Pickup Address</label>
+                                            <button 
+                                              type="button" 
+                                              onClick={() => setShowMap(true)}
+                                              disabled={statusData.seller?.status === 'pending' || statusData.seller?.status === 'active'}
+                                              className="text-[#004ac6] text-[10px] font-bold flex items-center gap-1 hover:underline bg-[#e2e7ff] px-2 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                              <span className="material-symbols-outlined text-[12px]">map</span>
+                                              Select on map
+                                            </button>
+                                        </div>
                                         <input required className="w-full bg-[#ffffff] border border-[#c3c6d7] rounded-lg p-3 outline-none focus:border-primary" type="text" value={sellerForm.pickup_address} onChange={(e) => setSellerForm({...sellerForm, pickup_address: e.target.value})} disabled={statusData.seller?.status === 'pending' || statusData.seller?.status === 'active'} />
                                     </div>
 
@@ -575,6 +592,20 @@ const RoleUpgrade = () => {
       </div>
 
       <FABGroup />
+      <MapPicker 
+        isOpen={showMap}
+        onClose={() => setShowMap(false)}
+        onConfirm={(data) => {
+          setSellerForm({
+            ...sellerForm,
+            pickup_address: data.addressString,
+            latitude: data.lat,
+            longitude: data.lng
+          });
+        }}
+        initialLat={sellerForm.latitude}
+        initialLng={sellerForm.longitude}
+      />
     </Layout>
   );
 };

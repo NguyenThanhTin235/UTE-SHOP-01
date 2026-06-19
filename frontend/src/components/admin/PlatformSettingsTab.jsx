@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import MapPicker from '../MapPicker';
 
 const PlatformSettingsTab = ({ activeInnerTab }) => {
   const [categories, setCategories] = useState([]);
@@ -36,6 +37,7 @@ const PlatformSettingsTab = ({ activeInnerTab }) => {
   });
   const [loadingGeneral, setLoadingGeneral] = useState(false);
   const [savingGeneral, setSavingGeneral] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -515,7 +517,17 @@ const PlatformSettingsTab = ({ activeInnerTab }) => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Headquarters Address</label>
+                    <div className="flex justify-between items-center ml-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Headquarters Address</label>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowMap(true)}
+                        className="text-[#004ac6] text-[10px] font-bold flex items-center gap-1 hover:underline bg-[#e2e7ff] px-2 py-1 rounded-md transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">map</span>
+                        Select on map
+                      </button>
+                    </div>
                     <div className="relative">
                       <textarea 
                         name="contactAddress"
@@ -814,6 +826,18 @@ const PlatformSettingsTab = ({ activeInnerTab }) => {
           </div>
         </div>
       )}
+
+      {/* MapPicker Component */}
+      <MapPicker 
+        isOpen={showMap}
+        onClose={() => setShowMap(false)}
+        onConfirm={(data) => {
+          setGeneralSettings(prev => ({
+            ...prev,
+            contactAddress: data.addressString
+          }));
+        }}
+      />
     </div>
   );
 };
