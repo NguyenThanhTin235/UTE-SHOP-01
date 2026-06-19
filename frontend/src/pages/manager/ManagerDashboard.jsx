@@ -12,7 +12,6 @@ import ViolationsTab from '../../components/manager/ViolationsTab';
 import ManagerViolationDetail from '../../components/manager/ManagerViolationDetail';
 import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import ManagerHeader from '../../components/manager/ManagerHeader';
-import ManagerAiAssistant from '../../components/manager/ManagerAiAssistant';
 import ManagerStatistics from '../../components/manager/ManagerStatistics';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
@@ -511,16 +510,6 @@ const ManagerDashboard = () => {
         </div>
 
         {/* ── FAB: AI Assistant ────────────────────────────────────────────── */}
-        <ManagerAiAssistant
-          showAI={showAI}
-          setShowAI={setShowAI}
-          aiInput={aiInput}
-          setAiInput={setAiInput}
-          aiMessages={aiMessages}
-          handleAiSubmit={handleAiSubmit}
-          unreadCount={unreadCount}
-          aiEndRef={aiEndRef}
-        />
       </main>
     </div>
   );

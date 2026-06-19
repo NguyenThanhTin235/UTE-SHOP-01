@@ -43,7 +43,7 @@ app.use('/api/shipper', require('./routes/shipper/shipperRoutes'));
 app.use('/api/admin', require('./routes/admin/adminRoutes'));
 app.use('/api/support', require('./routes/customer/supportRoutes'));
 app.use('/api/chat', require('./routes/shared/chatRoutes'));
-
+app.use('/api/chatbot', require('./routes/customer/chatbotRoutes'));
 
 // Global Error Handler
 app.use((err, req, res, next) => {

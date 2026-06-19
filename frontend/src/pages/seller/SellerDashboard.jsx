@@ -18,7 +18,6 @@ import SellerMessages from '../../components/seller/SellerMessages';
 import SellerSidebar from '../../components/seller/SellerSidebar';
 import SellerHeader from '../../components/seller/SellerHeader';
 import SellerDashboardOverview from '../../components/seller/SellerDashboardOverview';
-import SellerAIChat from '../../components/seller/SellerAIChat';
 
 const SellerOrderDetailWrapper = () => {
   const { orderId } = useParams();
@@ -247,7 +246,7 @@ const SellerDashboard = () => {
           </Routes>
         )}
 
-        <SellerAIChat />
+        {/* Floating Action Buttons / Chat Windows */}
       </main>
     </div>
   );

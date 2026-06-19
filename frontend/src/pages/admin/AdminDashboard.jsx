@@ -9,7 +9,6 @@ import axios from 'axios';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 import AdminDashboardOverview from '../../components/admin/AdminDashboardOverview';
-import AdminAiAssistant from '../../components/admin/AdminAiAssistant';
 import UserManagementTab from '../../components/admin/UserManagementTab';
 import PromotionsTab from '../../components/admin/PromotionsTab';
 import CampaignEditor from '../../components/admin/CampaignEditor';
@@ -297,15 +296,6 @@ const AdminDashboard = () => {
       )}
 
       {/* Floating Action Buttons & Chat Window */}
-        <AdminAiAssistant
-          showAI={showAI}
-          setShowAI={setShowAI}
-          aiInput={aiInput}
-          setAiInput={setAiInput}
-          aiMessages={aiMessages}
-          handleAiSubmit={handleAiSubmit}
-          unreadCount={unreadCount}
-        />
       </main>
     </div>
   );
