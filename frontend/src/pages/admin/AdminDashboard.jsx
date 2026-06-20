@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { logout } from '../../redux/authSlice';
+import { fetchAdminDashboardData } from '../../redux/adminSlice';
+import { fetchNotifications } from '../../redux/notificationSlice';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 
 // Import subcomponents
 import AdminSidebar from '../../components/admin/AdminSidebar';
@@ -52,7 +53,6 @@ const AdminDashboard = () => {
   const [addPartnerTrigger, setAddPartnerTrigger] = useState(null);
   const [addRoleTrigger, setAddRoleTrigger] = useState(null);
   const [activePlatformTab, setActivePlatformTab] = useState('general');
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
   const [aiMessages, setAiMessages] = useState([
@@ -60,8 +60,8 @@ const AdminDashboard = () => {
   ]);
 
   const [days, setDays] = useState(30);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { dashboardData, loading } = useSelector((state) => state.admin);
+  const { unreadCount } = useSelector((state) => state.notifications);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -70,57 +70,18 @@ const AdminDashboard = () => {
     toast.success('Logged out successfully');
   };
 
-  // Fetch unread notifications count
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-        const response = await axios.get('http://localhost:5000/api/notifications', config);
-        if (response.data && response.data.success) {
-          const data = response.data.data || [];
-          const unread = data.filter(n => !n.is_read).length;
-          setUnreadCount(unread);
-        }
-      } catch (error) {
-        console.error('Fetch unread notifications error:', error);
-      }
-    };
-
-    fetchUnreadCount();
-  }, [user]);
-
-  // Fetch admin dashboard data helper
-  const fetchDashboardData = async () => {
-    if (activeTab !== 'dashboard') return;
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get(`http://localhost:5000/api/admin/dashboard?days=${days}`, config);
-      if (response.data && response.data.success) {
-        setDashboardData(response.data.data);
-      }
-    } catch (error) {
-      console.error('Fetch admin dashboard data error:', error);
-      toast.error('Failed to load dashboard statistics');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Fetch admin dashboard data on change
   useEffect(() => {
-    fetchDashboardData();
-  }, [activeTab, user, days]);
+    if (activeTab === 'dashboard' && user) {
+      dispatch(fetchAdminDashboardData(days));
+    }
+  }, [activeTab, user, days, dispatch]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchNotifications());
+    }
+  }, [user, dispatch]);
 
   const handleAiSubmit = (e) => {
     e.preventDefault();
@@ -212,7 +173,7 @@ const AdminDashboard = () => {
                 days={days}
                 setDays={setDays}
                 setActiveTab={setActiveTab}
-                refetch={fetchDashboardData}
+                refetch={() => dispatch(fetchAdminDashboardData(days))}
               />
             )}
 

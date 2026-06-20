@@ -30,6 +30,38 @@ const translateTimelineNote = (note) => {
   return translated;
 };
 
+const translateVariant = (variant) => {
+  if (!variant) return 'Standard';
+  let translated = variant;
+  
+  // Translate "Màu sắc" / "Màu" to "Color"
+  translated = translated.replace(/Màu sắc/gi, 'Color').replace(/Màu/gi, 'Color');
+  
+  // Color mappings
+  const colors = {
+    'đỏ': 'Red',
+    'xanh dương': 'Blue',
+    'xanh lá': 'Green',
+    'vàng': 'Yellow',
+    'đen': 'Black',
+    'trắng': 'White',
+    'tím': 'Purple',
+    'hồng': 'Pink',
+    'xám': 'Gray',
+    'cam': 'Orange',
+    'nâu': 'Brown',
+    'bạc': 'Silver',
+    'vàng hồng': 'Rose Gold'
+  };
+
+  Object.keys(colors).forEach(vnColor => {
+    const regex = new RegExp(vnColor, 'gi');
+    translated = translated.replace(regex, colors[vnColor]);
+  });
+
+  return translated;
+};
+
 const OrderDetail = () => {
   const { orderId } = useParams();
   const { user } = useSelector((state) => state.auth);
@@ -658,7 +690,7 @@ const OrderDetail = () => {
                       <div className="flex-grow min-w-0">
                         <h4 className="font-bold text-xs text-[#131b2e] leading-tight truncate">{item.name}</h4>
                         <p className="text-[10px] text-[#737686] mt-0.5 font-medium">
-                          Quantity: {item.quantity} | {item.variantName || 'Standard'}
+                          Quantity: {item.quantity} | {translateVariant(item.variantName)}
                         </p>
                         <p className="font-bold text-xs text-primary mt-1">
                           {item.price?.toLocaleString()}₫

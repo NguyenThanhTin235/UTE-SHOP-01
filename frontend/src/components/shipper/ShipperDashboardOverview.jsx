@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchShipperDashboard } from '../../redux/shipperSlice';
 import { toast } from 'react-hot-toast';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
@@ -9,42 +10,12 @@ import {
 const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6']; // Emerald, Red, Amber, Blue
 
 const ShipperDashboardOverview = ({ setActiveTab }) => {
-  const [stats, setStats] = useState({
-    totalAssigned: 0,
-    inTransit: 0,
-    delivered: 0,
-    failed: 0,
-    todayDelivered: 0
-  });
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [performanceData, setPerformanceData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { stats, recentOrders, performanceData, loading } = useSelector((state) => state.shipper);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const headers = { Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` };
-      
-      const [dashboardRes, ordersRes, statsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/shipper/dashboard', { headers }),
-        axios.get('http://localhost:5000/api/shipper/orders?limit=5', { headers }),
-        axios.get('http://localhost:5000/api/shipper/statistics?timeframe=week', { headers })
-      ]);
-
-      if (dashboardRes.data.success) setStats(dashboardRes.data.data);
-      if (ordersRes.data.success) setRecentOrders(ordersRes.data.data.orders);
-      if (statsRes.data.success) setPerformanceData(statsRes.data.data.chartData);
-
-    } catch (error) {
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchShipperDashboard());
+  }, [dispatch]);
 
   const getStatusBadge = (status) => {
     const badges = {

@@ -7,6 +7,42 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import FABGroup from '../../components/FABGroup';
 
+const translateVariant = (variant) => {
+  if (!variant) return 'Standard';
+  let translated = variant;
+  
+  // Translate "Màu sắc" / "Màu" to "Color"
+  translated = translated.replace(/Màu sắc/gi, 'Color').replace(/Màu/gi, 'Color');
+  
+  // Color mappings
+  const colors = {
+    'đỏ rượu': 'Burgundy',
+    'đỏ': 'Red',
+    'xanh dương': 'Blue',
+    'xanh lá': 'Green',
+    'xanh navy': 'Navy Blue',
+    'vàng hồng': 'Rose Gold',
+    'vàng': 'Yellow',
+    'đen': 'Black',
+    'trắng': 'White',
+    'tím': 'Purple',
+    'hồng phấn': 'Pastel Pink',
+    'hồng': 'Pink',
+    'xám': 'Gray',
+    'cam': 'Orange',
+    'nâu': 'Brown',
+    'bạc': 'Silver',
+    'be': 'Beige'
+  };
+
+  Object.keys(colors).forEach(vnColor => {
+    const regex = new RegExp(vnColor, 'gi');
+    translated = translated.replace(regex, colors[vnColor]);
+  });
+
+  return translated;
+};
+
 const ProductDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -418,7 +454,7 @@ const ProductDetail = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-bold uppercase tracking-wider text-secondary">Color</p>
-                      <span className="text-xs text-on-surface-variant">Selected: <strong className="text-primary">{selectedColor || 'None'}</strong></span>
+                      <span className="text-xs text-on-surface-variant">Selected: <strong className="text-primary">{selectedColor ? translateVariant(selectedColor) : 'None'}</strong></span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {availableColors.map(color => {
@@ -442,7 +478,7 @@ const ProductDetail = () => {
                             <span className="w-3 h-3 rounded-full border border-outline-variant/50 shadow-inner" style={{
                               backgroundColor: color === 'Đen' ? '#000' : color === 'Trắng' ? '#fff' : color === 'Xanh Navy' ? '#1e3a8a' : color === 'Be' ? '#f3f4f6' : color === 'Xám' ? '#9ca3af' : color === 'Hồng' || color === 'Hồng phấn' ? '#fbcfe8' : color === 'Đỏ rượu' ? '#991b1b' : '#cbd5e1'
                             }}></span>
-                            {color}
+                            {translateVariant(color)}
                           </button>
                         );
                       })}
