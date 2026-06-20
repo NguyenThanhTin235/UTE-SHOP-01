@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
+const cartSyncService = require('./services/cartSyncService');
 
 const requestId = require('./middleware/requestId');
 const rateLimit = require('express-rate-limit');
@@ -62,6 +63,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
+  cartSyncService.start();
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });

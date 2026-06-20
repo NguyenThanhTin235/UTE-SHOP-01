@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCart, updateCartItem, removeCartItem, removeSelectedCartItems, clearCart } from '../../redux/cartSlice';
+import { fetchCart, updateCartItem, removeCartItem, removeSelectedCartItems, clearCart, addToCart } from '../../redux/cartSlice';
 import toast from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -127,7 +127,7 @@ const Cart = () => {
     }
 
     // Optimistic update in UI
-    setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: newQty } : i));
+    setLocalQuantities(prev => ({ ...prev, [item.id]: newQty }));
 
     try {
       await dispatch(updateCartItem({ itemId: item.id, quantity: newQty })).unwrap();
@@ -153,13 +153,43 @@ const Cart = () => {
       targetQty = item.stock;
     }
 
-    setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: targetQty } : i));
+    setLocalQuantities(prev => ({ ...prev, [item.id]: targetQty }));
 
     try {
       await dispatch(updateCartItem({ itemId: item.id, quantity: targetQty })).unwrap();
     } catch (error) {
       dispatch(fetchCart()); // Re-fetch on error
       toast.error(error || 'Failed to update item quantity');
+    }
+  };
+
+  // Change variant
+  const handleVariantChange = async (item, newVariantId) => {
+    if (newVariantId === item.variantId) return;
+    
+    // Check stock
+    const selectedVariant = item.availableVariants?.find(v => v.id === newVariantId);
+    if (!selectedVariant || selectedVariant.stockQuantity < item.quantity) {
+      toast.error('Không đủ tồn kho cho biến thể này');
+      return;
+    }
+
+    try {
+      // Add the new variant to cart
+      await dispatch(addToCart({ 
+        productId: item.productId, 
+        variantId: newVariantId, 
+        quantity: item.quantity, 
+        note: item.note 
+      })).unwrap();
+      
+      // Remove old variant
+      await dispatch(removeCartItem(item.id)).unwrap();
+      
+      toast.success('Đã cập nhật biến thể sản phẩm');
+      dispatch(fetchCart()); // Refresh to update list
+    } catch(err) {
+      toast.error('Lỗi khi đổi biến thể');
     }
   };
 
@@ -358,9 +388,25 @@ const Cart = () => {
                                 <h3 className="font-bold text-lg text-[#131b2e] line-clamp-2">
                                   <Link to={`/product/${item.slug}`} className="hover:text-primary transition-colors">{item.name}</Link>
                                 </h3>
-                                <p className="text-xs text-[#505f76] mt-1 font-medium bg-[#eaedff]/50 px-2 py-0.5 rounded-full inline-block">
-                                  Variant: {item.variant || 'Default'}
-                                </p>
+                                
+                                {item.availableVariants && item.availableVariants.length > 0 ? (
+                                  <select 
+                                    value={item.variantId || ''} 
+                                    onChange={(e) => handleVariantChange(item, e.target.value)}
+                                    className="mt-2 text-xs text-[#505f76] font-medium bg-[#eaedff]/50 px-3 py-1.5 rounded-lg inline-block border-none focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+                                  >
+                                    {item.availableVariants.map(v => (
+                                      <option key={v.id} value={v.id}>
+                                        {v.name} {v.additionalPrice > 0 ? `(+${v.additionalPrice.toLocaleString()}₫)` : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <p className="text-xs text-[#505f76] mt-1 font-medium bg-[#eaedff]/50 px-2 py-0.5 rounded-full inline-block">
+                                    Variant: {item.variant || 'Default'}
+                                  </p>
+                                )}
+                                
                               </div>
                               <div className="flex flex-col items-end">
                                 <span className="font-bold text-lg text-primary whitespace-nowrap">{item.price?.toLocaleString()}₫</span>

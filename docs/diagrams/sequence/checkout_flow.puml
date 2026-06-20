@@ -1,0 +1,33 @@
+@startuml
+skinparam maxMessageSize 150
+actor Customer
+participant "Frontend (React)" as FE
+participant "Order Service" as API
+participant "Database" as DB
+participant "VNPay Gateway" as VNPay
+
+Customer -> FE: Proceed to Checkout
+FE -> API: Validate Cart & Compute Total (incl. Shipping)
+API -> DB: Check Inventory
+DB --> API: Inventory OK
+API --> FE: Return Checkout Details
+
+Customer -> FE: Confirm Order & Select VNPay
+FE -> API: Create Order (Status: Pending Payment)
+API -> DB: Save Order
+API -> VNPay: Generate Payment URL
+VNPay --> API: Payment URL
+API --> FE: Redirect to Payment URL
+FE --> Customer: Show VNPay Portal
+
+Customer -> VNPay: Enter Card/Bank Info & Pay
+VNPay -> API: Webhook: Payment Success
+API -> DB: Update Order Status (Paid)
+API -> DB: Deduct Inventory
+API --> VNPay: Acknowledge Webhook (200 OK)
+
+VNPay --> FE: Redirect to Return URL (Success)
+FE -> API: Fetch Order Status
+API --> FE: Order is Paid
+FE --> Customer: Display Order Success Page
+@enduml

@@ -102,7 +102,6 @@ const Login = () => {
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
-      console.log(tokenResponse);
       dispatch(googleLogin(tokenResponse.access_token));
     },
     onError: () => toast.error('Google Login Failed'),

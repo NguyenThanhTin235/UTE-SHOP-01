@@ -1,0 +1,23 @@
+@startuml
+skinparam maxMessageSize 150
+actor Customer
+participant Frontend as FE
+participant "Promotion Service" as Promo
+participant "Database" as DB
+
+Customer -> FE: Enter Discount Code
+FE -> Promo: Apply Coupon (Code, Cart Items)
+Promo -> DB: Fetch Coupon Rules
+DB --> Promo: Rules (Min Spend, Expiry, Type)
+
+alt Invalid Coupon
+    Promo --> FE: Error (Expired / Not Applicable)
+    FE --> Customer: Show Error Message
+else Valid Coupon
+    Promo -> Promo: Calculate Discount Amount
+    Promo -> Promo: Split Discount between Platform & Seller
+    Promo -> DB: Temporarily Reserve Coupon Usage
+    Promo --> FE: Return New Total & Discount Split Details
+    FE --> Customer: Display Discount Applied
+end
+@enduml

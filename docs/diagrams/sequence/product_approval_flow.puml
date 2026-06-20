@@ -1,0 +1,25 @@
+@startuml
+skinparam maxMessageSize 150
+actor Seller
+participant Backend as API
+participant Database as DB
+actor Manager
+
+Seller -> API: Submit New Product
+API -> DB: Save Product (Status: Pending)
+API --> Seller: Notify "Under Review"
+
+API --> Manager: New Product Approval Request
+Manager -> API: View Product Details (Images, Desc)
+
+alt Approved
+    Manager -> API: Approve Product
+    API -> DB: Update Status -> "Published"
+    API --> Seller: Notify "Product Approved"
+else Rejected
+    Manager -> API: Reject Product (Reason)
+    API -> DB: Update Status -> "Rejected"
+    API --> Seller: Notify Rejection with Reason
+    Seller -> API: Edit and Resubmit Product
+end
+@enduml

@@ -21,6 +21,7 @@ const Notification = require('../../models/Notification');
 const ShippingPartner = require('../../models/ShippingPartner');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../../utils/promotionHelper');
 const { toCamelCase } = require('../../utils/formatter');
+const redis = require('../../config/redis');
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return 10; // Fallback distance 10km if missing coordinates
@@ -149,6 +150,17 @@ class CheckoutController {
           message: 'No selected items found in cart'
         });
       }
+
+      // Merge Redis data to ensure quantity is up-to-date
+      const redisKey = `cart:${userId}:items`;
+      const redisData = await redis.hgetall(redisKey);
+      cartItems.forEach(item => {
+        const rDataStr = redisData[item._id.toString()];
+        if (rDataStr) {
+          const r = JSON.parse(rDataStr);
+          if (r.q !== undefined) item.quantity = r.q;
+        }
+      });
 
       const productDiscounts = await getActiveCampaignsWithProducts();
       for (const item of cartItems) {
@@ -488,6 +500,17 @@ class CheckoutController {
           message: 'Selected products to checkout not found'
         });
       }
+
+      // Merge Redis data to ensure quantity is up-to-date
+      const redisKey = `cart:${userId}:items`;
+      const redisData = await redis.hgetall(redisKey);
+      cartItems.forEach(item => {
+        const rDataStr = redisData[item._id.toString()];
+        if (rDataStr) {
+          const r = JSON.parse(rDataStr);
+          if (r.q !== undefined) item.quantity = r.q;
+        }
+      });
 
       const productDiscounts = await getActiveCampaignsWithProducts();
       for (const item of cartItems) {

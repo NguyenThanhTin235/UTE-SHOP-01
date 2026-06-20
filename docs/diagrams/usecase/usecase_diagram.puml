@@ -1,0 +1,137 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor lightblue
+  BorderColor darkblue
+}
+
+actor "Guest" as Guest
+actor "Customer" as Customer
+actor "Seller" as Seller
+actor "Manager" as Manager
+actor "Admin" as Admin
+actor "Shipper" as Shipper
+
+package "Buyer Module (Guest & Customer)" {
+    usecase "View Home" as UC_Home
+    usecase "Search Products" as UC_Search
+    usecase "View Product Detail" as UC_ProductDetail
+    usecase "Read Blog & Policy Detail" as UC_Blog
+    usecase "Manage Cart" as UC_Cart
+    usecase "Login & Register" as UC_Auth
+    
+    usecase "Proceed to Checkout" as UC_Checkout
+    usecase "View Order History" as UC_OrderHistory
+    usecase "Cancel Order" as UC_Cancel
+    usecase "Manage Wishlist & Recently Viewed" as UC_Wishlist
+    usecase "Write/View Reviews" as UC_Review
+    usecase "Manage Profile, Address Book & Security" as UC_Profile
+    usecase "Manage Coins" as UC_Coins
+    usecase "View User Statistics" as UC_UserStats
+    usecase "View Notifications & Promotions" as UC_Promo
+    usecase "Request Role Upgrade" as UC_Upgrade
+    usecase "Interact with Customer AI Chat" as UC_Chat
+}
+
+package "Seller Module" {
+    usecase "View Seller Dashboard" as UC_SellerDash
+    usecase "Manage Products" as UC_SellerProducts
+    usecase "Manage Orders" as UC_SellerOrders
+    usecase "Process Cancellations" as UC_SellerCancel
+    usecase "Manage Wallet" as UC_SellerWallet
+    usecase "View Analytics" as UC_SellerStats
+    usecase "Manage Reviews" as UC_SellerReviews
+    usecase "Send Messages" as UC_SellerChat
+    usecase "Configure Settings" as UC_SellerSettings
+}
+
+package "Shipper Module" {
+    usecase "View Shipper Dashboard" as UC_ShipDash
+    usecase "Deliver Orders" as UC_ShipOrders
+    usecase "View Statistics" as UC_ShipStats
+    usecase "Manage Profile" as UC_ShipProfile
+}
+
+package "Admin & Manager Module" {
+    usecase "View Admin/Manager Dashboard" as UC_AdminDash
+    usecase "Approve Shop & Product" as UC_Approve
+    usecase "Handle Violations" as UC_Violation
+    usecase "Monitor Orders" as UC_AllOrders
+    
+    usecase "Approve Withdrawals" as UC_ApproveWithdraw
+    usecase "Approve Role Upgrades" as UC_ApproveRole
+    usecase "Manage Users" as UC_Users
+    usecase "Configure RBAC" as UC_RBAC
+    usecase "Manage Blog" as UC_AdminBlog
+    usecase "Manage Promotions & Campaigns" as UC_AdminPromo
+    usecase "Provide User Support" as UC_Support
+    usecase "Configure Platform & Finance Settings" as UC_ConfigCore
+    usecase "Configure UI & Logistics Partners" as UC_ConfigUI
+    usecase "Review Security Logs" as UC_Audit
+}
+
+' Guest Links
+Guest --> UC_Home
+Guest --> UC_Search
+Guest --> UC_ProductDetail
+Guest --> UC_Blog
+Guest --> UC_Cart
+Guest --> UC_Auth
+
+' Customer Links
+Customer --> UC_Home
+Customer --> UC_Search
+Customer --> UC_ProductDetail
+Customer --> UC_Blog
+Customer --> UC_Cart
+Customer --> UC_Auth
+Customer --> UC_Checkout
+Customer --> UC_OrderHistory
+Customer --> UC_Cancel
+Customer --> UC_Wishlist
+Customer --> UC_Review
+Customer --> UC_Profile
+Customer --> UC_Coins
+Customer --> UC_UserStats
+Customer --> UC_Promo
+Customer --> UC_Upgrade
+Customer --> UC_Chat
+
+' Seller Links
+Seller --> UC_SellerDash
+Seller --> UC_SellerProducts
+Seller --> UC_SellerOrders
+Seller --> UC_SellerCancel
+Seller --> UC_SellerWallet
+Seller --> UC_SellerStats
+Seller --> UC_SellerReviews
+Seller --> UC_SellerChat
+Seller --> UC_SellerSettings
+
+' Shipper Links
+Shipper --> UC_ShipDash
+Shipper --> UC_ShipOrders
+Shipper --> UC_ShipStats
+Shipper --> UC_ShipProfile
+
+' Manager Links
+Manager --> UC_AdminDash
+Manager --> UC_Approve
+Manager --> UC_Violation
+Manager --> UC_AllOrders
+
+' Admin Links
+Admin --> UC_AdminDash
+Admin --> UC_ApproveWithdraw
+Admin --> UC_ApproveRole
+Admin --> UC_Users
+Admin --> UC_RBAC
+Admin --> UC_AdminBlog
+Admin --> UC_AdminPromo
+Admin --> UC_Support
+Admin --> UC_ConfigCore
+Admin --> UC_ConfigUI
+Admin --> UC_Audit
+
+@enduml

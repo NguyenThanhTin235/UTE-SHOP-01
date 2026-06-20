@@ -1,0 +1,22 @@
+@startuml
+skinparam maxMessageSize 150
+actor User
+participant Frontend as FE
+participant "Backend / AI Controller" as API
+participant "Vector DB / Database" as DB
+participant "LLM Provider (OpenAI/Gemini)" as LLM
+
+User -> FE: Open Chatbot & Send Message
+FE -> API: Send Message Request (Session ID, User ID, Message)
+API -> DB: Fetch Chat History & Context
+API -> DB: Fetch Relevant Store Data (Products, FAQs, Policies)
+DB --> API: Context Data
+
+API -> API: Construct Prompt (History + Context + Message)
+API -> LLM: Generate Response
+LLM --> API: AI Response Text
+API -> DB: Save Assistant Response to History
+API --> FE: Return Response
+
+FE --> User: Display AI Message
+@enduml

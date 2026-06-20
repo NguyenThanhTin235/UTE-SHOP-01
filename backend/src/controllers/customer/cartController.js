@@ -7,6 +7,7 @@ const Category = require('../../models/Category');
 const Shop = require('../../models/Shop');
 const { getActiveCampaignsWithProducts, applyCampaignDiscount } = require('../../utils/promotionHelper');
 const { toCamelCase } = require('../../utils/formatter');
+const redis = require('../../config/redis');
 
 class CartController {
   /**
@@ -31,6 +32,20 @@ class CartController {
         })
         .populate('variant_id');
 
+      // Lấy dữ liệu thay đổi từ Redis
+      const redisKey = `cart:${userId}:items`;
+      const redisData = await redis.hgetall(redisKey);
+
+      // Cập nhật dữ liệu từ Redis vào items lấy từ DB
+      items.forEach(item => {
+        const rDataStr = redisData[item._id.toString()];
+        if (rDataStr) {
+          const r = JSON.parse(rDataStr);
+          if (r.q !== undefined) item.quantity = r.q;
+          if (r.n !== undefined) item.note = r.n;
+        }
+      });
+
       // Ánh xạ dữ liệu chi tiết (ảnh sản phẩm, danh mục, cửa hàng)
       const productDiscounts = await getActiveCampaignsWithProducts();
       const formattedItems = await Promise.all(
@@ -45,6 +60,15 @@ class CartController {
           // Lấy danh mục sản phẩm
           const category = await Category.findById(product.category_id);
           const shop = product.shop_id;
+
+          // Lấy tất cả biến thể của sản phẩm
+          const productVariants = await ProductVariant.find({ product_id: product._id });
+          const availableVariants = productVariants.map(v => ({
+            id: v._id.toString(),
+            name: Object.entries(v.attributes).map(([key, val]) => `${key}: ${val}`).join(' | '),
+            additionalPrice: v.additional_price || 0,
+            stockQuantity: v.stock_quantity || 0
+          }));
 
           // Xử lý thông tin biến thể
           let variantName = 'Standard';
@@ -81,6 +105,7 @@ class CartController {
             variantId: item.variant_id ? item.variant_id._id.toString() : null,
             variant: variantName,
             stock: stockQuantity,
+            availableVariants,
             shop: shop
               ? {
                   id: shop._id.toString(),
@@ -180,7 +205,19 @@ class CartController {
 
       let cartItem = await CartItem.findOne(query);
 
-      const targetQuantity = cartItem ? cartItem.quantity + Number(quantity) : Number(quantity);
+      const redisKey = `cart:${userId}:items`;
+      let currentQuantity = 0;
+      if (cartItem) {
+        const redisDataStr = await redis.hget(redisKey, cartItem._id.toString());
+        if (redisDataStr) {
+          const redisData = JSON.parse(redisDataStr);
+          currentQuantity = redisData.q || cartItem.quantity;
+        } else {
+          currentQuantity = cartItem.quantity;
+        }
+      }
+
+      const targetQuantity = currentQuantity + Number(quantity);
 
       // Kiểm tra tồn kho của biến thể
       if (variant && variant.stock_quantity < targetQuantity) {
@@ -191,19 +228,29 @@ class CartController {
         });
       }
 
-      if (cartItem) {
-        cartItem.quantity = targetQuantity;
-        if (note) cartItem.note = note;
-        await cartItem.save();
-      } else {
+      if (!cartItem) {
         cartItem = await CartItem.create({
           cart_id: cart._id,
           product_id: productId,
           variant_id: resolvedVariantId || null,
-          quantity: Number(quantity),
+          quantity: targetQuantity,
           note
         });
       }
+
+      // Lưu vào Redis
+      const rData = {
+        q: targetQuantity,
+        n: note || (cartItem.note || '')
+      };
+      if (resolvedVariantId) rData.v = resolvedVariantId.toString();
+      if (variant) rData.s = variant.stock_quantity; // Cache stock quantity
+      
+      await redis.hset(redisKey, cartItem._id.toString(), JSON.stringify(rData));
+
+      // Update response object
+      cartItem.quantity = targetQuantity;
+      if (note) cartItem.note = note;
 
       return res.status(200).json({
         success: true,
@@ -259,6 +306,21 @@ class CartController {
         });
       }
 
+      // Đọc từ Redis trước
+      const redisKey = `cart:${userId}:items`;
+      const rDataStr = await redis.hget(redisKey, cartItem._id.toString());
+      let rData = {};
+      let targetQuantity = cartItem.quantity;
+      let finalNote = cartItem.note;
+      let cachedStock = null;
+
+      if (rDataStr) {
+        rData = JSON.parse(rDataStr);
+        targetQuantity = rData.q || cartItem.quantity;
+        finalNote = rData.n !== undefined ? rData.n : cartItem.note;
+        if (rData.s !== undefined) cachedStock = rData.s;
+      }
+
       // Cập nhật số lượng
       if (quantity !== undefined) {
         const qtyNum = Number(quantity);
@@ -272,24 +334,35 @@ class CartController {
 
         // Kiểm tra tồn kho nếu có biến thể
         if (cartItem.variant_id) {
-          const variant = await ProductVariant.findById(cartItem.variant_id);
-          if (variant && variant.stock_quantity < qtyNum) {
+          let stock = cachedStock;
+          if (stock === null) {
+             const variant = await ProductVariant.findById(cartItem.variant_id);
+             stock = variant ? variant.stock_quantity : 0;
+             rData.s = stock; // cache lại
+          }
+          if (stock < qtyNum) {
             return res.status(400).json({
               success: false,
               code: 400,
-              message: `Số lượng vượt quá tồn kho còn lại (${variant.stock_quantity} sản phẩm)`
+              message: `Số lượng vượt quá tồn kho còn lại (${stock} sản phẩm)`
             });
           }
         }
-        cartItem.quantity = qtyNum;
+        targetQuantity = qtyNum;
+        rData.q = targetQuantity;
       }
 
       // Cập nhật ghi chú
       if (note !== undefined) {
-        cartItem.note = note;
+        finalNote = note;
+        rData.n = finalNote;
       }
 
-      await cartItem.save();
+      // Cập nhật Redis Hash
+      await redis.hset(redisKey, cartItem._id.toString(), JSON.stringify(rData));
+
+      cartItem.quantity = targetQuantity;
+      cartItem.note = finalNote;
 
       return res.status(200).json({
         success: true,
@@ -335,6 +408,9 @@ class CartController {
         });
       }
 
+      const redisKey = `cart:${userId}:items`;
+      await redis.hdel(redisKey, itemId);
+
       return res.status(200).json({
         success: true,
         code: 200,
@@ -369,6 +445,9 @@ class CartController {
       }
 
       await CartItem.deleteMany({ cart_id: cart._id });
+
+      const redisKey = `cart:${userId}:items`;
+      await redis.del(redisKey);
 
       return res.status(200).json({
         success: true,

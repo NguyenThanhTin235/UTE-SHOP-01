@@ -25,6 +25,26 @@ export const fetchCart = createAsyncThunk(
   }
 );
 
+export const addToCart = createAsyncThunk(
+  'cart/addToCart',
+  async ({ productId, variantId, quantity, note }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/cart/add', 
+        { productId, variantId, quantity, note }, 
+        { headers: getAuthHeader() }
+      );
+      if (response.data && response.data.success) {
+        window.dispatchEvent(new Event('cartUpdate'));
+        return response.data.data;
+      } else {
+        return rejectWithValue('Failed to add item to cart');
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add item to cart');
+    }
+  }
+);
+
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async ({ itemId, quantity, note }, { rejectWithValue, dispatch }) => {
