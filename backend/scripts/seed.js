@@ -170,7 +170,7 @@ const seedFashionData = async () => {
   try {
     await connectDB();
 
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash('*Tin230983', 10);
 
     console.log('🧹 Clearing product-related and transactional collections...');
      const modelsToClear = [
@@ -317,21 +317,24 @@ const seedFashionData = async () => {
         });
         await UserRole.create({ user_id: shipper._id, role_id: shipperRole._id });
       }
-      await ShipperProfile.create({
-        user_id: shipper._id,
-        cccd_number: sp.cccd_number,
-        vehicle_type: sp.vehicle_type,
-        vehicle_plate: sp.vehicle_plate,
-        shipping_company: sp.shipping_company,
-        operating_area: sp.operating_area,
-        emergency_contact: sp.emergency_contact,
-        emergency_contact_name: sp.emergency_contact_name,
-        bank_name: sp.bank_name,
-        bank_account_name: sp.bank_account_name,
-        bank_account_number: sp.bank_account_number,
-        status: 'active',
-        joined_date: new Date('2025-06-01')
-      });
+      let profile = await ShipperProfile.findOne({ user_id: shipper._id });
+      if (!profile) {
+        await ShipperProfile.create({
+          user_id: shipper._id,
+          cccd_number: sp.cccd_number,
+          vehicle_type: sp.vehicle_type,
+          vehicle_plate: sp.vehicle_plate,
+          shipping_company: sp.shipping_company,
+          operating_area: sp.operating_area,
+          emergency_contact: sp.emergency_contact,
+          emergency_contact_name: sp.emergency_contact_name,
+          bank_name: sp.bank_name,
+          bank_account_name: sp.bank_account_name,
+          bank_account_number: sp.bank_account_number,
+          status: 'active',
+          joined_date: new Date('2025-06-01')
+        });
+      }
       shippers.push(shipper);
     }
 
@@ -455,7 +458,8 @@ const seedFashionData = async () => {
       response_rate: 99,
       joined_at: new Date('2021-01-01'),
       response_time: 'within minutes',
-      product_count: 0
+      product_count: 0,
+      status: 'active'
     });
 
     const sneakerShop = await Shop.create({
@@ -471,7 +475,8 @@ const seedFashionData = async () => {
       response_rate: 95,
       joined_at: new Date('2022-05-15'),
       response_time: 'within hours',
-      product_count: 0
+      product_count: 0,
+      status: 'active'
     });
 
     const sportsShop = await Shop.create({
@@ -487,7 +492,8 @@ const seedFashionData = async () => {
       response_rate: 92,
       joined_at: new Date('2023-10-10'),
       response_time: 'within a day',
-      product_count: 0
+      product_count: 0,
+      status: 'active'
     });
 
     const kidsShop = await Shop.create({
@@ -503,7 +509,8 @@ const seedFashionData = async () => {
       response_rate: 98,
       joined_at: new Date('2024-03-20'),
       response_time: 'within minutes',
-      product_count: 0
+      product_count: 0,
+      status: 'active'
     });
 
     const unisexShop = await Shop.create({
@@ -519,7 +526,8 @@ const seedFashionData = async () => {
       response_rate: 97,
       joined_at: new Date('2025-01-10'),
       response_time: 'within minutes',
-      product_count: 0
+      product_count: 0,
+      status: 'active'
     });
 
     const shopsMap = {
@@ -1245,7 +1253,18 @@ const seedFashionData = async () => {
       metadata: { note: 'Seed approval' }
     });
 
-    console.log('🚀 SEED COMPLETED SUCCESSFULLY');
+    console.log('🚀 BASE SEED COMPLETED. RUNNING AUXILIARY SEEDS...');
+    const { execSync } = require('child_process');
+    try {
+      execSync('node scripts/seed_shipper_stats.js', { stdio: 'inherit' });
+      execSync('node scripts/seed_pending_shops.js', { stdio: 'inherit' });
+      execSync('node scripts/seed_pending_products.js', { stdio: 'inherit' });
+      execSync('node scripts/seed_violations.js', { stdio: 'inherit' });
+      console.log('✅ ALL DATA SEEDED SUCCESSFULLY');
+    } catch (error) {
+      console.error('❌ Auxiliary seed failed:', error.message);
+    }
+
     process.exit(0);
   } catch (err) {
     console.error('❌ Seeding Error:', err);

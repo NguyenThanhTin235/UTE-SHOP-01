@@ -654,8 +654,8 @@ const getViolationDetail = async (req, res) => {
     }
 
     // Fetch history for the same shop, excluding the current violation
-    const history = await Violation.find({ 
-      shop_id: violation.shop_id._id, 
+    const history = await Violation.find({
+      shop_id: violation.shop_id._id,
       _id: { $ne: violation._id },
       status: { $in: ['resolved', 'dismissed'] }
     }).sort({ createdAt: -1 }).limit(5);
@@ -816,7 +816,7 @@ const getStatistics = async (req, res) => {
         }
       }
     ]);
-    
+
     let avgApprovalTime = '4.2 Hours';
     if (avgApprovalRaw.length > 0 && avgApprovalRaw[0].avgDiff) {
       avgApprovalTime = (avgApprovalRaw[0].avgDiff / (1000 * 60 * 60)).toFixed(1) + ' Hours';
@@ -825,7 +825,7 @@ const getStatistics = async (req, res) => {
     const totalProducts = await Product.countDocuments({ approval_status: { $in: ['approved', 'rejected'] }, ...dateFilter, ...categoryMatch });
     const rejectedProducts = await Product.countDocuments({ approval_status: 'rejected', ...dateFilter, ...categoryMatch });
     const rejectionRate = totalProducts > 0 ? ((rejectedProducts / totalProducts) * 100).toFixed(1) : 8.5;
-    
+
     // Platform integrity logic based on violations over products
     const activeProducts = await Product.countDocuments({ is_active: true, ...dateFilter, ...categoryMatch });
     const activeViolations = await Violation.countDocuments({ status: { $ne: 'resolved' }, ...dateFilter, ...violationProductMatch });
@@ -842,7 +842,7 @@ const getStatistics = async (req, res) => {
       { $group: { _id: '$type', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
-    
+
     const colors = ['bg-[#004ac6]', 'bg-[#ba1a1a]', 'bg-slate-200', 'bg-[#f59e0b]', 'bg-[#16a34a]'];
     let violationDistribution = violationStats.map((stat, i) => ({
       category: stat._id ? stat._id.replace('_', ' ').toUpperCase() : 'GENERAL',
@@ -872,25 +872,92 @@ const getStatistics = async (req, res) => {
         }
       }
     ]);
-    await CategoryModel.populate(productStats, { path: '_id', select: 'name' });
 
-    let approvalEfficiency = productStats.map(ps => {
-      const totalDecided = ps.approved + ps.rejected;
-      const accuracy = totalDecided > 0 ? Math.round((ps.approved / totalDecided) * 100) : 100;
+    await CategoryModel.populate(productStats, {
+      path: '_id',
+      select: 'name parent_id',
+      populate: { path: 'parent_id', select: 'name' }
+    });
+
+    // Map to group by parent
+    const categoryMap = {};
+
+    productStats.forEach(ps => {
+      const isChild = ps._id?.parent_id ? true : false;
+      const parentId = isChild ? ps._id.parent_id._id.toString() : ps._id._id.toString();
+      const parentName = isChild ? ps._id.parent_id.name : ps._id.name;
+
+      if (!categoryMap[parentId]) {
+        categoryMap[parentId] = {
+          categoryId: parentId,
+          category: parentName,
+          total: 0,
+          approved: 0,
+          rejected: 0,
+          children: []
+        };
+      }
+
+      if (isChild) {
+        categoryMap[parentId].children.push({
+          categoryId: ps._id._id.toString(),
+          category: ps._id.name,
+          total: ps.total,
+          approved: ps.approved,
+          rejected: ps.rejected
+        });
+        categoryMap[parentId].total += ps.total;
+        categoryMap[parentId].approved += ps.approved;
+        categoryMap[parentId].rejected += ps.rejected;
+      } else {
+        categoryMap[parentId].total += ps.total;
+        categoryMap[parentId].approved += ps.approved;
+        categoryMap[parentId].rejected += ps.rejected;
+      }
+    });
+
+    const groupedStats = Object.values(categoryMap);
+
+    let approvalEfficiency = groupedStats.map(parent => {
+      const parentTotal = parent.approved + parent.rejected;
+      const parentAccuracy = parentTotal > 0 ? Math.round((parent.approved / parentTotal) * 100) : 100;
+
       return {
-        category: ps._id?.name || 'Unknown',
-        accuracy
+        id: parent.categoryId,
+        category: parent.category,
+        accuracy: parentAccuracy,
+        children: parent.children.map(child => {
+          const childTotal = child.approved + child.rejected;
+          return {
+            id: child.categoryId,
+            category: child.category,
+            accuracy: childTotal > 0 ? Math.round((child.approved / childTotal) * 100) : 100
+          };
+        }).sort((a, b) => b.accuracy - a.accuracy)
       };
     }).sort((a, b) => b.accuracy - a.accuracy);
 
-    let categoryCompliance = productStats.map(ps => {
-      const totalDecided = ps.approved + ps.rejected;
-      const accuracy = totalDecided > 0 ? Math.round((ps.approved / totalDecided) * 100) : 100;
+    let categoryCompliance = groupedStats.map(parent => {
+      const parentTotal = parent.approved + parent.rejected;
+      const parentAccuracy = parentTotal > 0 ? Math.round((parent.approved / parentTotal) * 100) : 100;
+
       return {
-        category: ps._id?.name || 'Unknown',
+        id: parent.categoryId,
+        category: parent.category,
         autoPass: '0%',
         manualReview: '100%',
-        trustScore: (accuracy / 10).toFixed(1)
+        trustScore: (parentAccuracy / 10).toFixed(1),
+        children: parent.children.map(child => {
+          const childTotal = child.approved + child.rejected;
+          const childAccuracy = childTotal > 0 ? Math.round((child.approved / childTotal) * 100) : 100;
+          return {
+            id: child.categoryId,
+            category: child.category,
+            autoPass: '0%',
+            manualReview: '100%',
+            trustScore: (childAccuracy / 10).toFixed(1)
+          };
+        }).sort((a, b) => parseFloat(b.trustScore) - parseFloat(a.trustScore))
       };
     });
 
@@ -920,7 +987,7 @@ const getStatistics = async (req, res) => {
       .populate('shop_id', 'name')
       .sort({ updatedAt: -1 })
       .limit(3);
-    
+
     const recentPenalties = recentPenaltiesRaw.map(v => ({
       id: v._id,
       shopName: v.shop_id?.name || 'Unknown Shop',
@@ -974,23 +1041,23 @@ const getStatistics = async (req, res) => {
 
     const financialRaw = await Order.aggregate([
       { $match: orderMatch },
-      { 
-        $group: { 
-          _id: '$shop_id', 
-          gmv: { $sum: '$total_final' }, 
-          commission: { $sum: '$platform_fee_amount' }, 
-          orders: { $sum: 1 } 
-        } 
+      {
+        $group: {
+          _id: '$shop_id',
+          gmv: { $sum: '$total_final' },
+          commission: { $sum: '$platform_fee_amount' },
+          orders: { $sum: 1 }
+        }
       },
       { $sort: { gmv: -1 } },
-      { $limit: 50 } 
+      { $limit: 50 }
     ]);
     await Shop.populate(financialRaw, { path: '_id', select: 'name' });
     const financialIntelligence = financialRaw.map(f => ({
       shopId: f._id?._id?.toString()?.substring(0, 8) || 'Unknown',
       shopName: f._id?.name || 'Unknown',
       gmv: f.gmv || 0,
-      commission: f.commission || (f.gmv * 0.05), 
+      commission: f.commission || (f.gmv * 0.05),
       orders: f.orders,
       growth: '+12.4%',
       auditStatus: 'Verified'
@@ -1031,11 +1098,26 @@ const getStatistics = async (req, res) => {
 const getStatisticsCategories = async (req, res) => {
   try {
     const Category = require('../../models/Category');
-    const categoriesDB = await Category.find({}).select('name slug');
+    const categoriesDB = await Category.find({}).select('name slug parent_id').lean();
+
+    const categoryMap = {};
+    const parentCategories = [];
+
+    categoriesDB.forEach(cat => {
+      categoryMap[cat._id.toString()] = { label: cat.name, value: cat.name, children: [] };
+    });
+
+    categoriesDB.forEach(cat => {
+      if (cat.parent_id && categoryMap[cat.parent_id.toString()]) {
+        categoryMap[cat.parent_id.toString()].children.push(categoryMap[cat._id.toString()]);
+      } else {
+        parentCategories.push(categoryMap[cat._id.toString()]);
+      }
+    });
 
     const categories = [
       { label: 'All Categories', value: 'All' },
-      ...categoriesDB.map(c => ({ label: c.name, value: c.name }))
+      ...parentCategories
     ];
 
     return response.success(res, { message: 'Categories retrieved successfully', data: categories });

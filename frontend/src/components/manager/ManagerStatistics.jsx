@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -10,6 +10,78 @@ function getAuthHeader() {
   if (!token) throw new Error('No token found');
   return { headers: { Authorization: `Bearer ${token}` } };
 }
+
+const GenericDropdown = ({ options, selectedValue, onSelect, icon }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === selectedValue) || options.flatMap(o => o.children || []).find(o => o.value === selectedValue);
+  const selectedLabel = selectedOption ? selectedOption.label : selectedValue;
+
+  return (
+    <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group cursor-pointer" ref={dropdownRef} onClick={() => setIsOpen(!isOpen)}>
+      <span className="material-symbols-outlined text-slate-400 text-lg">{icon}</span>
+      <span className="text-xs font-black text-slate-700 uppercase tracking-widest truncate max-w-[150px] select-none">
+        {selectedLabel}
+      </span>
+      <span className="material-symbols-outlined text-slate-400 text-[16px] ml-auto group-hover:text-primary transition-colors">expand_more</span>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 min-w-[220px] bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-2">
+          {options.map((opt, idx) => (
+            <div 
+              key={idx}
+              className="relative group/item"
+            >
+              <div 
+                className="px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-primary cursor-pointer flex justify-between items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(opt.value);
+                  setIsOpen(false);
+                }}
+              >
+                {opt.label}
+                {opt.children && opt.children.length > 0 && (
+                  <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                )}
+              </div>
+              
+              {/* Submenu */}
+              {opt.children && opt.children.length > 0 && (
+                <div className="absolute top-0 left-full ml-1 hidden group-hover/item:block min-w-[200px] bg-white border border-slate-200 rounded-xl shadow-lg py-2">
+                  {opt.children.map((child, cIdx) => (
+                    <div 
+                      key={cIdx}
+                      className="px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-primary cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelect(child.value);
+                        setIsOpen(false);
+                      }}
+                    >
+                      {child.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ManagerStatistics = ({ searchTerm = '' }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,6 +105,12 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
   // Pagination for Financial Intelligence
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 4;
+
+  const [expandedEff, setExpandedEff] = useState({});
+  const toggleEff = (id) => setExpandedEff(prev => ({...prev, [id]: !prev[id]}));
+
+  const [expandedComp, setExpandedComp] = useState({});
+  const toggleComp = (id) => setExpandedComp(prev => ({...prev, [id]: !prev[id]}));
 
   const [filterOptions, setFilterOptions] = useState({
     categories: [{ label: 'All Categories', value: 'All' }],
@@ -170,33 +248,9 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
       {/* Filter & Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-6 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md transition-shadow print:hidden">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group">
-            <span className="material-symbols-outlined text-slate-400 text-lg">calendar_month</span>
-            <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="bg-transparent bg-none border-none outline-none focus:ring-0 text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer appearance-none pr-8 z-10">
-              {filterOptions.dateRanges.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
-          </div>
-          <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group">
-            <span className="material-symbols-outlined text-slate-400 text-lg">category</span>
-            <select value={category} onChange={e => setCategory(e.target.value)} className="bg-transparent bg-none border-none outline-none focus:ring-0 text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer appearance-none pr-8 z-10">
-              {filterOptions.categories.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
-          </div>
-          <div className="relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-shadow group">
-            <span className="material-symbols-outlined text-slate-400 text-lg">filter_list</span>
-            <select value={status} onChange={e => setStatus(e.target.value)} className="bg-transparent bg-none border-none outline-none focus:ring-0 text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer appearance-none pr-8 z-10">
-              {filterOptions.statuses.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined text-slate-400 absolute right-3 text-[16px] pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
-          </div>
+          <GenericDropdown options={filterOptions.dateRanges} selectedValue={dateRange} onSelect={setDateRange} icon="calendar_month" />
+          <GenericDropdown options={filterOptions.categories} selectedValue={category} onSelect={setCategory} icon="category" />
+          <GenericDropdown options={filterOptions.statuses} selectedValue={status} onSelect={setStatus} icon="filter_list" />
         </div>
         
         <div className="flex items-center gap-3">
@@ -288,16 +342,41 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <h3 className="text-xl font-black text-slate-900 tracking-tight mb-8">Approval Efficiency</h3>
-          <div className="space-y-8">
+          <div className="space-y-4">
             {approvalEfficiency?.map((item, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex justify-between text-xs font-black uppercase tracking-widest text-slate-600">
-                  <span>{item.category}</span>
+              <div key={idx} className="space-y-2 border border-slate-100 p-4 rounded-2xl">
+                <div 
+                  className="flex justify-between text-xs font-black uppercase tracking-widest text-slate-600 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => toggleEff(item.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    {item.children && item.children.length > 0 ? (
+                      <span className={`material-symbols-outlined text-[16px] transition-transform ${expandedEff[item.id] ? 'rotate-180' : ''}`}>expand_more</span>
+                    ) : <span className="w-4"></span>}
+                    <span>{item.category}</span>
+                  </div>
                   <span>{item.accuracy}% Accuracy</span>
                 </div>
                 <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: `${item.accuracy}%` }}></div>
                 </div>
+                
+                {/* Children */}
+                {expandedEff[item.id] && item.children && item.children.length > 0 && (
+                  <div className="pt-4 mt-2 border-t border-slate-100 space-y-4 pl-6">
+                    {item.children.map((child, cIdx) => (
+                      <div key={cIdx} className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                          <span>{child.category}</span>
+                          <span>{child.accuracy}% Accuracy</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-400" style={{ width: `${child.accuracy}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -400,17 +479,40 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
                   <th className="pb-4 text-right">Trust Score</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 font-bold text-sm">
+              <tbody className="font-bold text-sm">
                 {categoryCompliance?.map((cat, idx) => {
                   const trustValue = parseFloat(cat.trustScore);
                   const trustColor = trustValue >= 9 ? 'text-[#16a34a]' : 'text-[#f59e0b]';
+                  const hasChildren = cat.children && cat.children.length > 0;
+                  
                   return (
-                    <tr key={idx}>
-                      <td className="py-4 text-slate-700">{cat.category}</td>
-                      <td className="py-4 text-slate-600">{cat.autoPass}</td>
-                      <td className="py-4 text-slate-600">{cat.manualReview}</td>
-                      <td className={`py-4 text-right ${trustColor}`}>{cat.trustScore}/10</td>
-                    </tr>
+                    <React.Fragment key={idx}>
+                      <tr className={`border-b border-slate-50 ${hasChildren ? 'cursor-pointer hover:bg-slate-50' : ''}`} onClick={() => hasChildren && toggleComp(cat.id)}>
+                        <td className="py-4 text-slate-700 flex items-center gap-2">
+                          {hasChildren ? (
+                            <span className={`material-symbols-outlined text-[16px] text-slate-400 transition-transform ${expandedComp[cat.id] ? 'rotate-180' : ''}`}>expand_more</span>
+                          ) : (
+                            <span className="w-[16px]"></span>
+                          )}
+                          {cat.category}
+                        </td>
+                        <td className="py-4 text-slate-600">{cat.autoPass}</td>
+                        <td className="py-4 text-slate-600">{cat.manualReview}</td>
+                        <td className={`py-4 text-right ${trustColor}`}>{cat.trustScore}/10</td>
+                      </tr>
+                      {expandedComp[cat.id] && hasChildren && cat.children.map((child, cIdx) => {
+                        const cTrustValue = parseFloat(child.trustScore);
+                        const cTrustColor = cTrustValue >= 9 ? 'text-[#16a34a]' : 'text-[#f59e0b]';
+                        return (
+                          <tr key={`${idx}-${cIdx}`} className="bg-slate-50/50 border-b border-slate-50/50">
+                            <td className="py-3 pl-10 text-slate-500 text-xs">{child.category}</td>
+                            <td className="py-3 text-slate-400 text-xs">{child.autoPass}</td>
+                            <td className="py-3 text-slate-400 text-xs">{child.manualReview}</td>
+                            <td className={`py-3 text-right text-xs ${cTrustColor}`}>{child.trustScore}/10</td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
                   )
                 })}
               </tbody>

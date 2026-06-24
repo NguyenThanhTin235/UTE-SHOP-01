@@ -89,7 +89,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
       );
       if (response.data.success) {
         toast.success(response.data.message || 'Action executed successfully');
-        navigate('/manager?tab=violations');
+        navigate('/manager/violations');
       }
     } catch (err) {
       console.error('Action error:', err);
@@ -113,7 +113,7 @@ const ManagerViolationDetail = ({ violationId, setHeaderData }) => {
       <div className="flex-1 flex flex-col items-center justify-center h-screen bg-[#F8FAFC]">
         <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">error</span>
         <h3 className="text-xl font-black text-slate-900">Case Not Found</h3>
-        <button onClick={() => navigate('/manager?tab=violations')} className="mt-4 px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors">
+        <button onClick={() => navigate('/manager/violations')} className="mt-4 px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors">
           Back to Incident Queue
         </button>
       </div>

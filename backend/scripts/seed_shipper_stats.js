@@ -7,10 +7,10 @@ const OrderStatusHistory = require('../src/models/OrderStatusHistory');
 const seedStats = async () => {
   try {
     await connectDB();
-    const email = 'shipper@gmail.com';
+    const email = 'shipper1@uteshop.vn';
     const shipperUser = await User.findOne({ email });
     if (!shipperUser) {
-      console.log('Shipper not found. Run add_shipper.js first.');
+      console.log('Shipper not found.');
       process.exit(1);
     }
 
@@ -28,7 +28,7 @@ const seedStats = async () => {
       for (let j = 0; j < numDelivered; j++) {
         await OrderStatusHistory.create({
           order_id: new mongoose.Types.ObjectId(), // Fake order ID
-          status: 'delivered',
+          status: 'completed',
           note: 'Seed data',
           updated_by: shipperUser._id,
           createdAt: date,
