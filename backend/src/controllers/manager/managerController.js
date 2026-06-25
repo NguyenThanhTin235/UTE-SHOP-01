@@ -1165,7 +1165,13 @@ const getAllOrders = async (req, res) => {
       filter.status = status;
     }
     if (shopId && shopId !== 'all') {
-      filter.shop_id = shopId;
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(shopId.trim())) {
+        filter.shop_id = shopId.trim();
+      } else {
+        // Find by shop name as fallback, or just dummy
+        filter.shop_id = new mongoose.Types.ObjectId('000000000000000000000000');
+      }
     }
     if (search) {
       filter.order_code = { $regex: search, $options: 'i' };
@@ -1182,14 +1188,14 @@ const getAllOrders = async (req, res) => {
 
     const formattedOrders = orders.map(order => ({
       id: order._id,
-      order_code: order.order_code,
-      shop_name: order.shop_id?.name || 'Unknown Shop',
-      shop_id: order.shop_id?._id,
-      customer_name: order.customer_id?.full_name || 'Unknown',
-      shipper_name: order.shipper_id?.full_name || 'Not assigned',
+      orderCode: order.order_code,
+      shopName: order.shop_id?.name || 'Unknown Shop',
+      shopId: order.shop_id?._id,
+      customerName: order.customer_id?.full_name || 'Unknown',
+      shipperName: order.shipper_id?.full_name || 'Not assigned',
       status: order.status,
-      payment_status: order.payment_status,
-      total_final: order.total_final,
+      paymentStatus: order.payment_status,
+      totalFinal: order.total_final,
       createdAt: order.createdAt,
     }));
 

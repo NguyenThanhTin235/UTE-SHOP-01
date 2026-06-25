@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const ManagerOrdersTab = ({ searchTerm }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState(null);
   
   const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10,
-    status: 'all',
-    shopId: 'all'
+    page: parseInt(searchParams.get('page')) || 1,
+    limit: parseInt(searchParams.get('limit')) || 10,
+    status: searchParams.get('status') || 'all',
+    shopId: searchParams.get('shopId') || 'all'
   });
 
-  const [shops, setShops] = useState([]);
-
-  // Fetch unique shops for filter (mock or fetch all shops from an endpoint)
-  // Since we don't have a specific endpoint just for a shop dropdown list for manager, 
-  // we could just allow them to type the Shop ID, but ideally we fetch active shops.
-  // For simplicity, we'll fetch approved shops using the existing pending/approved endpoint or leave it as a text input.
-  // Alternatively, the manager can enter a Shop ID in the search box.
-  
   useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (filters.page !== 1) params.set('page', filters.page);
+    else params.delete('page');
+    
+    if (filters.status !== 'all') params.set('status', filters.status);
+    else params.delete('status');
+    
+    if (filters.shopId !== 'all' && filters.shopId) params.set('shopId', filters.shopId);
+    else params.delete('shopId');
+
+    setSearchParams(params, { replace: true });
+
     fetchOrders();
   }, [filters, searchTerm]);
 
@@ -90,7 +95,7 @@ const ManagerOrdersTab = ({ searchTerm }) => {
         <div className="flex flex-wrap items-center gap-3">
           {/* Status Filter */}
           <select 
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-primary focus:border-primary block p-2.5 font-medium outline-none"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-primary focus:border-primary block py-2.5 pl-3 pr-8 font-medium outline-none"
             value={filters.status}
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value, page: 1 }))}
           >
