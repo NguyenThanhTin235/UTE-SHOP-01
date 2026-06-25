@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -25,6 +26,7 @@ const StarDisplay = ({ rating, size = 'sm' }) => {
 
 const SellerReviews = () => {
   const { user } = useSelector((state) => state.auth);
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Category dropdown states
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -53,21 +55,38 @@ const SellerReviews = () => {
   // Filter & Search states
   const [reviews, setReviews] = useState([]);
   const [shopCategories, setShopCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [loading, setLoading] = useState(true);
   
-  const [filterTab, setFilterTab] = useState('all'); // 'all', 'unreplied', 'media', 'critical'
-  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'highest', 'lowest'
+  const [filterTab, setFilterTab] = useState(searchParams.get('tab') || 'all'); // 'all', 'unreplied', 'media', 'critical'
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest'); // 'newest', 'highest', 'lowest'
   
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 1,
     limit: 5
   });
+
+  // Sync to URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (currentPage !== 1) params.set('page', currentPage);
+    else params.delete('page');
+    if (filterTab !== 'all') params.set('tab', filterTab);
+    else params.delete('tab');
+    if (selectedCategory) params.set('category', selectedCategory);
+    else params.delete('category');
+    if (sortBy !== 'newest') params.set('sort', sortBy);
+    else params.delete('sort');
+    if (searchTerm) params.set('search', searchTerm);
+    else params.delete('search');
+    
+    setSearchParams(params, { replace: true });
+  }, [currentPage, filterTab, selectedCategory, sortBy, searchTerm]);
 
   // Reply states
   const [replies, setReplies] = useState({}); // { reviewId: string }

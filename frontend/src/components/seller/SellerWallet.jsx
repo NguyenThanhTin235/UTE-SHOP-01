@@ -2,25 +2,37 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerWallet = () => {
     const { user } = useSelector(state => state.auth);
     const { unreadCount } = useNotifications();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [wallet, setWallet] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
     
     // Pagination states
-    const [transPage, setTransPage] = useState(1);
-    const [transLimit, setTransLimit] = useState(5);
+    const [transPage, setTransPage] = useState(parseInt(searchParams.get('transPage')) || 1);
+    const [transLimit, setTransLimit] = useState(parseInt(searchParams.get('transLimit')) || 5);
     const [transMeta, setTransMeta] = useState({ total: 0, totalPages: 1 });
 
     const [withdrawPage, setWithdrawPage] = useState(1);
     const [withdrawLimit, setWithdrawLimit] = useState(5);
     const [withdrawMeta, setWithdrawMeta] = useState({ total: 0, totalPages: 1 });
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        if (transPage !== 1) params.set('transPage', transPage);
+        else params.delete('transPage');
+        
+        if (transLimit !== 5) params.set('transLimit', transLimit);
+        else params.delete('transLimit');
+        
+        setSearchParams(params, { replace: true });
+    }, [transPage, transLimit]);
 
     // Detail Modal states
     const [detailModalOpen, setDetailModalOpen] = useState(false);

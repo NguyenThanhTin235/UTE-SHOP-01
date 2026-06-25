@@ -1917,7 +1917,7 @@ const getSellerReviews = async (req, res, next) => {
             const matchingProductIds = shopProducts
                 .filter(p => searchRegex.test(p.name))
                 .map(p => p._id);
-            const matchingUsers = await User.find({ fullName: searchRegex }).select('_id');
+            const matchingUsers = await User.find({ full_name: searchRegex }).select('_id');
             const matchingUserIds = matchingUsers.map(u => u._id);
 
             const searchOr = [

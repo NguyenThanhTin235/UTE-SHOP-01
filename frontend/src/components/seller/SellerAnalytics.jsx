@@ -2,16 +2,33 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 import Chart from 'chart.js/auto';
 
 const SellerAnalytics = ({ setActiveTab }) => {
-    const [range, setRange] = useState('last7days');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [range, setRange] = useState(searchParams.get('range') || 'last7days');
+    const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
+    const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
     const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
     const [loading, setLoading] = useState(true);
     const [analyticsData, setAnalyticsData] = useState(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        if (range !== 'last7days') params.set('range', range);
+        else params.delete('range');
+        
+        if (range === 'custom') {
+            if (startDate) params.set('startDate', startDate);
+            if (endDate) params.set('endDate', endDate);
+        } else {
+            params.delete('startDate');
+            params.delete('endDate');
+        }
+        setSearchParams(params, { replace: true });
+    }, [range, startDate, endDate]);
 
     // AI Chat State
     const [showAI, setShowAI] = useState(false);
