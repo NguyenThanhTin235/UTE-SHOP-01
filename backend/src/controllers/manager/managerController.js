@@ -6,6 +6,7 @@ const ProductApproval = require('../../models/ProductApproval');
 const ProductMedia = require('../../models/ProductMedia');
 const ProductVariant = require('../../models/ProductVariant');
 const Violation = require('../../models/Violation');
+const Notification = require('../../models/Notification');
 const response = require('../../utils/response');
 
 /**
@@ -424,6 +425,35 @@ const approveProduct = async (req, res) => {
       metadata: { name: product.name }
     });
 
+    try {
+      const shop = await Shop.findById(product.shop_id);
+      if (shop) {
+        const io = req.app.get('socketio');
+        const notif = await Notification.create({
+           user_id: shop.owner_user_id,
+           title: 'Product Approved',
+           content: `Your product "${product.name}" has been approved by the manager.`,
+           detailContent: `Manager review update.\nProduct: ${product.name}\nStatus: Approved`,
+           category: 'System',
+           type: 'system',
+           link: '/seller/products'
+        });
+        if (io) {
+           io.to(shop.owner_user_id.toString()).emit('notification', {
+                 id: notif._id.toString(),
+                 title: notif.title,
+                 content: notif.content,
+                 detailContent: notif.detailContent,
+                 category: notif.category,
+                 type: notif.type,
+                 date: 'JUST NOW',
+                 link: notif.link,
+                 is_read: false
+           });
+        }
+      }
+    } catch(e) { console.error('Notification Error:', e); }
+
     return response.success(res, { message: 'Product approved' });
   } catch (err) {
     console.error('approveProduct error:', err);
@@ -445,6 +475,35 @@ const rejectProduct = async (req, res) => {
       entity_id: product._id,
       metadata: { name: product.name, reason }
     });
+
+    try {
+      const shop = await Shop.findById(product.shop_id);
+      if (shop) {
+        const io = req.app.get('socketio');
+        const notif = await Notification.create({
+           user_id: shop.owner_user_id,
+           title: 'Product Rejected',
+           content: `Your product "${product.name}" has been rejected.`,
+           detailContent: `Manager review update.\nProduct: ${product.name}\nStatus: Rejected\nReason: ${reason}`,
+           category: 'System',
+           type: 'system',
+           link: '/seller/products'
+        });
+        if (io) {
+           io.to(shop.owner_user_id.toString()).emit('notification', {
+                 id: notif._id.toString(),
+                 title: notif.title,
+                 content: notif.content,
+                 detailContent: notif.detailContent,
+                 category: notif.category,
+                 type: notif.type,
+                 date: 'JUST NOW',
+                 link: notif.link,
+                 is_read: false
+           });
+        }
+      }
+    } catch(e) { console.error('Notification Error:', e); }
 
     return response.success(res, { message: 'Product rejected' });
   } catch (err) {

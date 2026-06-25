@@ -863,6 +863,40 @@ class CheckoutController {
                 is_read: false
               });
             }
+            
+            // Notify Seller
+            try {
+              const shop = await Shop.findById(order.shop_id);
+              if (shop) {
+                const sellerNotif = await Notification.create({
+                  user_id: shop.owner_user_id,
+                  title: 'New Order Received',
+                  content: `You have received a new order (${order.order_code}).`,
+                  detailContent: `A new order has been placed by a customer.\nOrder Code: ${order.order_code}`,
+                  category: 'Orders',
+                  type: 'order',
+                  link: '/seller/orders',
+                  orderSummary
+                });
+                if (io) {
+                  io.to(shop.owner_user_id.toString()).emit('notification', {
+                    id: sellerNotif._id.toString(),
+                    title: sellerNotif.title,
+                    content: sellerNotif.content,
+                    detailContent: sellerNotif.detailContent,
+                    category: sellerNotif.category,
+                    type: sellerNotif.type,
+                    date: 'JUST NOW',
+                    link: sellerNotif.link,
+                    orderSummary: sellerNotif.orderSummary,
+                    is_read: false
+                  });
+                }
+              }
+            } catch (sellerNotifErr) {
+              console.error('Seller Notification Error:', sellerNotifErr);
+            }
+            
           } catch (notifErr) {
             console.error('Free Order Placement Notification Error:', notifErr);
           }
@@ -937,6 +971,40 @@ class CheckoutController {
                 is_read: false
               });
             }
+            
+            // Notify Seller
+            try {
+              const shop = await Shop.findById(order.shop_id);
+              if (shop) {
+                const sellerNotif = await Notification.create({
+                  user_id: shop.owner_user_id,
+                  title: 'New Order Received',
+                  content: `You have received a new order (${order.order_code}).`,
+                  detailContent: `A new order has been placed by a customer.\nOrder Code: ${order.order_code}`,
+                  category: 'Orders',
+                  type: 'order',
+                  link: '/seller/orders',
+                  orderSummary
+                });
+                if (io) {
+                  io.to(shop.owner_user_id.toString()).emit('notification', {
+                    id: sellerNotif._id.toString(),
+                    title: sellerNotif.title,
+                    content: sellerNotif.content,
+                    detailContent: sellerNotif.detailContent,
+                    category: sellerNotif.category,
+                    type: sellerNotif.type,
+                    date: 'JUST NOW',
+                    link: sellerNotif.link,
+                    orderSummary: sellerNotif.orderSummary,
+                    is_read: false
+                  });
+                }
+              }
+            } catch (sellerNotifErr) {
+              console.error('Seller Notification Error:', sellerNotifErr);
+            }
+            
           } catch (notifErr) {
             console.error('COD Order Placement Notification Error:', notifErr);
           }
@@ -1151,6 +1219,40 @@ class CheckoutController {
                 is_read: false
               });
             }
+            
+            // Notify Seller
+            try {
+              const shop = await Shop.findById(order.shop_id);
+              if (shop) {
+                const sellerNotif = await Notification.create({
+                  user_id: shop.owner_user_id,
+                  title: 'New Order Received',
+                  content: `You have received a new order (${order.order_code}).`,
+                  detailContent: `A new order has been placed by a customer.\nOrder Code: ${order.order_code}`,
+                  category: 'Orders',
+                  type: 'order',
+                  link: '/seller/orders',
+                  orderSummary
+                });
+                if (io) {
+                  io.to(shop.owner_user_id.toString()).emit('notification', {
+                    id: sellerNotif._id.toString(),
+                    title: sellerNotif.title,
+                    content: sellerNotif.content,
+                    detailContent: sellerNotif.detailContent,
+                    category: sellerNotif.category,
+                    type: sellerNotif.type,
+                    date: 'JUST NOW',
+                    link: sellerNotif.link,
+                    orderSummary: sellerNotif.orderSummary,
+                    is_read: false
+                  });
+                }
+              }
+            } catch (sellerNotifErr) {
+              console.error('Seller Notification Error:', sellerNotifErr);
+            }
+            
           } catch (notifErr) {
             console.error('VNPAY Callback Notification Error:', notifErr);
           }
@@ -1368,6 +1470,40 @@ class CheckoutController {
                 is_read: false
               });
             }
+            
+            // Notify Seller
+            try {
+              const shop = await Shop.findById(order.shop_id);
+              if (shop) {
+                const sellerNotif = await Notification.create({
+                  user_id: shop.owner_user_id,
+                  title: 'New Order Received',
+                  content: `You have received a new order (${order.order_code}).`,
+                  detailContent: `A new order has been placed by a customer.\nOrder Code: ${order.order_code}`,
+                  category: 'Orders',
+                  type: 'order',
+                  link: '/seller/orders',
+                  orderSummary
+                });
+                if (io) {
+                  io.to(shop.owner_user_id.toString()).emit('notification', {
+                    id: sellerNotif._id.toString(),
+                    title: sellerNotif.title,
+                    content: sellerNotif.content,
+                    detailContent: sellerNotif.detailContent,
+                    category: sellerNotif.category,
+                    type: sellerNotif.type,
+                    date: 'JUST NOW',
+                    link: sellerNotif.link,
+                    orderSummary: sellerNotif.orderSummary,
+                    is_read: false
+                  });
+                }
+              }
+            } catch (sellerNotifErr) {
+              console.error('Seller Notification Error:', sellerNotifErr);
+            }
+            
           } catch (notifErr) {
             console.error('VNPAY Callback Notification Error:', notifErr);
           }

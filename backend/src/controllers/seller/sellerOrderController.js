@@ -246,6 +246,44 @@ const updateOrderStatus = async (req, res, next) => {
 
         await order.save();
 
+        // Notify Customer
+        try {
+            const Notification = require('../../models/Notification');
+            const io = req.app.get('socketio');
+            let notifTitle = 'Order Status Updated';
+            let notifContent = `Your order ${order.order_code} is now ${status}.`;
+            
+            if (status === 'confirmed') notifContent = `Your order ${order.order_code} has been confirmed.`;
+            else if (status === 'ready_to_ship') notifContent = `Your order ${order.order_code} is packed and ready to ship.`;
+            else if (status === 'shipping') notifContent = `Your order ${order.order_code} is out for delivery.`;
+            else if (status === 'completed') notifContent = `Your order ${order.order_code} has been marked as completed.`;
+            else if (status === 'canceled') notifContent = `Your order ${order.order_code} has been cancelled by the shop.`;
+
+            const customerNotif = await Notification.create({
+                user_id: order.customer_id,
+                title: notifTitle,
+                content: notifContent,
+                category: 'Orders',
+                type: 'order',
+                link: `/order-history/${order._id}`
+            });
+
+            if (io) {
+                io.to(order.customer_id.toString()).emit('notification', {
+                    id: customerNotif._id.toString(),
+                    title: customerNotif.title,
+                    content: customerNotif.content,
+                    category: customerNotif.category,
+                    type: customerNotif.type,
+                    date: 'JUST NOW',
+                    link: customerNotif.link,
+                    is_read: false
+                });
+            }
+        } catch (notifErr) {
+            console.error('Customer Notification Error on Status Update:', notifErr);
+        }
+
         res.status(200).json({
             success: true,
             code: 200,

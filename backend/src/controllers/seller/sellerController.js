@@ -20,6 +20,9 @@ const ProductReview = require('../../models/ProductReview');
 const ProductReviewMedia = require('../../models/ProductReviewMedia');
 const OrderStatusHistory = require('../../models/OrderStatusHistory');
 const AuditLog = require('../../models/AuditLog');
+const Role = require('../../models/Role');
+const UserRole = require('../../models/UserRole');
+const Notification = require('../../models/Notification');
 const excelJS = require('exceljs');
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
@@ -917,6 +920,43 @@ const createProduct = async (req, res, next) => {
                 sort_order: index
             }));
             await ProductMedia.insertMany(mediaDocs);
+        }
+
+        // Notify managers about new product
+        try {
+            const managerRole = await Role.findOne({ name: { $regex: /^manager$/i } });
+            if (managerRole) {
+                const userRoles = await UserRole.find({ role_id: managerRole._id });
+                const managerIds = userRoles.map(ur => ur.user_id);
+                const io = req.app.get('socketio');
+                
+                for (const mId of managerIds) {
+                    const notif = await Notification.create({
+                        user_id: mId,
+                        title: 'New Product Approval Request',
+                        content: `Shop "${shop.name}" submitted a new product: "${savedProduct.name}".`,
+                        detailContent: `A new product requires your review.\nProduct Name: ${savedProduct.name}\nShop: ${shop.name}`,
+                        category: 'Products',
+                        type: 'system',
+                        link: `/manager/product_detail/${savedProduct._id}`
+                    });
+                    if (io) {
+                        io.to(mId.toString()).emit('notification', {
+                            id: notif._id.toString(),
+                            title: notif.title,
+                            content: notif.content,
+                            detailContent: notif.detailContent,
+                            category: notif.category,
+                            type: notif.type,
+                            date: 'JUST NOW',
+                            link: notif.link,
+                            is_read: false
+                        });
+                    }
+                }
+            }
+        } catch(e) { 
+            console.error('Notification Error:', e); 
         }
 
         res.status(201).json({

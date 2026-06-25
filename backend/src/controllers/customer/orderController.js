@@ -640,6 +640,41 @@ class OrderController {
               is_read: false
             });
           }
+
+          // Notify Seller
+          try {
+            const Shop = require('../../models/Shop');
+            const shop = await Shop.findById(order.shop_id);
+            if (shop) {
+              const sellerNotif = await Notification.create({
+                user_id: shop.owner_user_id,
+                title: 'Order Cancelled',
+                content: `Order (${order.order_code}) has been cancelled by the customer.`,
+                detailContent: `A customer has cancelled their order.\nOrder Code: ${order.order_code}\nReason: ${reason.trim()}`,
+                category: 'Orders',
+                type: 'order',
+                link: '/seller/orders',
+                orderSummary
+              });
+              if (io) {
+                io.to(shop.owner_user_id.toString()).emit('notification', {
+                  id: sellerNotif._id.toString(),
+                  title: sellerNotif.title,
+                  content: sellerNotif.content,
+                  detailContent: sellerNotif.detailContent,
+                  category: sellerNotif.category,
+                  type: sellerNotif.type,
+                  date: 'JUST NOW',
+                  link: sellerNotif.link,
+                  orderSummary: sellerNotif.orderSummary,
+                  is_read: false
+                });
+              }
+            }
+          } catch (sellerNotifErr) {
+            console.error('Seller Cancellation Notification Error:', sellerNotifErr);
+          }
+
         } catch (notifErr) {
           console.error('Cancellation Notification Error:', notifErr);
         }
@@ -733,6 +768,41 @@ class OrderController {
               is_read: false
             });
           }
+
+          // Notify Seller
+          try {
+            const Shop = require('../../models/Shop');
+            const shop = await Shop.findById(order.shop_id);
+            if (shop) {
+              const sellerNotif = await Notification.create({
+                user_id: shop.owner_user_id,
+                title: 'Order Cancellation Request',
+                content: `Customer has requested to cancel order (${order.order_code}).`,
+                detailContent: `A customer has requested to cancel their order. Please review and respond.\nOrder Code: ${order.order_code}\nReason: ${reason.trim()}`,
+                category: 'Orders',
+                type: 'order',
+                link: '/seller/orders',
+                orderSummary
+              });
+              if (io) {
+                io.to(shop.owner_user_id.toString()).emit('notification', {
+                  id: sellerNotif._id.toString(),
+                  title: sellerNotif.title,
+                  content: sellerNotif.content,
+                  detailContent: sellerNotif.detailContent,
+                  category: sellerNotif.category,
+                  type: sellerNotif.type,
+                  date: 'JUST NOW',
+                  link: sellerNotif.link,
+                  orderSummary: sellerNotif.orderSummary,
+                  is_read: false
+                });
+              }
+            }
+          } catch (sellerNotifErr) {
+            console.error('Seller Cancellation Request Notification Error:', sellerNotifErr);
+          }
+
         } catch (notifErr) {
           console.error('Cancellation Request Pending Notification Error:', notifErr);
         }
