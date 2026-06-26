@@ -99,7 +99,7 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
             let status = 'pending';
             if (currentStepIndex === -1) {
                 status = 'canceled';
-            } else if (index < currentStepIndex || (index === 0 && order.status !== 'pending') || (index === 1 && order.status !== 'pending')) {
+            } else if (index < currentStepIndex || (index === currentStepIndex && order.status === 'completed') || (index === 0 && order.status !== 'pending') || (index === 1 && order.status !== 'pending')) {
                 status = 'completed';
             } else if (index === currentStepIndex) {
                 status = 'current';
@@ -421,6 +421,20 @@ const SellerOrderDetail = ({ orderId, onBack }) => {
                                                 <p className="text-[10px] font-bold text-slate-500">Tracking: {order.shipment.tracking_code || 'Pending'}</p>
                                             </div>
                                         </div>
+                                    </div>
+                                )}
+                                {order.history?.find(h => h.status === 'completed' && h.image_url) && (
+                                    <div className="pt-6 border-t border-slate-200">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-3 text-primary">Proof of Delivery</span>
+                                        <img 
+                                            src={order.history.find(h => h.status === 'completed' && h.image_url).image_url.startsWith('http') ? order.history.find(h => h.status === 'completed' && h.image_url).image_url : `http://localhost:5000/${order.history.find(h => h.status === 'completed' && h.image_url).image_url.replace(/\\/g, '/')}`} 
+                                            alt="Proof of Delivery" 
+                                            className="w-full h-48 object-cover rounded-xl border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                                            onClick={() => {
+                                                const url = order.history.find(h => h.status === 'completed' && h.image_url).image_url;
+                                                window.open(url.startsWith('http') ? url : `http://localhost:5000/${url.replace(/\\/g, '/')}`, '_blank');
+                                            }}
+                                        />
                                     </div>
                                 )}
                             </div>

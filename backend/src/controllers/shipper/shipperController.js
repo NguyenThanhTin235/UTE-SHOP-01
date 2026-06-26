@@ -6,6 +6,8 @@ const Shop = require('../../models/Shop');
 const Address = require('../../models/Address');
 const ProductMedia = require('../../models/ProductMedia');
 const ShipperProfile = require('../../models/ShipperProfile');
+const PaymentOrder = require('../../models/PaymentOrder');
+const Payment = require('../../models/Payment');
 const { successResponse, errorResponse } = require('../../utils/responseHelper');
 
 /**
@@ -63,12 +65,12 @@ exports.getOrders = async (req, res) => {
       const ShippingPartner = require('../../models/ShippingPartner');
       let partner;
       if (profile && profile.shipping_company) {
-         if (profile.shipping_company.length === 24) {
-            partner = await ShippingPartner.findById(profile.shipping_company);
-         }
-         if (!partner) {
-            partner = await ShippingPartner.findOne({ name: profile.shipping_company });
-         }
+        if (profile.shipping_company.length === 24) {
+          partner = await ShippingPartner.findById(profile.shipping_company);
+        }
+        if (!partner) {
+          partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+        }
       }
 
       if (partner) {
@@ -122,20 +124,20 @@ exports.getAvailableOrders = async (req, res) => {
 
     const profile = await ShipperProfile.findOne({ user_id: shipperId });
     if (!profile || !profile.shipping_company) {
-       return errorResponse(res, 'Shipper profile not found or no shipping company assigned', 400);
+      return errorResponse(res, 'Shipper profile not found or no shipping company assigned', 400);
     }
-    
+
     const ShippingPartner = require('../../models/ShippingPartner');
     let partner;
     if (profile.shipping_company.length === 24) {
-       partner = await ShippingPartner.findById(profile.shipping_company);
+      partner = await ShippingPartner.findById(profile.shipping_company);
     }
     if (!partner) {
-       partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+      partner = await ShippingPartner.findOne({ name: profile.shipping_company });
     }
 
     if (!partner) {
-       return errorResponse(res, 'Shipping partner not found', 404);
+      return errorResponse(res, 'Shipping partner not found', 404);
     }
 
     const query = { status: 'ready_to_ship', shipping_partner_id: partner._id };
@@ -186,21 +188,21 @@ exports.acceptOrder = async (req, res) => {
     }
 
     if (order.shipper_id) {
-       return errorResponse(res, 'Order is already taken by another shipper', 400);
+      return errorResponse(res, 'Order is already taken by another shipper', 400);
     }
 
     const profile = await ShipperProfile.findOne({ user_id: shipperId });
     const ShippingPartner = require('../../models/ShippingPartner');
     let partner;
     if (profile && profile.shipping_company && profile.shipping_company.length === 24) {
-       partner = await ShippingPartner.findById(profile.shipping_company);
+      partner = await ShippingPartner.findById(profile.shipping_company);
     }
     if (!partner && profile) {
-       partner = await ShippingPartner.findOne({ name: profile.shipping_company });
+      partner = await ShippingPartner.findOne({ name: profile.shipping_company });
     }
 
     if (!partner || order.shipping_partner_id.toString() !== partner._id.toString()) {
-       return errorResponse(res, 'You are not authorized to accept this order', 403);
+      return errorResponse(res, 'You are not authorized to accept this order', 403);
     }
 
     order.shipper_id = shipperId;
@@ -234,7 +236,7 @@ exports.updateOrderStatus = async (req, res) => {
       return errorResponse(res, 'Invalid status update. Only "delivered" or "failed" are allowed.', 400);
     }
 
-    const order = await Order.findOne({ _id: id, shipper_id: shipperId });
+    const order = await Order.findOne({ _id: id, shipper_id: shipperId }).populate('shop_id');
 
     if (!order) {
       return errorResponse(res, 'Order not found or not assigned to you', 404);
@@ -245,6 +247,28 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     order.status = status;
+
+    if (status === 'completed') {
+      const paymentOrder = await PaymentOrder.findById(order.payment_order_id);
+      if (paymentOrder && (paymentOrder.payment_method === 'cod' || order.payment_status === 'success')) {
+          order.payment_status = 'success';
+
+          await Payment.updateMany(
+              { payment_order_id: order.payment_order_id, status: 'pending' },
+              { status: 'success', payment_date: new Date() }
+          );
+
+          const siblingOrders = await Order.find({ payment_order_id: paymentOrder._id });
+          const allSiblingSuccess = siblingOrders.every(so =>
+              so._id.toString() === order._id.toString() ? true : so.payment_status === 'success' || so.status === 'completed'
+          );
+          if (allSiblingSuccess) {
+              paymentOrder.payment_status = 'success';
+              await paymentOrder.save();
+          }
+      }
+    }
+
     await order.save();
 
     let imageUrl = null;
@@ -264,6 +288,67 @@ exports.updateOrderStatus = async (req, res) => {
       image_url: imageUrl,
       updated_by: shipperId
     });
+
+    // Notify Customer and Seller
+    try {
+      const Notification = require('../../models/Notification');
+      const io = req.app.get('socketio');
+
+      let customerTitle = 'Order Delivered';
+      let customerContent = `Your order ${order.order_code} has been successfully delivered by the shipper.`;
+      let sellerTitle = 'Order Completed';
+      let sellerContent = `Order ${order.order_code} has been successfully delivered to the customer.`;
+
+      if (status === 'failed') {
+        customerTitle = 'Delivery Failed';
+        customerContent = `Delivery for order ${order.order_code} failed. Reason: ${reason || note || 'Unknown'}`;
+        sellerTitle = 'Delivery Failed';
+        sellerContent = `Delivery for order ${order.order_code} failed. Reason: ${reason || note || 'Unknown'}`;
+      }
+
+      const customerNotif = await Notification.create({
+        user_id: order.customer_id,
+        title: customerTitle,
+        content: customerContent,
+        category: 'Orders',
+        type: 'order',
+        link: `/order-history/${order._id}`
+      });
+
+      const sellerNotif = await Notification.create({
+        user_id: order.shop_id.owner_user_id,
+        title: sellerTitle,
+        content: sellerContent,
+        category: 'Orders',
+        type: 'order',
+        link: `/seller/orders/${order._id}`
+      });
+
+      if (io) {
+        io.to(order.customer_id.toString()).emit('notification', {
+          id: customerNotif._id.toString(),
+          title: customerNotif.title,
+          content: customerNotif.content,
+          category: customerNotif.category,
+          type: customerNotif.type,
+          date: 'JUST NOW',
+          link: customerNotif.link,
+          is_read: false
+        });
+        io.to(order.shop_id.owner_user_id.toString()).emit('notification', {
+          id: sellerNotif._id.toString(),
+          title: sellerNotif.title,
+          content: sellerNotif.content,
+          category: sellerNotif.category,
+          type: sellerNotif.type,
+          date: 'JUST NOW',
+          link: sellerNotif.link,
+          is_read: false
+        });
+      }
+    } catch (notifErr) {
+      console.error('Notification Error on Shipper Status Update:', notifErr);
+    }
 
     successResponse(res, `Order status updated to ${status} successfully`, { order });
   } catch (error) {

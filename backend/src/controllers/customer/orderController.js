@@ -287,13 +287,13 @@ class OrderController {
       const paymentTransaction = paymentTransactions.length > 0 ? paymentTransactions[0] : null;
 
       // Generate a dynamic tracking log if no history was logged in DB
-      // Generate a dynamic tracking log if no history was logged in DB
       let trackingTimeline = history.map(h => ({
         id: h._id,
         status: h.status,
         note: h.note || `Order status updated to ${h.status}`,
         createdAt: h.createdAt,
-        updatedBy: h.updated_by ? h.updated_by.fullName : 'System'
+        updatedBy: h.updated_by ? h.updated_by.fullName : 'System',
+        imageUrl: h.image_url || null
       }));
 
       // Define standard chronological steps

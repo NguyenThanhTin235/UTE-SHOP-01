@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Layout from '../../components/Layout';
 import FABGroup from '../../components/FABGroup';
 import { logout } from '../../redux/authSlice';
+import { addToCart } from '../../redux/cartSlice';
 
 const OrderHistory = () => {
   const { user } = useSelector((state) => state.auth);
@@ -53,6 +54,38 @@ const OrderHistory = () => {
       setOrders([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReorder = async (order) => {
+    try {
+      const items = order.items;
+      if (!items || items.length === 0) return;
+
+      let successCount = 0;
+      for (const item of items) {
+        const productId = item.productId || item.product_id?._id || item.product_id?.id || item.product_id;
+        const variantId = item.variantId || item.variant_id?._id || item.variant_id?.id || item.variant_id;
+        
+        if (productId) {
+           await dispatch(addToCart({ 
+             productId, 
+             variantId: variantId || null, 
+             quantity: item.quantity || 1 
+           })).unwrap();
+           successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Added ${successCount} items to cart to reorder!`);
+        navigate('/cart');
+      } else {
+        toast.error('Could not add items to cart');
+      }
+    } catch (error) {
+      console.error('Reorder error:', error);
+      toast.error(error?.message || 'Failed to reorder items');
     }
   };
 
@@ -428,10 +461,7 @@ const OrderHistory = () => {
 
                               {['completed', 'canceled'].includes(order.status) && (
                                 <button
-                                  onClick={() => {
-                                    toast.success('Added items to cart to reorder!');
-                                    navigate('/cart');
-                                  }}
+                                  onClick={() => handleReorder(order)}
                                   className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center"
                                 >
                                   Reorder

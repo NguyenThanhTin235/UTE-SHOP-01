@@ -546,6 +546,17 @@ const OrderDetail = () => {
                           <p className="text-[10px] text-[#737686] font-medium mt-0.5">
                             {new Date(evt.createdAt).toLocaleString()}
                           </p>
+                          {evt.imageUrl && (
+                            <div className="mt-2">
+                              <img 
+                                src={evt.imageUrl.startsWith('http') ? evt.imageUrl : `http://localhost:5000/${evt.imageUrl.replace(/\\/g, '/')}`} 
+                                alt="Proof of Delivery" 
+                                className="w-24 h-24 object-cover rounded-xl border border-[#c3c6d7] shadow-sm"
+                                onClick={() => window.open(evt.imageUrl.startsWith('http') ? evt.imageUrl : `http://localhost:5000/${evt.imageUrl.replace(/\\/g, '/')}`, '_blank')}
+                                style={{ cursor: 'pointer' }}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

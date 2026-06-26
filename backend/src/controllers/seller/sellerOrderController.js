@@ -339,11 +339,16 @@ const getOrderById = async (req, res, next) => {
         const shipment = await Shipment.findOne({ order_id: order._id })
             .populate('shipping_partner_id', 'name service_type');
 
+        // Fetch Status History for proof of delivery
+        const OrderStatusHistory = require('../../models/OrderStatusHistory');
+        const history = await OrderStatusHistory.find({ order_id: order._id }).sort({ createdAt: -1 });
+
         const orderData = {
             ...order.toObject(),
             items: itemsWithMedia,
             shipping_address: address,
-            shipment: shipment
+            shipment: shipment,
+            history: history
         };
 
         res.status(200).json({
