@@ -166,12 +166,12 @@ const UserStatistics = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
             <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">local_mall</span>
+              <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
             <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
@@ -207,11 +207,14 @@ const UserStatistics = () => {
               <span className="material-symbols-outlined">upgrade</span>
               <span>Upgrade Role</span>
             </Link>
-            <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer mt-2 border-t border-[#c3c6d7]/30 pt-4">
-              <span className="material-symbols-outlined">logout</span>
-              <span>Logout</span>
-            </button>
           </nav>
+
+          <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">
+            <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer">
+              <span className="material-symbols-outlined">logout</span>
+              <span>Log Out</span>
+            </button>
+          </div>
         </aside>
 
         {/* Main Content Area */}

@@ -139,6 +139,7 @@ function App() {
               <Route path="/verify-otp" element={<VerifyOTP />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
               <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
               <Route path="/order-history" element={user ? <OrderHistory /> : <Navigate to="/login" />} />
               <Route path="/order-history/:orderId" element={user ? <OrderDetail /> : <Navigate to="/login" />} />
