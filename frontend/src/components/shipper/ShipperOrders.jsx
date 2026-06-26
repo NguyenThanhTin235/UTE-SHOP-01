@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 
 const ShipperOrders = () => {
   const { status: statusParam } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const validFilters = ['all', 'available', 'shipping', 'completed', 'failed'];
   const currentFilter = validFilters.includes(statusParam) ? statusParam : 'all';
@@ -19,16 +20,16 @@ const ShipperOrders = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Pagination States
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = parseInt(searchParams.get('page')) || 1;
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
   
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Reset page when filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [currentFilter]);
+  const handlePageChange = (newPage) => {
+    searchParams.set('page', newPage);
+    setSearchParams(searchParams);
+  };
 
   useEffect(() => {
     fetchOrders(currentFilter, currentPage);
@@ -262,7 +263,7 @@ const ShipperOrders = () => {
                 </p>
                 <div className="flex items-center gap-2">
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
                     className={`p-2 rounded-xl flex items-center justify-center transition-all ${
                       currentPage === 1 ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'
@@ -271,7 +272,7 @@ const ShipperOrders = () => {
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                     disabled={currentPage === totalPages}
                     className={`p-2 rounded-xl flex items-center justify-center transition-all ${
                       currentPage === totalPages ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'

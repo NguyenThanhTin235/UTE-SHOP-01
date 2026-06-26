@@ -113,7 +113,7 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
-            
+
 
             <div className="p-10 max-w-[1440px] mx-auto w-full space-y-8">
                 {/* Stats Grid */}
@@ -171,8 +171,8 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     setSearchParams(params);
                                 }}
                                 className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
-                                        ? 'text-primary border-b-[3px] border-primary'
-                                        : 'text-secondary hover:text-primary'
+                                    ? 'text-primary border-b-[3px] border-primary'
+                                    : 'text-secondary hover:text-primary'
                                     }`}
                             >
                                 {tab === 'Pending' ? `Pending (${stats.new})` : tab === 'All' ? 'All Requests' : tab}
@@ -293,13 +293,13 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     </p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
                                         className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={executeUpdateStatus}
                                         className="flex-1 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 shadow-lg shadow-green-200 cursor-pointer"
                                     >
@@ -319,7 +319,7 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     </p>
                                 </div>
                                 <div className="space-y-2">
-                                    <textarea 
+                                    <textarea
                                         rows="3"
                                         placeholder="Reason for rejection..."
                                         value={actionModal.reason}
@@ -328,13 +328,13 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     />
                                 </div>
                                 <div className="flex gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
                                         className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={executeUpdateStatus}
                                         className="flex-1 py-4 bg-error text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-error/20 cursor-pointer"
                                     >
