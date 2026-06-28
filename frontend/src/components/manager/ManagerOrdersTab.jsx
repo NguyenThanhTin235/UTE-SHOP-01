@@ -107,7 +107,6 @@ const ManagerOrdersTab = ({ searchTerm }) => {
             <option value="shipping">Shipping</option>
             <option value="completed">Completed</option>
             <option value="canceled">Canceled</option>
-            <option value="refunded">Refunded</option>
           </select>
           
           {/* Shop Filter by ID (Text input) */}
@@ -124,15 +123,15 @@ const ManagerOrdersTab = ({ searchTerm }) => {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200">
-        <table className="w-full text-left text-sm text-slate-600">
+        <table className="w-full text-left text-sm text-slate-600 border-collapse table-fixed">
           <thead className="text-xs text-slate-500 bg-slate-50 border-b border-slate-200 font-bold uppercase tracking-widest">
             <tr>
-              <th className="px-6 py-4">Order Code</th>
-              <th className="px-6 py-4">Shop</th>
-              <th className="px-6 py-4">Customer</th>
-              <th className="px-6 py-4">Total</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Date</th>
+              <th className="w-[20%] px-6 py-4">Order Code</th>
+              <th className="w-[15%] px-6 py-4">Shop</th>
+              <th className="w-[20%] px-6 py-4">Customer</th>
+              <th className="w-[15%] px-6 py-4">Total</th>
+              <th className="w-[15%] px-6 py-4">Status</th>
+              <th className="w-[15%] px-6 py-4">Date</th>
             </tr>
           </thead>
           <tbody>

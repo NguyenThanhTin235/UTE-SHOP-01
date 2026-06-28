@@ -121,7 +121,7 @@ const ShipperOrders = () => {
   };
 
   return (
-    <div className="p-10 max-w-[1280px] mx-auto w-full space-y-6">
+    <div className="p-4 md:p-10 max-w-[1280px] mx-auto w-full space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-black text-slate-900">
           {currentFilter === 'available' ? 'Available Orders' : 'My Assigned Orders'}
@@ -172,14 +172,14 @@ const ShipperOrders = () => {
           </div>
         ) : (
           <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-sm font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th className="p-6">Order Code</th>
-                  <th className="p-6">Customer</th>
-                  <th className="p-6">Address</th>
-                  <th className="p-6">Status</th>
-                  <th className="p-6 text-right">Actions</th>
+                  <th className="w-[30%] p-6">Order Code</th>
+                  <th className="w-[25%] p-6">Customer</th>
+                  <th className="w-[25%] p-6">Address</th>
+                  <th className="w-[120px] p-6 text-center">Status</th>
+                  <th className="w-[150px] md:w-[200px] p-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -209,7 +209,7 @@ const ShipperOrders = () => {
                         {order.shopId?.address || order.shop_id?.address || 'No address provided'}
                       </div>
                     </td>
-                    <td className="p-6">
+                    <td className="p-6 text-center">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1 ${
                         order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                         order.status === 'failed' ? 'bg-red-100 text-red-700' :

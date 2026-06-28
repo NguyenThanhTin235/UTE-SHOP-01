@@ -155,8 +155,7 @@ const OrderHistory = () => {
     { key: 'shipping', label: 'Shipping' },
     { key: 'completed', label: 'Completed' },
     { key: 'cancel_pending', label: 'Cancel Pending' },
-    { key: 'canceled', label: 'Cancelled' },
-    { key: 'refunded', label: 'Refunded' }
+    { key: 'canceled', label: 'Cancelled' }
   ];
 
   const getStatusConfig = (status) => {
@@ -262,7 +261,7 @@ const OrderHistory = () => {
                 <button
                   key={tab.key}
                   onClick={() => handleTabChange(tab.key)}
-                  className={`flex-shrink-0 px-8 py-5 text-sm font-bold transition-all ${activeTab === tab.key
+                  className={`flex-shrink-0 px-4 py-4 md:px-8 md:py-5 text-sm font-bold transition-all ${activeTab === tab.key
                       ? 'text-primary border-b-2 border-primary'
                       : 'text-[#434655] hover:bg-[#f2f3ff]/50'
                     }`}

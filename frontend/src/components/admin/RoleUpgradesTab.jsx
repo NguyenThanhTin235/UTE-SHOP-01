@@ -1,25 +1,41 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 const RoleUpgradesTab = ({ searchTerm: globalSearchTerm }) => {
   const [requests, setRequests] = useState({ sellers: [], shippers: [] });
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  // Filters
-  const [selectedStatus, setSelectedStatus] = useState('all'); // all, pending, active, rejected
-  const [selectedRole, setSelectedRole] = useState('all'); // all, seller, shipper
-  const [localSearch, setLocalSearch] = useState('');
+  // Filters & Pagination via URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedStatus = searchParams.get('status') || 'all';
+  const selectedRole = searchParams.get('role') || 'all';
+  const currentPage = parseInt(searchParams.get('page')) || 1;
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  const [localSearch, setLocalSearch] = useState('');
   const itemsPerPage = 10;
 
-  // Reset page when filters change
+  const updateParams = (newParams) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (value === 'all' || value === 1) params.delete(key);
+        else params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  };
+
+  const setSelectedStatus = (status) => updateParams({ status, page: 1 });
+  const setSelectedRole = (role) => updateParams({ role, page: 1 });
+  const setCurrentPage = (page) => updateParams({ page });
+
+  // Reset page when localSearch changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedStatus, selectedRole, localSearch]);
+    if (localSearch) updateParams({ page: 1 });
+  }, [localSearch]);
 
   // Modals
   const [selectedRequest, setSelectedRequest] = useState(null); // { type, data }
@@ -163,7 +179,7 @@ const RoleUpgradesTab = ({ searchTerm: globalSearchTerm }) => {
   };
 
   return (
-    <div className="p-10 font-sans w-full max-w-7xl mx-auto">
+    <div className="p-4 md:p-10 font-sans w-full max-w-7xl mx-auto">
       {/* Header & Filters */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
         <div>
@@ -241,14 +257,14 @@ const RoleUpgradesTab = ({ searchTerm: globalSearchTerm }) => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200">
-                  <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">User</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Request Role</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Date</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Actions</th>
+                  <th className="w-[35%] px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">User</th>
+                  <th className="w-[20%] px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Request Role</th>
+                  <th className="w-[20%] px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Date</th>
+                  <th className="w-[120px] px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Status</th>
+                  <th className="w-[150px] md:w-[200px] px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -281,7 +297,7 @@ const RoleUpgradesTab = ({ searchTerm: globalSearchTerm }) => {
                        <p className="text-sm font-bold text-slate-700">{new Date(req.createdAt).toLocaleDateString()}</p>
                        <p className="text-xs text-slate-400 font-medium">{new Date(req.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                        {getStatusBadge(req.status)}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -306,14 +322,14 @@ const RoleUpgradesTab = ({ searchTerm: globalSearchTerm }) => {
                 </p>
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
                     className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     Previous
                   </button>
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredData.length / itemsPerPage)))}
+                    onClick={() => setCurrentPage(Math.min(currentPage + 1, Math.ceil(filteredData.length / itemsPerPage)))}
                     disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}
                     className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >

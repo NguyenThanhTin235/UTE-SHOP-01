@@ -1,17 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 const SecurityLogsTab = ({ searchTerm }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
+  
+  // Filters & Pagination via URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get('page')) || 1;
+  const timeRange = searchParams.get('timeRange') || 'all';
+  const role = searchParams.get('role') || 'all';
+  const actionType = searchParams.get('actionType') || 'all';
+
+  const updateParams = (newParams) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (value === 'all' || value === 1) params.delete(key);
+        else params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  };
+
+  const setPage = (p) => updateParams({ page: p });
+  const setTimeRange = (tr) => updateParams({ timeRange: tr, page: 1 });
+  const setRole = (r) => updateParams({ role: r, page: 1 });
+  const setActionType = (at) => updateParams({ actionType: at, page: 1 });
+
   const [totalPages, setTotalPages] = useState(1);
   const [totalActions, setTotalActions] = useState(0);
-
-  const [timeRange, setTimeRange] = useState('all');
-  const [role, setRole] = useState('all');
-  const [actionType, setActionType] = useState('all');
   const [detailModal, setDetailModal] = useState({ isOpen: false, log: null });
 
   const [activePageInput, setActivePageInput] = useState(page.toString());
@@ -160,10 +180,7 @@ const SecurityLogsTab = ({ searchTerm }) => {
         <div className="flex-1"></div>
         <button 
           onClick={() => {
-            setTimeRange('all');
-            setRole('all');
-            setActionType('all');
-            setPage(1);
+            updateParams({ timeRange: 'all', role: 'all', actionType: 'all', page: 1 });
           }}
           className="px-5 py-2.5 text-primary text-xs font-black uppercase tracking-widest hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
         >
@@ -279,7 +296,7 @@ const SecurityLogsTab = ({ searchTerm }) => {
 
               <button
                 disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage(Math.max(1, page - 1))}
                 className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Previous Page"
               >
@@ -320,7 +337,7 @@ const SecurityLogsTab = ({ searchTerm }) => {
 
               <button
                 disabled={page === totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
                 className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Next Page"
               >

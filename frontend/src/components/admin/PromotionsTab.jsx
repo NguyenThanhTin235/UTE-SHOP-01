@@ -602,7 +602,7 @@ const PromotionsTab = ({ searchTerm }) => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse table-fixed">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
                     <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Campaign Name</th>
@@ -760,7 +760,7 @@ const PromotionsTab = ({ searchTerm }) => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse table-fixed">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
                     <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Campaign Name</th>

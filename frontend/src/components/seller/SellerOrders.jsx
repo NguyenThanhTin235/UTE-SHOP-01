@@ -19,8 +19,7 @@ const SellerOrders = ({ onViewDetails }) => {
         'Shipping': 0,
         'Completed': 0,
         'Cancel Pending': 0,
-        'Canceled': 0,
-        'Refunded': 0
+        'Canceled': 0
     });
     const [searchParams, setSearchParams] = useSearchParams();
     const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
@@ -72,7 +71,7 @@ const SellerOrders = ({ onViewDetails }) => {
     const [tempDateFrom, setTempDateFrom] = useState('');
     const [tempDateTo, setTempDateTo] = useState('');
 
-    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Ready to Ship', 'Shipping', 'Completed', 'Cancel Pending', 'Canceled', 'Refunded'];
+    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Ready to Ship', 'Shipping', 'Completed', 'Cancel Pending', 'Canceled'];
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -322,10 +321,10 @@ const SellerOrders = ({ onViewDetails }) => {
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
             
 
-            <div className="p-10 max-w-[1440px] mx-auto w-full space-y-6">
+            <div className="p-4 md:p-10 max-w-[1440px] mx-auto w-full space-y-6">
                 {/* Status Tabs */}
                 <div className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden">
-                    <div className="border-b border-outline-variant/30 flex px-8 overflow-x-auto bg-surface-container-low/20 custom-scrollbar">
+                    <div className="border-b border-outline-variant/30 flex px-4 md:px-8 overflow-x-auto bg-surface-container-low/20 custom-scrollbar">
                         {tabs.map(tab => {
                             const count = summary[tab] || 0;
                             const isActive = statusFilter === tab;
@@ -333,7 +332,7 @@ const SellerOrders = ({ onViewDetails }) => {
                                 <button
                                     key={tab}
                                     onClick={() => setStatusFilter(tab)}
-                                    className={`px-6 py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${isActive ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
+                                    className={`px-4 py-4 md:px-6 md:py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${isActive ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
                                 >
                                     {tab} {tab !== 'All Orders' && `(${count})`}
                                 </button>

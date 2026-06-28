@@ -128,15 +128,15 @@ const SellerProducts = ({ setActiveTab }) => {
 
 
             {/* Main Content */}
-            <div className="p-10 max-w-[1400px] mx-auto w-full">
+            <div className="p-4 md:p-10 max-w-[1400px] mx-auto w-full">
                 <div className="bg-surface-container-lowest rounded-2xl shadow-level-1 border border-outline-variant/30 overflow-hidden flex flex-col">
                     {/* Tabs */}
-                    <div className="border-b border-outline-variant/30 flex px-6 overflow-x-auto custom-scrollbar">
+                    <div className="border-b border-outline-variant/30 flex px-4 md:px-6 overflow-x-auto custom-scrollbar">
                         {statusTabs.map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setStatusFilter(tab)}
-                                className={`px-6 py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${statusFilter === tab ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
+                                className={`px-4 py-4 md:px-6 md:py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${statusFilter === tab ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
                             >
                                 {tab}
                                 {tab === 'Violated' && <span className={`size-2 bg-error rounded-full ${statusFilter === tab ? 'animate-pulse' : ''}`}></span>}
@@ -215,14 +215,14 @@ const SellerProducts = ({ setActiveTab }) => {
 
                     {/* Table */}
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse table-fixed">
                             <thead>
                                 <tr className="bg-surface-container-low/50">
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70">Product</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-right">Price (VND)</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-center">Stock</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-center">Status</th>
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-right">Actions</th>
+                                    <th className="w-[40%] px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70">Product</th>
+                                    <th className="w-[15%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-right">Price (VND)</th>
+                                    <th className="w-[15%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-center">Stock</th>
+                                    <th className="w-[15%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-center">Status</th>
+                                    <th className="w-[15%] px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-outline-variant/20">

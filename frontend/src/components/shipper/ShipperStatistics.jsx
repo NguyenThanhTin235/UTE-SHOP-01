@@ -100,7 +100,7 @@ const ShipperStatistics = () => {
   const paginatedData = data?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || [];
 
   return (
-    <div className="p-10 max-w-[1280px] mx-auto w-full space-y-6">
+    <div className="p-4 md:p-10 max-w-[1280px] mx-auto w-full space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-black text-slate-900">Delivery Statistics</h2>
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
@@ -312,13 +312,13 @@ const ShipperStatistics = () => {
         </div>
         <div className="overflow-x-auto">
           {data.length > 0 && !loading ? (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead>
                 <tr className="bg-slate-50/50">
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Date</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-emerald-600">Delivered</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-red-600">Failed</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-[#004ac6]">Success Rate</th>
+                  <th className="w-[25%] px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Date</th>
+                  <th className="w-[25%] px-6 py-4 text-xs font-black uppercase tracking-widest text-emerald-600">Delivered</th>
+                  <th className="w-[25%] px-6 py-4 text-xs font-black uppercase tracking-widest text-red-600">Failed</th>
+                  <th className="w-[25%] px-6 py-4 text-xs font-black uppercase tracking-widest text-[#004ac6]">Success Rate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

@@ -385,12 +385,12 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
         <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <h3 className="text-xl font-black text-slate-900 tracking-tight mb-8">Recent Penalties</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left table-fixed">
               <thead>
                 <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th className="pb-4">Shop</th>
-                  <th className="pb-4">Action</th>
-                  <th className="pb-4 text-right">Date</th>
+                  <th className="w-[40%] pb-4">Shop</th>
+                  <th className="w-[30%] pb-4">Action</th>
+                  <th className="w-[30%] pb-4 text-right">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -424,13 +424,13 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
             <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">View All</button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left table-fixed">
               <thead>
                 <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th className="pb-4">Shop Name</th>
-                  <th className="pb-4">Reports</th>
-                  <th className="pb-4">Risk Level</th>
-                  <th className="pb-4 text-right">Status</th>
+                  <th className="w-[35%] pb-4">Shop Name</th>
+                  <th className="w-[20%] pb-4">Reports</th>
+                  <th className="w-[25%] pb-4">Risk Level</th>
+                  <th className="w-[20%] pb-4 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 font-bold text-sm">
@@ -470,13 +470,13 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency Metrics</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left table-fixed">
               <thead>
                 <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th className="pb-4">Category</th>
-                  <th className="pb-4">Auto-Pass</th>
-                  <th className="pb-4">Manual Review</th>
-                  <th className="pb-4 text-right">Trust Score</th>
+                  <th className="w-[35%] pb-4">Category</th>
+                  <th className="w-[20%] pb-4">Auto-Pass</th>
+                  <th className="w-[25%] pb-4">Manual Review</th>
+                  <th className="w-[20%] pb-4 text-right">Trust Score</th>
                 </tr>
               </thead>
               <tbody className="font-bold text-sm">
@@ -540,16 +540,16 @@ const ManagerStatistics = ({ searchTerm = '' }) => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="bg-slate-50">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Shop ID</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Shop Name</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">GMV (Revenue)</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">Commission (5%)</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-center">Orders</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">Growth</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-center">Audit Status</th>
+                <th className="w-[10%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Shop ID</th>
+                <th className="w-[20%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Shop Name</th>
+                <th className="w-[15%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">GMV (Revenue)</th>
+                <th className="w-[15%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">Commission (5%)</th>
+                <th className="w-[15%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-center">Orders</th>
+                <th className="w-[10%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-right">Growth</th>
+                <th className="w-[15%] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100 text-center">Audit Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-bold text-sm">

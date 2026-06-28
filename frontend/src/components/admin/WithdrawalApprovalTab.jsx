@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 const WithdrawalApprovalTab = ({ searchTerm }) => {
   const [requests, setRequests] = useState([]);
@@ -12,12 +13,29 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Pagination & Filtering
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  // Pagination & Filtering via URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get('page')) || 1;
+  const limit = parseInt(searchParams.get('limit')) || 10;
+  const statusFilter = searchParams.get('status') || 'all';
+
+  const updateParams = (newParams) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (value === 'all' || value === 1 || (key === 'limit' && value === 10)) params.delete(key);
+        else params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  };
+
+  const setPage = (p) => updateParams({ page: p });
+  const setLimit = (l) => updateParams({ limit: l, page: 1 });
+  const setStatusFilter = (s) => updateParams({ status: s, page: 1 });
+
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [statusFilter, setStatusFilter] = useState('all');
 
   // Modals & Action states
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -224,15 +242,15 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Requests...</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead>
-                <tr className="bg-slate-50/30 border-b border-slate-100">
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Shop</th>
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Requested Date</th>
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank Details</th>
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                <tr className="bg-slate-50/50">
+                  <th className="w-[15%] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Shop</th>
+                  <th className="w-[15%] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Requested Date</th>
+                  <th className="w-[20%] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank Details</th>
+                  <th className="w-[15%] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
+                  <th className="w-[120px] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                  <th className="w-[150px] md:w-[200px] px-4 md:px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -254,7 +272,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
                     return (
                       <tr key={req.id || index} className="hover:bg-slate-50/30 transition-colors">
                         {/* Shop info */}
-                        <td className="px-8 py-5">
+                        <td className="px-4 md:px-8 py-5">
                           <div className="flex items-center gap-3">
                             <img
                               src={req.shopId?.logoUrl || `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="%23E2E8F0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%2364748B">Shop</text></svg>`}
@@ -269,13 +287,13 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
                         </td>
 
                         {/* Request Date */}
-                        <td className="px-8 py-5">
+                        <td className="px-4 md:px-8 py-5">
                           <p className="text-xs font-bold text-slate-800">{date}</p>
                           <p className="text-[10px] text-slate-400 font-medium">{time}</p>
                         </td>
 
                         {/* Bank Details */}
-                        <td className="px-8 py-5 text-xs font-semibold text-slate-600">
+                        <td className="px-4 md:px-8 py-5 text-xs font-semibold text-slate-600">
                           {req.bankDetails ? (
                             <div className="space-y-1">
                               <p className="font-black text-slate-900">{req.bankDetails.bankName}</p>
@@ -288,19 +306,19 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
                         </td>
 
                         {/* Amount */}
-                        <td className="px-8 py-5 text-sm font-black text-slate-900">
+                        <td className="px-4 md:px-8 py-5 text-sm font-black text-slate-900">
                           {formatPrice(req.amount)} ₫
                         </td>
 
                         {/* Status Badge */}
-                        <td className="px-8 py-5">
+                        <td className="px-4 md:px-8 py-5 text-center">
                           <span className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${badgeClass}`}>
                             {req.status}
                           </span>
                         </td>
 
                         {/* Action buttons */}
-                        <td className="px-8 py-5 text-right">
+                        <td className="px-4 md:px-8 py-5 text-right">
                           {req.status === 'pending' ? (
                             <div className="flex justify-end gap-2">
                               <button
@@ -354,7 +372,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
             <div className="flex items-center gap-2">
               <button
                 disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => setPage(page - 1)}
                 className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
               >
                 <span className="material-symbols-outlined text-sm">chevron_left</span>
@@ -374,7 +392,7 @@ const WithdrawalApprovalTab = ({ searchTerm }) => {
               ))}
               <button
                 disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage(page + 1)}
                 className="size-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white"
               >
                 <span className="material-symbols-outlined text-sm">chevron_right</span>

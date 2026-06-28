@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 // Skeleton loaders
 const SkeletonCard = () => (
@@ -45,7 +46,30 @@ const SkeletonRow = () => (
 const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filters & Pagination via URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get('page')) || 1;
+  const selectedStatus = searchParams.get('status') || 'all';
+  const selectedRole = searchParams.get('role') || 'all';
+  const sortBy = searchParams.get('sort') || 'newest';
+
+  const updateParams = (newParams) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (value === 'all' || value === 1 || (key === 'sort' && value === 'newest')) params.delete(key);
+        else params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  };
+
+  const setCurrentPage = (page) => updateParams({ page });
+  const setSelectedStatus = (status) => updateParams({ status, page: 1 });
+  const setSelectedRole = (role) => updateParams({ role, page: 1 });
+  const setSortBy = (sort) => updateParams({ sort, page: 1 });
+
   const [pagination, setPagination] = useState({
     total: 0,
     perPage: 10,
@@ -61,11 +85,8 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
   
   const [confirmStatusModal, setConfirmStatusModal] = useState({ show: false, userId: null, currentStatus: null });
 
-  // Filters
+  // Local Search (Not in URL to avoid constant updates while typing, synced from global)
   const [localSearch, setLocalSearch] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
 
   // Dropdown states
   const [showStatusFilterDropdown, setShowStatusFilterDropdown] = useState(false);
@@ -473,7 +494,6 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
                       key={st}
                       onClick={() => {
                         setSelectedStatus(st);
-                        setCurrentPage(1);
                         setShowStatusFilterDropdown(false);
                       }}
                       className={`w-full text-left px-5 py-2 text-xs font-bold capitalize transition-colors ${
@@ -527,7 +547,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Role:</span>
             <select
               value={selectedRole}
-              onChange={(e) => { setSelectedRole(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => { setSelectedRole(e.target.value); }}
               className="bg-white border border-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-2xl outline-none cursor-pointer hover:bg-slate-50 transition-all"
             >
               <option value="all">All Roles</option>
@@ -552,13 +572,13 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
       {/* Users Table */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-level-1 overflow-x-auto custom-scrollbar">
-        <table className="w-full text-left border-collapse min-w-[1000px]">
+        <table className="w-full text-left border-collapse table-fixed min-w-[1000px]">
           <colgroup>
+            <col style={{ width: '30%' }} />
             <col style={{ width: '25%' }} />
-            <col style={{ width: '25%' }} />
-            <col style={{ width: '20%' }} />
             <col style={{ width: '15%' }} />
-            <col style={{ width: '15%' }} />
+            <col style={{ width: '150px' }} />
+            <col style={{ width: '150px' }} />
           </colgroup>
           <thead>
             <tr className="bg-slate-50 border-b border-slate-100">
@@ -690,7 +710,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="px-8 py-5 bg-white border border-slate-200 rounded-3xl flex items-center justify-between shadow-level-1 gap-4 flex-wrap">
+        <div className="px-4 md:px-8 py-5 bg-white border border-slate-200 rounded-3xl flex items-center justify-between shadow-level-1 gap-4 flex-wrap">
           <p className="text-[11px] text-slate-500 font-bold">
             Showing <span className="text-slate-900">{(pagination.currentPage - 1) * pagination.perPage + 1}</span> to{' '}
             <span className="text-slate-900">
@@ -712,7 +732,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
               <button
                 disabled={currentPage === 1 || loading}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                 className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Previous Page"
               >
@@ -754,7 +774,7 @@ const UserManagementTab = ({ searchTerm: globalSearchTerm }) => {
 
               <button
                 disabled={currentPage === pagination.totalPages || loading}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                onClick={() => setCurrentPage(Math.min(currentPage + 1, pagination.totalPages))}
                 className="w-8 h-8 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-white hover:text-primary disabled:opacity-40 transition-all cursor-pointer"
                 title="Next Page"
               >
