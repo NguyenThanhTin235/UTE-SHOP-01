@@ -86,6 +86,7 @@ const Notifications = () => {
           headers: { Authorization: `Bearer ${token}` },
         };
         await axios.put(`http://localhost:5000/api/notifications/${item.id}/read`, {}, config);
+        window.dispatchEvent(new Event('refresh-notifications'));
       } catch (error) {
         console.error('Mark as read error:', error);
       }
@@ -101,6 +102,7 @@ const Notifications = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
       await axios.put('http://localhost:5000/api/notifications/read-all', {}, config);
+      window.dispatchEvent(new Event('refresh-notifications'));
     } catch (error) {
       console.error('Mark all as read error:', error);
     }
@@ -116,6 +118,7 @@ const Notifications = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
       await axios.delete('http://localhost:5000/api/notifications/clear-all', config);
+      window.dispatchEvent(new Event('refresh-notifications'));
     } catch (error) {
       console.error('Clear all error:', error);
     }

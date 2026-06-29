@@ -3,6 +3,7 @@ const Order = require('../../models/Order');
 const OrderItem = require('../../models/OrderItem');
 const Shop = require('../../models/Shop');
 const User = require('../../models/User');
+const ProductMedia = require('../../models/ProductMedia');
 
 const getCancellations = async (req, res, next) => {
     try {
@@ -76,10 +77,22 @@ const getCancellations = async (req, res, next) => {
             const items = await OrderItem.find({ order_id: cancel.order_id._id })
                 .populate('product_id', 'name slug')
                 .populate('variant_id', 'attributes');
+
+            const productIds = items.filter(i => i.product_id).map(i => i.product_id._id);
+            const medias = await ProductMedia.find({ product_id: { $in: productIds } });
+
+            const itemsWithMedia = items.map(item => {
+                const itemObj = item.toObject();
+                if (itemObj.product_id) {
+                    const productMedia = medias.find(m => m.product_id.toString() === itemObj.product_id._id.toString());
+                    itemObj.product_id.media_url = productMedia ? productMedia.media_url : null;
+                }
+                return itemObj;
+            });
             
             return {
                 ...cancel.toObject(),
-                items: items
+                items: itemsWithMedia
             };
         }));
 

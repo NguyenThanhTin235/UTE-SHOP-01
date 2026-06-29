@@ -24,8 +24,15 @@ export const useNotifications = () => {
             
             fetchUnreadCount();
             
-            const interval = setInterval(fetchUnreadCount, 60000); // 1 minute
-            return () => clearInterval(interval);
+            const interval = setInterval(fetchUnreadCount, 2000); // 2 seconds
+
+            const handleRefresh = () => fetchUnreadCount();
+            window.addEventListener('refresh-notifications', handleRefresh);
+
+            return () => {
+                clearInterval(interval);
+                window.removeEventListener('refresh-notifications', handleRefresh);
+            };
         }
     }, [user, token]);
 

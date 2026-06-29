@@ -48,6 +48,8 @@ const NotificationDropdown = () => {
 
   useEffect(() => {
     fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 2000); // Poll every 10 seconds
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -129,7 +131,7 @@ const NotificationDropdown = () => {
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d ago`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -147,7 +149,7 @@ const NotificationDropdown = () => {
 
   const getIconData = (type, title) => {
     const t = title?.toLowerCase() || '';
-    
+
     if (type === 'order') {
       if (t.includes('cancel') || t.includes('reject')) {
         return { icon: 'cancel', bg: 'bg-rose-100 text-rose-600', detailBg: 'bg-rose-50', badgeBg: 'bg-rose-100 text-rose-700 border-rose-200' };
@@ -232,10 +234,10 @@ const NotificationDropdown = () => {
               <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider">Order Summary</h4>
               <div className="flex gap-3 items-center">
                 {n.orderSummary.image && (
-                  <img 
-                    src={n.orderSummary.image} 
-                    alt="Product" 
-                    className="w-14 h-14 rounded-xl object-cover border border-slate-100 shadow-sm" 
+                  <img
+                    src={n.orderSummary.image}
+                    alt="Product"
+                    className="w-14 h-14 rounded-xl object-cover border border-slate-100 shadow-sm"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -254,7 +256,7 @@ const NotificationDropdown = () => {
           {/* Action buttons */}
           <div className="flex flex-col gap-2 pt-1">
             {n.link && (
-              <a 
+              <a
                 href={n.link}
                 className="w-full py-3 bg-primary text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 transition-all shadow-md shadow-blue-200/50 cursor-pointer text-center"
               >
@@ -287,14 +289,14 @@ const NotificationDropdown = () => {
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">You have {unreadCount} unread</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleMarkAllAsRead}
             title="Mark all as read"
             className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">done_all</span>
           </button>
-          <button 
+          <button
             onClick={handleClearAll}
             title="Clear all"
             className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
@@ -323,8 +325,8 @@ const NotificationDropdown = () => {
             {notifications.map(notification => {
               const { icon, bg } = getIconData(notification.type, notification.title);
               return (
-                <div 
-                  key={notification.id} 
+                <div
+                  key={notification.id}
                   onClick={() => handleSelectNotification(notification)}
                   className={`p-4 flex gap-4 transition-colors cursor-pointer hover:bg-slate-50 group ${!notification.is_read ? 'bg-blue-50/30' : ''}`}
                 >
@@ -358,10 +360,10 @@ const NotificationDropdown = () => {
           </div>
         )}
       </div>
-      
+
       {notifications.length > 0 && (
         <div className="p-3 bg-slate-50/50 border-t border-slate-100 text-center">
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             className="text-xs font-bold text-slate-500 hover:text-primary transition-colors uppercase tracking-widest cursor-pointer"
           >
@@ -376,9 +378,8 @@ const NotificationDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative cursor-pointer border ${
-          isOpen ? 'bg-slate-50 text-primary border-blue-100 shadow-inner' : 'text-slate-500 hover:bg-slate-50 border-slate-100'
-        }`}
+        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative cursor-pointer border ${isOpen ? 'bg-slate-50 text-primary border-blue-100 shadow-inner' : 'text-slate-500 hover:bg-slate-50 border-slate-100'
+          }`}
       >
         <span className="material-symbols-outlined text-2xl">notifications</span>
         {unreadCount > 0 && (
@@ -389,9 +390,8 @@ const NotificationDropdown = () => {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 top-full mt-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 overflow-hidden transition-all duration-300 flex flex-col ${
-          selectedNotification ? 'w-[420px]' : 'w-80 sm:w-[380px]'
-        }`}
+        <div className={`absolute right-0 top-full mt-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 overflow-hidden transition-all duration-300 flex flex-col ${selectedNotification ? 'w-[420px]' : 'w-80 sm:w-[380px]'
+          }`}
           style={{ maxHeight: 'calc(100vh - 100px)' }}
         >
           {selectedNotification ? renderDetailView() : renderListView()}

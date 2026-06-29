@@ -30,13 +30,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
         setSearchParams(params, { replace: true });
     }, [range, startDate, endDate]);
 
-    // AI Chat State
-    const [showAI, setShowAI] = useState(false);
-    const [aiInput, setAiInput] = useState('');
-    const [aiMessages, setAiMessages] = useState([
-        { sender: 'ai', text: "Hello! I'm your UTEShop AI Assistant. I can help you analyze your store's sales performance. This week, your revenue has shown a very strong growth trend!" }
-    ]);
-    const [aiTyping, setAiTyping] = useState(false);
+
 
     const { user } = useSelector(state => state.auth);
     const { unreadCount } = useNotifications();
@@ -346,62 +340,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
         }
     };
 
-    // AI Chat Submission
-    const handleAiSubmit = (e) => {
-        e.preventDefault();
-        if (!aiInput.trim()) return;
 
-        const userMsg = aiInput.trim();
-        setAiMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-        setAiInput('');
-        setAiTyping(true);
-
-        // Advanced local rule-based AI processing using active store metrics
-        setTimeout(() => {
-            let responseText = '';
-            const lowerMsg = userMsg.toLowerCase();
-
-            if (!analyticsData) {
-                responseText = "I am loading your store's analytics data. Please wait a moment!";
-            } else {
-                const kpis = analyticsData.kpis;
-                const topProducts = analyticsData.products;
-
-                const formattedRevenue = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(kpis.revenue.value);
-                const revenueGrowthText = kpis.revenue.growth >= 0 ? `grown by ${kpis.revenue.growth}%` : `decreased by ${Math.abs(kpis.revenue.growth)}%`;
-
-                if (lowerMsg.includes('revenue') || lowerMsg.includes('sales') || lowerMsg.includes('earn') || lowerMsg.includes('money')) {
-                    responseText = `Your store's revenue during this period reached ${formattedRevenue}. Compared to the previous period, it has ${revenueGrowthText}.`;
-                    if (kpis.revenue.growth > 0) {
-                        responseText += " This is a very positive sign! Keep up the current promotion campaigns.";
-                    } else {
-                        responseText += " You should consider running more discount codes or optimizing product images to improve revenue.";
-                    }
-                } else if (lowerMsg.includes('product') || lowerMsg.includes('best seller') || lowerMsg.includes('top') || lowerMsg.includes('selling')) {
-                    if (topProducts && topProducts.length > 0) {
-                        responseText = `Your current best-selling product is "${topProducts[0].name}" with ${topProducts[0].orders} orders, bringing in a total revenue of ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(topProducts[0].revenue)}.`;
-                        if (topProducts.length > 1) {
-                            responseText += ` Followed by other products such as: "${topProducts[1].name}".`;
-                        }
-                    } else {
-                        responseText = "Currently, there is no sales data for specific products during this period.";
-                    }
-                } else if (lowerMsg.includes('visitor') || lowerMsg.includes('traffic') || lowerMsg.includes('view') || lowerMsg.includes('click')) {
-                    responseText = `Your shop had a total of ${kpis.visitors.value} visitors in this cycle, which is a ${kpis.visitors.growth >= 0 ? 'increase' : 'decrease'} of ${Math.abs(kpis.visitors.growth)}% compared to the previous cycle.`;
-                    if (kpis.conversion.value > 0) {
-                        responseText += ` The conversion rate reached ${kpis.conversion.value}% (a ${kpis.conversion.growth >= 0 ? 'increase' : 'decrease'} of ${Math.abs(kpis.conversion.growth)}%).`;
-                    }
-                } else if (lowerMsg.includes('recommend') || lowerMsg.includes('suggest') || lowerMsg.includes('optimize') || lowerMsg.includes('strategy') || lowerMsg.includes('advice')) {
-                    responseText = `Based on the current data, I suggest the following actions:\n1. The product "${topProducts[0]?.name || 'highlighted'}" is attracting customers very well, you should optimize stock for this product.\n2. Your conversion rate is currently ${kpis.conversion.value}%. To improve, try offering more vouchers for new customers!\n3. Boost marketing via social channels to attract more new visitors.`;
-                } else {
-                    responseText = `Hello! I can help you with metrics such as Revenue (${formattedRevenue}), Conversion Rate (${kpis.conversion.value}%), Visitors (${kpis.visitors.value} views), or suggest the best-selling products. Do you need to ask about any specific metric?`;
-                }
-            }
-
-            setAiMessages(prev => [...prev, { sender: 'ai', text: responseText }]);
-            setAiTyping(false);
-        }, 1200);
-    };
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
@@ -734,90 +673,7 @@ const SellerAnalytics = ({ setActiveTab }) => {
                 )}
             </div>
 
-            {/* AI Assistant Chat Component */}
-            <div className="fixed bottom-8 right-8 z-[110] flex flex-col gap-4">
-                <button
-                    onClick={() => setShowAI(!showAI)}
-                    className="size-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative border border-primary/10 cursor-pointer"
-                >
-                    <span className="material-symbols-outlined text-3xl">smart_toy</span>
-                            <div className="absolute -top-1 -right-1 size-7 bg-white text-error font-black flex items-center justify-center rounded-full border-2 border-error shadow-lg text-[12px]">1</div>
-                    <span className="absolute right-full mr-4 px-3 py-1.5 bg-on-surface text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        AI Assistant
-                    </span>
-                </button>
-            </div>
 
-            {showAI && (
-                <div className="fixed bottom-28 right-8 w-96 h-[550px] bg-surface-container-lowest rounded-[2rem] shadow-2xl border border-outline-variant/30 flex flex-col z-[120] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-                    {/* AI Chat Header */}
-                    <div className="p-6 bg-primary text-white flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="size-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                                <span className="material-symbols-outlined">smart_toy</span>
-                            </div>
-                            <div>
-                                <h3 className="font-black text-sm tracking-tight">AI Assistant</h3>
-                                <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest">Always Online</p>
-                            </div>
-                        </div>
-                        <button onClick={() => setShowAI(false)} className="size-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
-                            <span className="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-
-                    {/* Chat Messages */}
-                    <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-surface-container-low/30 flex flex-col">
-                        {aiMessages.map((msg, idx) => (
-                            <div key={idx} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                                {msg.sender === 'ai' && (
-                                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                        <span className="material-symbols-outlined text-sm">smart_toy</span>
-                                    </div>
-                                )}
-                                <div className={`p-4 rounded-2xl text-sm font-bold leading-relaxed shadow-sm border ${msg.sender === 'user'
-                                        ? 'bg-primary text-white rounded-tr-none border-primary'
-                                        : 'bg-white text-on-surface rounded-tl-none border-outline-variant/20'
-                                    }`}>
-                                    {msg.text.split('\n').map((line, i) => <p key={i} className="mb-1 last:mb-0">{line}</p>)}
-                                </div>
-                            </div>
-                        ))}
-                        {aiTyping && (
-                            <div className="flex gap-3">
-                                <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-sm">smart_toy</span>
-                                </div>
-                                <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-outline-variant/20 flex items-center gap-1">
-                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce"></div>
-                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="size-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="p-4 bg-white border-t border-outline-variant/30 shrink-0">
-                        <form onSubmit={handleAiSubmit} className="flex gap-2 p-2 bg-surface-container-low rounded-2xl border border-outline-variant/20">
-                            <input
-                                type="text"
-                                placeholder="Ask AI anything..."
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold px-2 outline-none"
-                                value={aiInput}
-                                onChange={(e) => setAiInput(e.target.value)}
-                            />
-                            <button
-                                type="submit"
-                                className="size-10 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer"
-                                disabled={!aiInput.trim()}
-                            >
-                                <span className="material-symbols-outlined">send</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

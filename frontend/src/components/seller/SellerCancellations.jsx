@@ -205,8 +205,7 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     cancellations.map((cancel) => {
                                         const firstItem = cancel.items && cancel.items.length > 0 ? cancel.items[0] : null;
                                         const productName = firstItem?.product_id?.name || 'Unknown Product';
-                                        // Normally would fetch image from firstItem.product_id.media, but we mock it here if absent
-                                        const productImage = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200";
+                                        const productImage = firstItem?.product_id?.media_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200";
 
                                         return (
                                             <tr key={cancel._id} className="hover:bg-surface-container-low/30 transition-colors group">

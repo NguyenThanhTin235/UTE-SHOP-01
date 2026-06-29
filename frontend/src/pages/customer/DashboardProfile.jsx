@@ -113,7 +113,7 @@ const DashboardProfile = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="h-20 bg-white border-b border-[#c3c6d7]/30 flex items-center px-4 md:px-10 sticky top-0 z-40 shadow-sm">
-        <button onClick={() => navigate(user?.role === 'admin' ? '/admin' : user?.role === 'manager' ? '/manager' : user?.role === 'shipper' ? '/shipper' : '/seller')} className="flex items-center gap-2 text-[#434655] hover:text-primary transition-colors font-bold cursor-pointer">
+        <button onClick={() => navigate(user?.role === 'admin' ? '/admin' : user?.role === 'manager' ? '/manager' : user?.role === 'shipper' ? '/shipper' : user?.role === 'seller' || user?.role === 'vendor' ? '/seller' : '/')} className="flex items-center gap-2 text-[#434655] hover:text-primary transition-colors font-bold cursor-pointer">
           <span className="material-symbols-outlined">arrow_back</span>
           Back to Dashboard
         </button>

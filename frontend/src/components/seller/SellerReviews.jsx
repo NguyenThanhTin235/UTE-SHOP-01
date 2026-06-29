@@ -93,15 +93,7 @@ const SellerReviews = () => {
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [submittingReplyId, setSubmittingReplyId] = useState(null);
 
-  // AI Chat Assistant States
-  const [showAIChat, setShowAIChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    {
-      sender: 'ai',
-      text: 'Hello! I am your AI Assistant. Would you like me to help you draft a professional response to any review?'
-    }
-  ]);
-  const [chatInput, setChatInput] = useState('');
+
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -196,68 +188,7 @@ const SellerReviews = () => {
     }
   };
 
-  // Local AI Draft Generator in English
-  const draftReplyWithAI = (review) => {
-    const buyerName = review.user_id?.fullName || 'valued customer';
-    const productName = review.product_id?.name || 'our product';
-    const rating = review.rating;
-    
-    let draft = '';
-    if (rating === 5) {
-      const drafts = [
-        `Dear ${buyerName}, thank you so much for purchasing ${productName} and leaving a 5-star review! We are thrilled to hear you are satisfied with your purchase. We look forward to serving you again in the future. Have a wonderful day!`,
-        `Hi ${buyerName}, thank you very much for choosing ${productName} from our store and rating us 5 stars. Your satisfaction is our greatest motivation. Have a wonderful experience with the product!`
-      ];
-      draft = drafts[Math.floor(Math.random() * drafts.length)];
-    } else if (rating === 4) {
-      draft = `Dear ${buyerName}, thank you for your 4-star review of ${productName}. We appreciate your support and valuable feedback. We hope to deliver an even better experience for you on your next visit!`;
-    } else if (rating === 3) {
-      draft = `Dear ${buyerName}, thank you for your feedback on ${productName}. We are sorry to hear that it didn't fully meet your expectations. We will share your comments with our product team to help us improve. Feel free to contact us via Chat if you need further assistance.`;
-    } else {
-      draft = `Dear ${buyerName}, we are deeply sorry for the poor experience you had with ${productName}. We take product quality and shipping conditions seriously and would love to resolve this issue by offering a replacement or refund. Please message us directly via Chat so we can assist you right away.`;
-    }
 
-    // Pre-fill the reply input
-    handleReplyChange(review._id, draft);
-    setEditingReplyId(review._id);
-
-    // Open AI Panel and add message
-    setShowAIChat(true);
-    setChatMessages(prev => [
-      ...prev,
-      {
-        sender: 'user',
-        text: `Write a response for the ${rating}-star review from ${buyerName} regarding ${productName}.`
-      },
-      {
-        sender: 'ai',
-        text: `I have drafted a professional response and automatically filled it in the reply editor for you. Here is the drafted text:\n\n"${draft}"`
-      }
-    ]);
-
-    toast.success('AI reply draft generated!');
-  };
-
-  const handleSendChatMessage = (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const query = chatInput.trim();
-    setChatMessages(prev => [...prev, { sender: 'user', text: query }]);
-    setChatInput('');
-
-    setTimeout(() => {
-      let replyText = 'I can help you write response drafts. Just click the "Draft with AI" button on the top-right of any review to analyze its details and suggest a tailored reply.';
-      
-      if (query.toLowerCase().includes('hello') || query.toLowerCase().includes('hi') || query.toLowerCase().includes('hey')) {
-        replyText = 'Hello! I can write customer service responses based on their review rating. Try clicking the "Draft with AI" button on any review to see it in action!';
-      } else if (query.toLowerCase().includes('thank') || query.toLowerCase().includes('thanks')) {
-        replyText = 'You are very welcome! Wishing your shop outstanding sales and 5-star ratings!';
-      }
-      
-      setChatMessages(prev => [...prev, { sender: 'ai', text: replyText }]);
-    }, 600);
-  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -611,13 +542,7 @@ const SellerReviews = () => {
                             <label className="text-[10px] font-black uppercase tracking-widest text-primary">
                               {editingReplyId === rev._id ? 'Edit Response' : 'Your Response'}
                             </label>
-                            <button
-                              onClick={() => draftReplyWithAI(rev)}
-                              className="bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-xs">smart_toy</span>
-                              Draft with AI
-                            </button>
+
                           </div>
                           <div className="relative">
                             <textarea 
@@ -704,85 +629,7 @@ const SellerReviews = () => {
         </div>
       )}
 
-      {/* AI Assistant FAB and Chat window */}
-      <div className="fixed bottom-8 right-8 z-[110] flex flex-col gap-4">
-        <button 
-          onClick={() => setShowAIChat(!showAIChat)} 
-          className="size-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border border-primary/10 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-3xl select-none">smart_toy</span>
-          <span className="absolute right-full mr-4 px-3 py-1.5 bg-[#131b2e] text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md">
-            AI Assistant
-          </span>
-        </button>
-      </div>
 
-      {showAIChat && (
-        <div className="fixed bottom-28 right-8 w-96 h-[550px] bg-white rounded-[2rem] shadow-2xl border border-slate-200 flex flex-col z-[120] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-          {/* Header */}
-          <div className="p-6 bg-primary text-white flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="size-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                <span className="material-symbols-outlined text-xl">smart_toy</span>
-              </div>
-              <div className="text-left">
-                <h3 className="font-black text-sm tracking-tight">AI Assistant</h3>
-                <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest">Always Online</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowAIChat(false)} 
-              className="size-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/50 flex flex-col">
-            {chatMessages.map((msg, index) => (
-              <div 
-                key={index} 
-                className={`flex gap-3 max-w-[85%] ${msg.sender === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}
-              >
-                {msg.sender === 'ai' && (
-                  <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-sm">smart_toy</span>
-                  </div>
-                )}
-                <div 
-                  className={`p-4 rounded-2xl shadow-sm text-xs font-bold leading-relaxed whitespace-pre-line text-left border ${
-                    msg.sender === 'user' 
-                      ? 'bg-primary text-white border-primary rounded-tr-none' 
-                      : 'bg-white text-[#131b2e] border-slate-200/60 rounded-tl-none'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Footer Input */}
-          <form onSubmit={handleSendChatMessage} className="p-4 bg-white border-t border-slate-100 shrink-0">
-            <div className="flex gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-200">
-              <input 
-                type="text" 
-                placeholder="Ask a question or request draft..." 
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 bg-transparent border-none focus:ring-0 text-xs font-bold px-2 outline-none"
-              />
-              <button 
-                type="submit"
-                className="size-10 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm shadow-primary/10"
-              >
-                <span className="material-symbols-outlined text-lg">send</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 };

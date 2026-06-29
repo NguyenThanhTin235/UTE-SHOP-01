@@ -22,7 +22,7 @@ const getDashboard = async (req, res) => {
 
     // --- Stat Cards ---
     const [pendingShops, pendingProducts, activeReports] = await Promise.all([
-      SellerProfile.countDocuments({ status: 'pending' }),
+      Shop.countDocuments({ status: 'pending' }),
       Product.countDocuments({ approval_status: 'pending' }),
       Violation.countDocuments({ status: 'pending' }),
     ]);
@@ -91,10 +91,10 @@ const getDashboard = async (req, res) => {
 
     // --- Pending Tasks (15 most recent: mix shops + products + violations) ---
     const [pendingShopProfiles, pendingProductList, pendingViolations] = await Promise.all([
-      SellerProfile.find({ status: 'pending' })
+      Shop.find({ status: 'pending' })
         .sort({ createdAt: -1 })
         .limit(5)
-        .populate('user_id', 'full_name email'),
+        .populate('owner_user_id', 'full_name email'),
       Product.find({ approval_status: 'pending' })
         .sort({ createdAt: -1 })
         .limit(5)
@@ -106,13 +106,13 @@ const getDashboard = async (req, res) => {
     ]);
 
     const pendingTasks = [
-      ...pendingShopProfiles.map((sp) => ({
-        id: sp._id,
+      ...pendingShopProfiles.map((s) => ({
+        id: s._id,
         type: 'shop',
-        title: sp.user_id?.full_name || 'Unknown Seller',
-        subtitle: `Shop Registration • ${timeAgo(sp.createdAt)}`,
-        icon: 'store',
-        createdAt: sp.createdAt,
+        title: `Shop Registration: ${s.owner_user_id?.full_name || 'Unknown User'}`,
+        subtitle: `Shop Name: ${s.name || 'N/A'} • ${timeAgo(s.createdAt)}`,
+        icon: 'storefront',
+        createdAt: s.createdAt,
       })),
       ...pendingProductList.map((p) => ({
         id: p._id,
@@ -285,6 +285,13 @@ const approveShop = async (req, res) => {
     shop.status = 'active';
     await shop.save();
 
+    const profile = await SellerProfile.findOne({ user_id: shop.owner_user_id });
+    if (profile) {
+      profile.status = 'active';
+      profile.approved_at = Date.now();
+      await profile.save();
+    }
+
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'APPROVE_SHOP',
@@ -310,6 +317,13 @@ const rejectShop = async (req, res) => {
     shop.status = 'rejected';
     shop.rejection_reason = reason || 'No reason provided';
     await shop.save();
+
+    const profile = await SellerProfile.findOne({ user_id: shop.owner_user_id });
+    if (profile) {
+      profile.status = 'rejected';
+      profile.approved_at = Date.now();
+      await profile.save();
+    }
 
     await AuditLog.create({
       actor_id: req.user._id,
@@ -662,8 +676,8 @@ const getViolations = async (req, res) => {
       return {
         id: v._id,
         _id: v._id,
-        shop_id: v.shop_id,
-        product_id: v.product_id,
+        shopId: v.shop_id,
+        productId: v.product_id,
         title: v.title,
         description: v.description,
         severity: v.severity,
