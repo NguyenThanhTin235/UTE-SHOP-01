@@ -20,7 +20,9 @@ const {
   getStatistics,
   getStatisticsCategories,
   getStatisticsDateRanges,
-  getStatisticsStatuses
+  getStatisticsStatuses,
+  getAllOrders,
+  getOrderDetail
 } = require('../../controllers/manager/managerController');
 const { verifyToken } = require('../../middleware/authMiddleware');
 
@@ -78,5 +80,9 @@ router.get('/statistics/filters/categories', verifyToken, requireManagerOrAdmin,
 router.get('/statistics/filters/date-ranges', verifyToken, requireManagerOrAdmin, getStatisticsDateRanges);
 router.get('/statistics/filters/statuses', verifyToken, requireManagerOrAdmin, getStatisticsStatuses);
 router.get('/statistics', verifyToken, requireManagerOrAdmin, getStatistics);
+
+// ─── ORDER MONITORING ──────────────────────────────────────────────────────────
+router.get('/orders', verifyToken, requireManagerOrAdmin, getAllOrders);
+router.get('/orders/:id', verifyToken, requireManagerOrAdmin, getOrderDetail);
 
 module.exports = router;

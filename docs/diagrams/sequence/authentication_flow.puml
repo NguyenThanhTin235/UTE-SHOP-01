@@ -1,0 +1,33 @@
+@startuml
+skinparam maxMessageSize 150
+actor User
+participant Frontend as FE
+participant "Auth Service" as API
+participant "Email Provider" as Email
+participant Database as DB
+
+User -> FE: Enter Email & Click "Send OTP"
+FE -> API: Request OTP (Email)
+API -> DB: Check if User Exists
+API -> API: Generate 6-digit OTP
+API -> DB: Save OTP Hash & Expiry (e.g. 5 mins)
+API -> Email: Send Email with OTP
+Email --> User: Deliver OTP Email
+API --> FE: Confirm OTP Sent
+
+User -> FE: Enter OTP Code
+FE -> API: Verify OTP (Email, Code)
+API -> DB: Fetch OTP Hash & Expiry
+
+alt OTP Valid & Not Expired
+    API -> API: Delete OTP
+    API -> DB: Fetch or Create User Profile
+    API -> API: Generate JWT (Access Token)
+    API --> FE: Return JWT & User Data
+    FE -> FE: Save JWT in LocalStorage
+    FE --> User: Login Successful, Redirect to Home
+else OTP Invalid or Expired
+    API --> FE: Error "Invalid/Expired OTP"
+    FE --> User: Show Error Message
+end
+@enduml

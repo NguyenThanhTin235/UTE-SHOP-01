@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const User = require('./src/models/User');
-const Shop = require('./src/models/Shop');
-const Category = require('./src/models/Category');
-const Product = require('./src/models/Product');
-const ProductMedia = require('./src/models/ProductMedia');
+const User = require('../src/models/User');
+const Shop = require('../src/models/Shop');
+const Category = require('../src/models/Category');
+const Product = require('../src/models/Product');
+const ProductMedia = require('../src/models/ProductMedia');
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ const seedProducts = async () => {
       owner = await User.create({
         full_name: 'Seed Seller',
         email: 'seller_seed@uteshop.com',
-        password: 'mock',
+        password: '*Tin230983',
         role: 'seller',
         status: 'active'
       });

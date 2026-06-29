@@ -198,6 +198,12 @@ const DashboardSecurity = () => {
                 <span>Bank Accounts</span>
               </Link>
             )}
+            {user?.role === 'shipper' && (
+              <Link to="/shipper/info" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+                <span className="material-symbols-outlined">local_shipping</span>
+                <span>Shipper Information</span>
+              </Link>
+            )}
             <Link to={user?.role === 'admin' ? '/admin/security' : user?.role === 'manager' ? '/manager/security' : '/seller/security'} className="flex items-center px-4 py-3 space-x-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
               <span>Security Settings</span>

@@ -175,6 +175,12 @@ const DashboardBankAccounts = () => {
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
               <span>Bank Accounts</span>
             </Link>
+            {user?.role === 'shipper' && (
+              <Link to="/shipper/info" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+                <span className="material-symbols-outlined">local_shipping</span>
+                <span>Shipper Information</span>
+              </Link>
+            )}
             <Link to="/seller/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>

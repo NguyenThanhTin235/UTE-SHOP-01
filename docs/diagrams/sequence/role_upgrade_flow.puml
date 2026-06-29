@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor Customer
+participant Frontend as FE
+participant Backend as API
+participant Database as DB
+actor Admin
+
+Customer -> FE: Submit Role Upgrade Request (CCCD, Info)
+FE -> API: Create Request (Type: Seller/Shipper)
+API -> DB: Save Request (Status: Pending)
+API --> Customer: Notify "Request Submitted"
+
+API --> Admin: Notify "New Role Upgrade Request"
+Admin -> API: Review Submitted Documents
+
+alt Request Approved
+    Admin -> API: Approve Request
+    API -> DB: Update Request Status -> "Approved"
+    API -> DB: Update User Role (RBAC)
+    API --> Customer: Notify "Role Upgraded Successfully"
+else Request Rejected
+    Admin -> API: Reject Request (Reason)
+    API -> DB: Update Request Status -> "Rejected"
+    API --> Customer: Notify "Request Rejected" (With Reason)
+end
+@enduml

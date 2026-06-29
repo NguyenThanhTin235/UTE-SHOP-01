@@ -38,13 +38,13 @@ const AdminHeader = ({
       <div className="flex items-center gap-4">
         {activeTab === 'platform_settings' && (
           <div className="mr-2 hidden md:flex items-center bg-slate-100 p-1 rounded-xl group transition-all border border-slate-200/60">
-            <button 
+            <button
               onClick={() => setActivePlatformTab('general')}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activePlatformTab === 'general' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
             >
               General
             </button>
-            <button 
+            <button
               onClick={() => setActivePlatformTab('categories')}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activePlatformTab === 'categories' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
             >
@@ -53,7 +53,7 @@ const AdminHeader = ({
           </div>
         )}
         {showApplyButton && (
-          <button 
+          <button
             onClick={onApplyChanges}
             disabled={applying}
             className="px-5 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -63,7 +63,7 @@ const AdminHeader = ({
           </button>
         )}
         {addPartnerTrigger && (
-          <button 
+          <button
             onClick={addPartnerTrigger}
             className="px-5 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
@@ -72,7 +72,7 @@ const AdminHeader = ({
           </button>
         )}
         {addRoleTrigger && (
-          <button 
+          <button
             onClick={addRoleTrigger}
             className="px-5 py-2.5 bg-[#004ac6] text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer"
           >
@@ -81,7 +81,7 @@ const AdminHeader = ({
           </button>
         )}
         {addPostTrigger && (
-          <button 
+          <button
             onClick={addPostTrigger}
             className="px-5 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer"
           >

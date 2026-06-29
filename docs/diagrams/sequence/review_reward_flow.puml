@@ -1,0 +1,27 @@
+@startuml
+skinparam maxMessageSize 150
+actor Customer
+participant Frontend as FE
+participant Backend as API
+participant "Coin Service" as Coins
+participant Database as DB
+actor Seller
+
+Customer -> FE: Submit Review (Rating, Comment, Photos)
+FE -> API: Process Review Request
+API -> DB: Verify Order Completed & Unreviewed
+DB --> API: Verification OK
+API -> DB: Save Review
+API -> Coins: Calculate Reward (e.g., +100 Coins)
+Coins -> DB: Add Coins to Customer Wallet
+Coins --> API: Reward Processed
+API --> FE: Return Success & Coins Earned
+
+FE --> Customer: Display "Review Submitted! +100 Coins"
+API --> Seller: Notify "New Product Review"
+
+Seller -> FE: View Review
+Seller -> API: Submit Reply to Review
+API -> DB: Save Reply
+API --> Customer: Notify "Seller replied to your review"
+@enduml

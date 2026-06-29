@@ -1,9 +1,9 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./src/models/User');
-const Shop = require('./src/models/Shop');
-const SellerProfile = require('./src/models/SellerProfile');
-const AuditLog = require('./src/models/AuditLog');
+const User = require('../src/models/User');
+const Shop = require('../src/models/Shop');
+const SellerProfile = require('../src/models/SellerProfile');
+const AuditLog = require('../src/models/AuditLog');
 
 async function seedPendingShops() {
   try {
@@ -28,7 +28,7 @@ async function seedPendingShops() {
           full_name: ud.name,
           email: ud.email,
           phone: ud.phone,
-          password: 'hashedpassword',
+          password: '*Tin230983',
           role: 'user',
           is_active: true,
           is_verified: true,
@@ -85,12 +85,12 @@ async function seedPendingShops() {
         // Find or create 'System Dispatcher' user
         let botUser = await User.findOne({ email: 'bot@system.com' });
         if (!botUser) {
-          botUser = await User.create({ full_name: 'OPERATIONS BOT', email: 'bot@system.com', password: 'pw', role: 'admin' });
+          botUser = await User.create({ full_name: 'OPERATIONS BOT', email: 'bot@system.com', password: '*Tin230983', role: 'admin' });
         }
         
         let managerUser = await User.findOne({ email: 'senior@system.com' });
         if (!managerUser) {
-          managerUser = await User.create({ full_name: 'SENIOR MANAGER', email: 'senior@system.com', password: 'pw', role: 'admin' });
+          managerUser = await User.create({ full_name: 'SENIOR MANAGER', email: 'senior@system.com', password: '*Tin230983', role: 'admin' });
         }
 
         // Clear existing audit logs for this shop to avoid duplicates on re-run

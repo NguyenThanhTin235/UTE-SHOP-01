@@ -6,6 +6,7 @@ const ProductApproval = require('../../models/ProductApproval');
 const ProductMedia = require('../../models/ProductMedia');
 const ProductVariant = require('../../models/ProductVariant');
 const Violation = require('../../models/Violation');
+const Notification = require('../../models/Notification');
 const response = require('../../utils/response');
 
 /**
@@ -189,52 +190,52 @@ function timeAgo(date) {
 
 const getShopDetail = async (req, res) => {
   try {
-    const { id } = req.params;
-    const profile = await SellerProfile.findById(id).populate('user_id', 'full_name email phone');
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id?._id });
+    const { id } = req.params; // This is now Shop ID
+    const shop = await Shop.findById(id).populate('owner_user_id', 'full_name email phone');
     if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
+
+    // Try to get seller profile for document urls
+    const profile = await SellerProfile.findOne({ user_id: shop.owner_user_id?._id });
 
     // Build approval history from AuditLog
     const auditLogs = await AuditLog.find({
       entity_type: 'Shop',
-      entity_id: { $in: [shop._id, profile._id] }
+      entity_id: shop._id
     })
       .sort({ createdAt: -1 })
       .populate('actor_id', 'full_name');
 
     const history = auditLogs.map(log => ({
       id: log._id,
-      action: log.action === 'APPROVE_SHOP' ? 'Approved Registration' :
-        log.action === 'REJECT_SHOP' ? 'Rejected Registration' : log.action,
-      note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Application reviewed and approved.' : 'No additional note'),
+      action: log.action === 'APPROVE_SHOP' ? 'Approved Shop' :
+        log.action === 'REJECT_SHOP' ? 'Rejected Shop' : log.action,
+      note: log.metadata?.reason || log.metadata?.note || (log.action === 'APPROVE_SHOP' ? 'Shop configuration reviewed and approved.' : 'No additional note'),
       actorName: log.actor_id?.full_name || 'System',
       date: log.createdAt
     }));
 
     history.push({
-      id: 'init_' + profile._id,
-      action: 'Documents Submitted',
-      note: 'Initial registration documents received from applicant.',
-      actorName: profile.user_id?.full_name || 'Applicant',
-      date: profile.createdAt
+      id: 'init_' + shop._id,
+      action: 'Configuration Submitted',
+      note: 'Initial shop configuration received.',
+      actorName: shop.owner_user_id?.full_name || 'Seller',
+      date: shop.createdAt
     });
 
     return response.success(res, {
       message: 'Shop detail retrieved',
       data: {
-        id: profile._id,
+        id: shop._id,
         shopName: shop.name,
-        taxId: profile.gst_number || 'N/A',
-        legalRep: profile.user_id?.full_name || 'Unknown',
-        email: profile.user_id?.email || shop.email || 'N/A',
-        phone: shop.phone || 'N/A',
-        address: shop.address || profile.pickup_address || 'N/A',
-        identity_card_url: profile.identity_card_url,
-        business_license_url: profile.business_license_url,
-        status: profile.status,
-        appliedAt: profile.createdAt,
+        taxId: profile?.gst_number || 'N/A',
+        legalRep: shop.owner_user_id?.full_name || 'Unknown',
+        email: shop.email || shop.owner_user_id?.email || 'N/A',
+        phone: shop.phone || shop.owner_user_id?.phone || 'N/A',
+        address: shop.address || 'N/A',
+        identity_card_url: profile?.identity_card_url,
+        business_license_url: profile?.business_license_url,
+        status: shop.status,
+        appliedAt: shop.createdAt,
         history
       }
     });
@@ -246,23 +247,22 @@ const getShopDetail = async (req, res) => {
 
 const getPendingShops = async (req, res) => {
   try {
-    const pendingProfiles = await SellerProfile.find({ status: 'pending' })
-      .populate('user_id', 'full_name email')
+    const pendingShops = await Shop.find({ status: 'pending' })
+      .populate('owner_user_id', 'full_name email')
       .sort({ createdAt: -1 });
 
-    const ownerIds = pendingProfiles.map(p => p.user_id?._id).filter(Boolean);
-    const shops = await Shop.find({ owner_user_id: { $in: ownerIds } });
+    const ownerIds = pendingShops.map(s => s.owner_user_id?._id).filter(Boolean);
+    const profiles = await SellerProfile.find({ user_id: { $in: ownerIds } });
 
-    // Map shop data to profile
-    const results = pendingProfiles.map(profile => {
-      const shop = shops.find(s => s.owner_user_id.toString() === profile.user_id?._id?.toString());
+    const results = pendingShops.map(shop => {
+      const profile = profiles.find(p => p.user_id?.toString() === shop.owner_user_id?._id?.toString());
       return {
-        id: profile._id,
-        shopName: shop?.name || 'Unknown Shop',
-        taxId: profile.gst_number || 'N/A',
-        legalRep: profile.user_id?.full_name || 'Unknown',
-        appliedAt: profile.createdAt,
-        timeAgo: timeAgo(profile.createdAt),
+        id: shop._id,
+        shopName: shop.name,
+        taxId: profile?.gst_number || 'N/A',
+        legalRep: shop.owner_user_id?.full_name || 'Unknown',
+        appliedAt: shop.createdAt,
+        timeAgo: timeAgo(shop.createdAt),
       };
     });
 
@@ -278,27 +278,19 @@ const getPendingShops = async (req, res) => {
 
 const approveShop = async (req, res) => {
   try {
-    const { id } = req.params;
-    const profile = await SellerProfile.findById(id);
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+    const { id } = req.params; // Shop ID
+    const shop = await Shop.findById(id);
+    if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
 
-    profile.status = 'active';
-    profile.approved_by = req.user._id;
-    profile.approved_at = new Date();
-    await profile.save();
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
-    if (shop) {
-      shop.status = 'active';
-      await shop.save();
-    }
+    shop.status = 'active';
+    await shop.save();
 
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'APPROVE_SHOP',
       entity_type: 'Shop',
-      entity_id: shop ? shop._id : profile._id,
-      metadata: { name: shop?.name || 'A shop' }
+      entity_id: shop._id,
+      metadata: { name: shop.name }
     });
 
     return response.success(res, { message: 'Shop approved successfully', data: {} });
@@ -310,27 +302,21 @@ const approveShop = async (req, res) => {
 
 const rejectShop = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Shop ID
     const { reason } = req.body;
-    const profile = await SellerProfile.findById(id);
-    if (!profile) return response.error(res, { statusCode: 404, message: 'Profile not found' });
+    const shop = await Shop.findById(id);
+    if (!shop) return response.error(res, { statusCode: 404, message: 'Shop not found' });
 
-    profile.status = 'rejected';
-    profile.rejection_reason = reason || 'No reason provided';
-    await profile.save();
-
-    const shop = await Shop.findOne({ owner_user_id: profile.user_id });
-    if (shop) {
-      shop.status = 'suspended';
-      await shop.save();
-    }
+    shop.status = 'rejected';
+    shop.rejection_reason = reason || 'No reason provided';
+    await shop.save();
 
     await AuditLog.create({
       actor_id: req.user._id,
       action: 'REJECT_SHOP',
       entity_type: 'Shop',
-      entity_id: shop ? shop._id : profile._id,
-      metadata: { name: shop?.name || 'A shop', reason }
+      entity_id: shop._id,
+      metadata: { name: shop.name, reason }
     });
 
     return response.success(res, { message: 'Shop rejected successfully', data: {} });
@@ -439,6 +425,35 @@ const approveProduct = async (req, res) => {
       metadata: { name: product.name }
     });
 
+    try {
+      const shop = await Shop.findById(product.shop_id);
+      if (shop) {
+        const io = req.app.get('socketio');
+        const notif = await Notification.create({
+           user_id: shop.owner_user_id,
+           title: 'Product Approved',
+           content: `Your product "${product.name}" has been approved by the manager.`,
+           detailContent: `Manager review update.\nProduct: ${product.name}\nStatus: Approved`,
+           category: 'System',
+           type: 'system',
+           link: '/seller/products'
+        });
+        if (io) {
+           io.to(shop.owner_user_id.toString()).emit('notification', {
+                 id: notif._id.toString(),
+                 title: notif.title,
+                 content: notif.content,
+                 detailContent: notif.detailContent,
+                 category: notif.category,
+                 type: notif.type,
+                 date: 'JUST NOW',
+                 link: notif.link,
+                 is_read: false
+           });
+        }
+      }
+    } catch(e) { console.error('Notification Error:', e); }
+
     return response.success(res, { message: 'Product approved' });
   } catch (err) {
     console.error('approveProduct error:', err);
@@ -460,6 +475,35 @@ const rejectProduct = async (req, res) => {
       entity_id: product._id,
       metadata: { name: product.name, reason }
     });
+
+    try {
+      const shop = await Shop.findById(product.shop_id);
+      if (shop) {
+        const io = req.app.get('socketio');
+        const notif = await Notification.create({
+           user_id: shop.owner_user_id,
+           title: 'Product Rejected',
+           content: `Your product "${product.name}" has been rejected.`,
+           detailContent: `Manager review update.\nProduct: ${product.name}\nStatus: Rejected\nReason: ${reason}`,
+           category: 'System',
+           type: 'system',
+           link: '/seller/products'
+        });
+        if (io) {
+           io.to(shop.owner_user_id.toString()).emit('notification', {
+                 id: notif._id.toString(),
+                 title: notif.title,
+                 content: notif.content,
+                 detailContent: notif.detailContent,
+                 category: notif.category,
+                 type: notif.type,
+                 date: 'JUST NOW',
+                 link: notif.link,
+                 is_read: false
+           });
+        }
+      }
+    } catch(e) { console.error('Notification Error:', e); }
 
     return response.success(res, { message: 'Product rejected' });
   } catch (err) {
@@ -669,8 +713,8 @@ const getViolationDetail = async (req, res) => {
     }
 
     // Fetch history for the same shop, excluding the current violation
-    const history = await Violation.find({ 
-      shop_id: violation.shop_id._id, 
+    const history = await Violation.find({
+      shop_id: violation.shop_id._id,
       _id: { $ne: violation._id },
       status: { $in: ['resolved', 'dismissed'] }
     }).sort({ createdAt: -1 }).limit(5);
@@ -831,7 +875,7 @@ const getStatistics = async (req, res) => {
         }
       }
     ]);
-    
+
     let avgApprovalTime = '4.2 Hours';
     if (avgApprovalRaw.length > 0 && avgApprovalRaw[0].avgDiff) {
       avgApprovalTime = (avgApprovalRaw[0].avgDiff / (1000 * 60 * 60)).toFixed(1) + ' Hours';
@@ -840,7 +884,7 @@ const getStatistics = async (req, res) => {
     const totalProducts = await Product.countDocuments({ approval_status: { $in: ['approved', 'rejected'] }, ...dateFilter, ...categoryMatch });
     const rejectedProducts = await Product.countDocuments({ approval_status: 'rejected', ...dateFilter, ...categoryMatch });
     const rejectionRate = totalProducts > 0 ? ((rejectedProducts / totalProducts) * 100).toFixed(1) : 8.5;
-    
+
     // Platform integrity logic based on violations over products
     const activeProducts = await Product.countDocuments({ is_active: true, ...dateFilter, ...categoryMatch });
     const activeViolations = await Violation.countDocuments({ status: { $ne: 'resolved' }, ...dateFilter, ...violationProductMatch });
@@ -857,7 +901,7 @@ const getStatistics = async (req, res) => {
       { $group: { _id: '$type', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
-    
+
     const colors = ['bg-[#004ac6]', 'bg-[#ba1a1a]', 'bg-slate-200', 'bg-[#f59e0b]', 'bg-[#16a34a]'];
     let violationDistribution = violationStats.map((stat, i) => ({
       category: stat._id ? stat._id.replace('_', ' ').toUpperCase() : 'GENERAL',
@@ -887,25 +931,92 @@ const getStatistics = async (req, res) => {
         }
       }
     ]);
-    await CategoryModel.populate(productStats, { path: '_id', select: 'name' });
 
-    let approvalEfficiency = productStats.map(ps => {
-      const totalDecided = ps.approved + ps.rejected;
-      const accuracy = totalDecided > 0 ? Math.round((ps.approved / totalDecided) * 100) : 100;
+    await CategoryModel.populate(productStats, {
+      path: '_id',
+      select: 'name parent_id',
+      populate: { path: 'parent_id', select: 'name' }
+    });
+
+    // Map to group by parent
+    const categoryMap = {};
+
+    productStats.forEach(ps => {
+      const isChild = ps._id?.parent_id ? true : false;
+      const parentId = isChild ? ps._id.parent_id._id.toString() : ps._id._id.toString();
+      const parentName = isChild ? ps._id.parent_id.name : ps._id.name;
+
+      if (!categoryMap[parentId]) {
+        categoryMap[parentId] = {
+          categoryId: parentId,
+          category: parentName,
+          total: 0,
+          approved: 0,
+          rejected: 0,
+          children: []
+        };
+      }
+
+      if (isChild) {
+        categoryMap[parentId].children.push({
+          categoryId: ps._id._id.toString(),
+          category: ps._id.name,
+          total: ps.total,
+          approved: ps.approved,
+          rejected: ps.rejected
+        });
+        categoryMap[parentId].total += ps.total;
+        categoryMap[parentId].approved += ps.approved;
+        categoryMap[parentId].rejected += ps.rejected;
+      } else {
+        categoryMap[parentId].total += ps.total;
+        categoryMap[parentId].approved += ps.approved;
+        categoryMap[parentId].rejected += ps.rejected;
+      }
+    });
+
+    const groupedStats = Object.values(categoryMap);
+
+    let approvalEfficiency = groupedStats.map(parent => {
+      const parentTotal = parent.approved + parent.rejected;
+      const parentAccuracy = parentTotal > 0 ? Math.round((parent.approved / parentTotal) * 100) : 100;
+
       return {
-        category: ps._id?.name || 'Unknown',
-        accuracy
+        id: parent.categoryId,
+        category: parent.category,
+        accuracy: parentAccuracy,
+        children: parent.children.map(child => {
+          const childTotal = child.approved + child.rejected;
+          return {
+            id: child.categoryId,
+            category: child.category,
+            accuracy: childTotal > 0 ? Math.round((child.approved / childTotal) * 100) : 100
+          };
+        }).sort((a, b) => b.accuracy - a.accuracy)
       };
     }).sort((a, b) => b.accuracy - a.accuracy);
 
-    let categoryCompliance = productStats.map(ps => {
-      const totalDecided = ps.approved + ps.rejected;
-      const accuracy = totalDecided > 0 ? Math.round((ps.approved / totalDecided) * 100) : 100;
+    let categoryCompliance = groupedStats.map(parent => {
+      const parentTotal = parent.approved + parent.rejected;
+      const parentAccuracy = parentTotal > 0 ? Math.round((parent.approved / parentTotal) * 100) : 100;
+
       return {
-        category: ps._id?.name || 'Unknown',
+        id: parent.categoryId,
+        category: parent.category,
         autoPass: '0%',
         manualReview: '100%',
-        trustScore: (accuracy / 10).toFixed(1)
+        trustScore: (parentAccuracy / 10).toFixed(1),
+        children: parent.children.map(child => {
+          const childTotal = child.approved + child.rejected;
+          const childAccuracy = childTotal > 0 ? Math.round((child.approved / childTotal) * 100) : 100;
+          return {
+            id: child.categoryId,
+            category: child.category,
+            autoPass: '0%',
+            manualReview: '100%',
+            trustScore: (childAccuracy / 10).toFixed(1)
+          };
+        }).sort((a, b) => parseFloat(b.trustScore) - parseFloat(a.trustScore))
       };
     });
 
@@ -935,7 +1046,7 @@ const getStatistics = async (req, res) => {
       .populate('shop_id', 'name')
       .sort({ updatedAt: -1 })
       .limit(3);
-    
+
     const recentPenalties = recentPenaltiesRaw.map(v => ({
       id: v._id,
       shopName: v.shop_id?.name || 'Unknown Shop',
@@ -989,23 +1100,23 @@ const getStatistics = async (req, res) => {
 
     const financialRaw = await Order.aggregate([
       { $match: orderMatch },
-      { 
-        $group: { 
-          _id: '$shop_id', 
-          gmv: { $sum: '$total_final' }, 
-          commission: { $sum: '$platform_fee_amount' }, 
-          orders: { $sum: 1 } 
-        } 
+      {
+        $group: {
+          _id: '$shop_id',
+          gmv: { $sum: '$total_final' },
+          commission: { $sum: '$platform_fee_amount' },
+          orders: { $sum: 1 }
+        }
       },
       { $sort: { gmv: -1 } },
-      { $limit: 50 } 
+      { $limit: 50 }
     ]);
     await Shop.populate(financialRaw, { path: '_id', select: 'name' });
     const financialIntelligence = financialRaw.map(f => ({
       shopId: f._id?._id?.toString()?.substring(0, 8) || 'Unknown',
       shopName: f._id?.name || 'Unknown',
       gmv: f.gmv || 0,
-      commission: f.commission || (f.gmv * 0.05), 
+      commission: f.commission || (f.gmv * 0.05),
       orders: f.orders,
       growth: '+12.4%',
       auditStatus: 'Verified'
@@ -1046,11 +1157,26 @@ const getStatistics = async (req, res) => {
 const getStatisticsCategories = async (req, res) => {
   try {
     const Category = require('../../models/Category');
-    const categoriesDB = await Category.find({}).select('name slug');
+    const categoriesDB = await Category.find({}).select('name slug parent_id').lean();
+
+    const categoryMap = {};
+    const parentCategories = [];
+
+    categoriesDB.forEach(cat => {
+      categoryMap[cat._id.toString()] = { label: cat.name, value: cat.name, children: [] };
+    });
+
+    categoriesDB.forEach(cat => {
+      if (cat.parent_id && categoryMap[cat.parent_id.toString()]) {
+        categoryMap[cat.parent_id.toString()].children.push(categoryMap[cat._id.toString()]);
+      } else {
+        parentCategories.push(categoryMap[cat._id.toString()]);
+      }
+    });
 
     const categories = [
       { label: 'All Categories', value: 'All' },
-      ...categoriesDB.map(c => ({ label: c.name, value: c.name }))
+      ...parentCategories
     ];
 
     return response.success(res, { message: 'Categories retrieved successfully', data: categories });
@@ -1086,6 +1212,123 @@ const getStatisticsStatuses = async (req, res) => {
   }
 };
 
+// ─── ORDER MONITORING ─────────────────────────────────────────────────────────
+const getAllOrders = async (req, res) => {
+  try {
+    const Order = require('../../models/Order');
+    const { page = 1, limit = 10, status, search, shopId } = req.query;
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+    if (shopId && shopId !== 'all') {
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(shopId.trim())) {
+        filter.shop_id = shopId.trim();
+      } else {
+        // Find by shop name as fallback, or just dummy
+        filter.shop_id = new mongoose.Types.ObjectId('000000000000000000000000');
+      }
+    }
+    if (search) {
+      filter.order_code = { $regex: search, $options: 'i' };
+    }
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .populate('shop_id', 'name slug')
+      .populate('customer_id', 'full_name email')
+      .populate('shipper_id', 'full_name phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const formattedOrders = orders.map(order => ({
+      id: order._id,
+      orderCode: order.order_code,
+      shopName: order.shop_id?.name || 'Unknown Shop',
+      shopId: order.shop_id?._id,
+      customerName: order.customer_id?.full_name || 'Unknown',
+      shipperName: order.shipper_id?.full_name || 'Not assigned',
+      status: order.status,
+      paymentStatus: order.payment_status,
+      totalFinal: order.total_final,
+      createdAt: order.createdAt,
+    }));
+
+    return response.success(res, {
+      message: 'Orders retrieved successfully',
+      data: formattedOrders,
+      meta: {
+        pagination: {
+          total,
+          count: formattedOrders.length,
+          perPage: parseInt(limit),
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('getAllOrders error:', error);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
+const getOrderDetail = async (req, res) => {
+  try {
+    const Order = require('../../models/Order');
+    const OrderItem = require('../../models/OrderItem');
+    const ProductMedia = require('../../models/ProductMedia');
+
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate('shop_id', 'name slug email phone')
+      .populate('customer_id', 'full_name email phone')
+      .populate('shipper_id', 'full_name phone')
+      .populate('shipping_address_id')
+      .populate('payment_order_id')
+      .populate('shipping_partner_id');
+
+    if (!order) {
+      return response.error(res, { statusCode: 404, message: 'Order not found' });
+    }
+
+    const items = await OrderItem.find({ order_id: order._id })
+      .populate('product_id', 'name slug sku')
+      .populate('variant_id', 'attributes sku');
+
+    const productIds = items.map(oi => oi.product_id ? oi.product_id._id : null).filter(Boolean);
+    const medias = await ProductMedia.find({ product_id: { $in: productIds } });
+
+    const itemsWithMedia = items.map(item => {
+      const itemObj = item.toObject();
+      if (itemObj.product_id) {
+        const productMedia = medias.find(m => m.product_id.toString() === itemObj.product_id._id.toString());
+        itemObj.product_id.media_url = productMedia ? productMedia.media_url : null;
+      }
+      return itemObj;
+    });
+
+    const data = {
+      ...order.toObject(),
+      items: itemsWithMedia
+    };
+
+    return response.success(res, {
+      message: 'Order detail retrieved successfully',
+      data
+    });
+
+  } catch (error) {
+    console.error('getOrderDetail error:', error);
+    return response.error(res, { statusCode: 500, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getPendingShops,
@@ -1106,5 +1349,7 @@ module.exports = {
   getStatistics,
   getStatisticsCategories,
   getStatisticsDateRanges,
-  getStatisticsStatuses
+  getStatisticsStatuses,
+  getAllOrders,
+  getOrderDetail
 };

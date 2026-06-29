@@ -7,6 +7,26 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import FABGroup from '../../components/FABGroup';
 
+const formatRelativeTime = (createdAt, legacyDate) => {
+  if (!createdAt) {
+    if (legacyDate && legacyDate !== 'JUST NOW') return legacyDate;
+    return 'JUST NOW';
+  }
+  const date = new Date(createdAt);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'JUST NOW';
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+  
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 const Notifications = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -501,7 +521,7 @@ const Notifications = () => {
                         <div className="flex-grow space-y-1">
                           <div className="flex justify-between items-start">
                             <h3 className={styles.titleClass}>{item.title}</h3>
-                            <span className={`text-[10px] font-bold uppercase shrink-0 ml-2 ${styles.dateClass}`}>{item.date || 'JUST NOW'}</span>
+                            <span className={`text-[10px] font-bold uppercase shrink-0 ml-2 ${styles.dateClass}`}>{formatRelativeTime(item.createdAt, item.date)}</span>
                           </div>
                           <p className="text-sm text-[#434655] line-clamp-2">{item.content}</p>
                         </div>
@@ -526,8 +546,10 @@ const Notifications = () => {
                       <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest ${getNotificationStyles(selectedNotification).badgeClass}`}>
                         {selectedNotification.category || 'Notification'}
                       </span>
-                      <h2 className="text-xl font-black text-[#131b2e] mt-3">{selectedNotification.title}</h2>
-                      <p className="text-xs text-[#434655] font-medium mt-1">Updated: {selectedNotification.date || 'Recently'}</p>
+                      <div className="text-center space-y-1 mt-3">
+                        <h2 className="text-xl font-extrabold text-[#111217]">{selectedNotification.title}</h2>
+                        <p className="text-xs text-[#434655] font-medium mt-1">Updated: {formatRelativeTime(selectedNotification.createdAt, selectedNotification.date)}</p>
+                      </div>
                     </div>
                   </div>
 

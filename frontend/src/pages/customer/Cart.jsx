@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCart, updateCartItem, removeCartItem, removeSelectedCartItems, clearCart, addToCart } from '../../redux/cartSlice';
 import toast from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -11,10 +11,12 @@ const Cart = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   
-  const [cartItems, setCartItems] = useState([]);
+  const { items: cartItems, loading } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+  
   const [selectedItemIds, setSelectedItemIds] = useState(new Set());
   const [localNotes, setLocalNotes] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [localQuantities, setLocalQuantities] = useState({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -29,44 +31,22 @@ const Cart = () => {
     }
   }, [cartItems, itemsPerPage, currentPage]);
 
-  const fetchCart = async () => {
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      if (!token) {
-        setCartItems([]);
-        setLoading(false);
-        return;
-      }
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get('http://localhost:5000/api/cart', config);
-      if (response.data && response.data.success) {
-        const items = response.data.data || [];
-        setCartItems(items);
-        
-        // Initialize local notes
-        const notesObj = {};
-        items.forEach(item => {
-          notesObj[item.id] = item.note || '';
-        });
-        setLocalNotes(notesObj);
-      } else {
-        setCartItems([]);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      setCartItems([]);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCart());
     }
-  };
+  }, [user, dispatch]);
 
   useEffect(() => {
-    fetchCart();
-  }, [user]);
+    const notesObj = {};
+    const qtyObj = {};
+    cartItems.forEach(item => {
+      notesObj[item.id] = item.note || '';
+      qtyObj[item.id] = item.quantity;
+    });
+    setLocalNotes(notesObj);
+    setLocalQuantities(qtyObj);
+  }, [cartItems]);
 
   // Phân trang sản phẩm trước khi gom nhóm
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -147,36 +127,19 @@ const Cart = () => {
     }
 
     // Optimistic update in UI
-    setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: newQty } : i));
+    setLocalQuantities(prev => ({ ...prev, [item.id]: newQty }));
 
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.put(
-        'http://localhost:5000/api/cart/update',
-        { itemId: item.id, quantity: newQty },
-        config
-      );
-      if (response.data && response.data.success) {
-        window.dispatchEvent(new Event('cartUpdate'));
-      } else {
-        throw new Error(response.data?.message || 'Update failed');
-      }
+      await dispatch(updateCartItem({ itemId: item.id, quantity: newQty })).unwrap();
     } catch (error) {
-      // Revert optimistic update on error
-      setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: currentQty } : i));
-      toast.error(error.response?.data?.message || 'Failed to update item quantity');
+      toast.error(error || 'Failed to update item quantity');
     }
   };
 
   // Handle manual typing of quantity at Client
   const handleDirectQuantityChange = (item, valStr) => {
     const cleanVal = valStr.replace(/[^0-9]/g, '');
-    setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: cleanVal === '' ? '' : Number(cleanVal) } : i));
+    setLocalQuantities(prev => ({ ...prev, [item.id]: cleanVal === '' ? '' : Number(cleanVal) }));
   };
 
   // Validate and submit manual quantity update to Backend
@@ -190,28 +153,43 @@ const Cart = () => {
       targetQty = item.stock;
     }
 
-    setCartItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: targetQty } : i));
+    setLocalQuantities(prev => ({ ...prev, [item.id]: targetQty }));
 
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.put(
-        'http://localhost:5000/api/cart/update',
-        { itemId: item.id, quantity: targetQty },
-        config
-      );
-      if (response.data && response.data.success) {
-        window.dispatchEvent(new Event('cartUpdate'));
-      } else {
-        throw new Error(response.data?.message || 'Update failed');
-      }
+      await dispatch(updateCartItem({ itemId: item.id, quantity: targetQty })).unwrap();
     } catch (error) {
-      fetchCart();
-      toast.error(error.response?.data?.message || 'Failed to update item quantity');
+      dispatch(fetchCart()); // Re-fetch on error
+      toast.error(error || 'Failed to update item quantity');
+    }
+  };
+
+  // Change variant
+  const handleVariantChange = async (item, newVariantId) => {
+    if (newVariantId === item.variantId) return;
+    
+    // Check stock
+    const selectedVariant = item.availableVariants?.find(v => v.id === newVariantId);
+    if (!selectedVariant || selectedVariant.stockQuantity < item.quantity) {
+      toast.error('Không đủ tồn kho cho biến thể này');
+      return;
+    }
+
+    try {
+      // Add the new variant to cart
+      await dispatch(addToCart({ 
+        productId: item.productId, 
+        variantId: newVariantId, 
+        quantity: item.quantity, 
+        note: item.note 
+      })).unwrap();
+      
+      // Remove old variant
+      await dispatch(removeCartItem(item.id)).unwrap();
+      
+      toast.success('Đã cập nhật biến thể sản phẩm');
+      dispatch(fetchCart()); // Refresh to update list
+    } catch(err) {
+      toast.error('Lỗi khi đổi biến thể');
     }
   };
 
@@ -223,22 +201,8 @@ const Cart = () => {
     }
 
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.put(
-        'http://localhost:5000/api/cart/update',
-        { itemId, note: noteText },
-        config
-      );
-      if (response.data && response.data.success) {
-        // Sync note in local state
-        setCartItems(prev => prev.map(i => i.id === itemId ? { ...i, note: noteText } : i));
-        toast.success('Seller note updated successfully');
-      }
+      await dispatch(updateCartItem({ itemId, note: noteText })).unwrap();
+      toast.success('Seller note updated successfully');
     } catch (error) {
       toast.error('Failed to update seller note');
     }
@@ -247,23 +211,13 @@ const Cart = () => {
   // Remove individual item
   const handleRemoveItem = async (itemId) => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.delete(`http://localhost:5000/api/cart/remove/${itemId}`, config);
-      if (response.data && response.data.success) {
-        setCartItems(prev => prev.filter(i => i.id !== itemId));
-        setSelectedItemIds(prev => {
-          const next = new Set(prev);
-          next.delete(itemId);
-          return next;
-        });
-        toast.success('Item removed from cart');
-        window.dispatchEvent(new Event('cartUpdate'));
-      }
+      await dispatch(removeCartItem(itemId)).unwrap();
+      setSelectedItemIds(prev => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
+      toast.success('Item removed from cart');
     } catch (error) {
       toast.error('Failed to remove item');
     }
@@ -283,23 +237,9 @@ const Cart = () => {
     }
 
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await Promise.all(
-        selectedList.map(itemId => 
-          axios.delete(`http://localhost:5000/api/cart/remove/${itemId}`, config)
-        )
-      );
-
-      setCartItems(prev => prev.filter(i => !selectedItemIds.has(i.id)));
+      await dispatch(removeSelectedCartItems(selectedList)).unwrap();
       setSelectedItemIds(new Set());
       toast.success('Selected items removed successfully');
-      window.dispatchEvent(new Event('cartUpdate'));
     } catch (error) {
       toast.error('Failed to remove selected items');
     }
@@ -312,19 +252,9 @@ const Cart = () => {
 
   const handleConfirmClearCart = async () => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.delete('http://localhost:5000/api/cart/clear', config);
-      if (response.data && response.data.success) {
-        setCartItems([]);
-        setSelectedItemIds(new Set());
-        toast.success('Cart cleared successfully');
-        window.dispatchEvent(new Event('cartUpdate'));
-      }
+      await dispatch(clearCart()).unwrap();
+      setSelectedItemIds(new Set());
+      toast.success('Cart cleared successfully');
     } catch (error) {
       toast.error('Failed to clear cart');
     } finally {
@@ -458,9 +388,25 @@ const Cart = () => {
                                 <h3 className="font-bold text-lg text-[#131b2e] line-clamp-2">
                                   <Link to={`/product/${item.slug}`} className="hover:text-primary transition-colors">{item.name}</Link>
                                 </h3>
-                                <p className="text-xs text-[#505f76] mt-1 font-medium bg-[#eaedff]/50 px-2 py-0.5 rounded-full inline-block">
-                                  Variant: {item.variant || 'Default'}
-                                </p>
+                                
+                                {item.availableVariants && item.availableVariants.length > 0 ? (
+                                  <select 
+                                    value={item.variantId || ''} 
+                                    onChange={(e) => handleVariantChange(item, e.target.value)}
+                                    className="mt-2 text-xs text-[#505f76] font-medium bg-[#eaedff]/50 px-3 py-1.5 rounded-lg inline-block border-none focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+                                  >
+                                    {item.availableVariants.map(v => (
+                                      <option key={v.id} value={v.id}>
+                                        {v.name} {v.additionalPrice > 0 ? `(+${v.additionalPrice.toLocaleString()}₫)` : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <p className="text-xs text-[#505f76] mt-1 font-medium bg-[#eaedff]/50 px-2 py-0.5 rounded-full inline-block">
+                                    Variant: {item.variant || 'Default'}
+                                  </p>
+                                )}
+                                
                               </div>
                               <div className="flex flex-col items-end">
                                 <span className="font-bold text-lg text-primary whitespace-nowrap">{item.price?.toLocaleString()}₫</span>
@@ -483,7 +429,7 @@ const Cart = () => {
                                 </button>
                                 <input 
                                   type="text" 
-                                  value={item.quantity} 
+                                  value={localQuantities[item.id] !== undefined ? localQuantities[item.id] : item.quantity} 
                                   onChange={(e) => handleDirectQuantityChange(item, e.target.value)}
                                   onBlur={() => handleQuantityBlur(item)}
                                   onKeyDown={(e) => {
@@ -628,7 +574,7 @@ const Cart = () => {
                     </div>
                     <div className="flex justify-between text-sm text-[#505f76]">
                       <span>Shipping Fee</span>
-                      <span className="text-primary font-bold">Free</span>
+                      <span className="text-[#131b2e] italic">Calculated at checkout</span>
                     </div>
                     
                     <div className="h-px bg-[#c3c6d7]/30 my-2"></div>

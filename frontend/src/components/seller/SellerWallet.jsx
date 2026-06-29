@@ -2,25 +2,37 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const SellerWallet = () => {
     const { user } = useSelector(state => state.auth);
     const { unreadCount } = useNotifications();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [wallet, setWallet] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
     
     // Pagination states
-    const [transPage, setTransPage] = useState(1);
-    const [transLimit, setTransLimit] = useState(5);
+    const [transPage, setTransPage] = useState(parseInt(searchParams.get('transPage')) || 1);
+    const [transLimit, setTransLimit] = useState(parseInt(searchParams.get('transLimit')) || 5);
     const [transMeta, setTransMeta] = useState({ total: 0, totalPages: 1 });
 
     const [withdrawPage, setWithdrawPage] = useState(1);
     const [withdrawLimit, setWithdrawLimit] = useState(5);
     const [withdrawMeta, setWithdrawMeta] = useState({ total: 0, totalPages: 1 });
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        if (transPage !== 1) params.set('transPage', transPage);
+        else params.delete('transPage');
+        
+        if (transLimit !== 5) params.set('transLimit', transLimit);
+        else params.delete('transLimit');
+        
+        setSearchParams(params, { replace: true });
+    }, [transPage, transLimit]);
 
     // Detail Modal states
     const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -269,7 +281,7 @@ const SellerWallet = () => {
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
             {/* Main Container */}
-            <div className="p-10 max-w-[1200px] mx-auto w-full space-y-8 flex-1">
+            <div className="p-4 md:p-10 max-w-[1200px] mx-auto w-full space-y-8 flex-1">
             
             {/* Balance Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -394,7 +406,7 @@ const SellerWallet = () => {
                 {/* Withdrawal Status */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-level-1 overflow-hidden">
-                        <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                        <div className="p-4 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">
                                 Withdrawal Requests
                             </h3>
@@ -407,13 +419,13 @@ const SellerWallet = () => {
                             </button>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Note</th>
-                                        <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
+                                        <th className="w-[30%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
+                                        <th className="w-[20%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
+                                        <th className="w-[30%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Note</th>
+                                        <th className="w-[20%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -550,7 +562,7 @@ const SellerWallet = () => {
 
             {/* Transaction History (at the bottom) */}
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-level-1 overflow-hidden">
-                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <div className="p-4 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">
                         Recent Transactions
                     </h3>
@@ -563,14 +575,14 @@ const SellerWallet = () => {
                     </button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse table-fixed">
                         <thead>
                             <tr className="bg-slate-50">
-                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Order ID</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Type</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
+                                <th className="w-[25%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Date & Time</th>
+                                <th className="w-[25%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Order ID</th>
+                                <th className="w-[15%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Type</th>
+                                <th className="w-[15%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest">Amount</th>
+                                <th className="w-[20%] px-8 py-4 text-[10px] font-black text-secondary uppercase tracking-widest text-right">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">

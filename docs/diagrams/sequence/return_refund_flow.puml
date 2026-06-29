@@ -1,0 +1,35 @@
+@startuml
+skinparam maxMessageSize 150
+actor Customer
+participant Backend as API
+actor Seller
+actor Admin
+participant "Wallet Service" as Wallet
+
+Customer -> API: Request Return/Refund (Reason, Photos)
+API -> API: Update Order Status -> "Return Requested"
+API --> Seller: Notify Return Request
+
+alt Seller Accepts
+    Seller -> API: Approve Return
+    API -> Wallet: Refund to Customer Wallet
+    API -> API: Update Status -> "Refunded"
+else Seller Rejects
+    Seller -> API: Reject Return (Reason)
+    API --> Customer: Notify Rejection
+    Customer -> API: Escalate to Admin (Dispute)
+    API -> API: Update Status -> "Disputed"
+    API --> Admin: Notify Dispute
+    
+    Admin -> API: Review Evidence
+    alt Admin Rules for Customer
+        Admin -> API: Force Refund
+        API -> Wallet: Refund Customer
+        API -> API: Update Status -> "Refunded"
+    else Admin Rules for Seller
+        Admin -> API: Reject Dispute
+        API -> API: Update Status -> "Completed"
+        API -> Wallet: Transfer Funds to Seller
+    end
+end
+@enduml

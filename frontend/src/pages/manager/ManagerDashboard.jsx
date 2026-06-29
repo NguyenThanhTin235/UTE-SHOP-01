@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { logout } from '../../redux/authSlice';
+import { fetchDashboardData } from '../../redux/managerSlice';
+import { fetchNotifications } from '../../redux/notificationSlice';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import ShopApprovalTab from '../../components/manager/ShopApprovalTab';
 import ManagerShopDetail from '../../components/manager/ManagerShopDetail';
 import ProductApprovalTab from '../../components/manager/ProductApprovalTab';
@@ -12,8 +13,9 @@ import ViolationsTab from '../../components/manager/ViolationsTab';
 import ManagerViolationDetail from '../../components/manager/ManagerViolationDetail';
 import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import ManagerHeader from '../../components/manager/ManagerHeader';
-import ManagerAiAssistant from '../../components/manager/ManagerAiAssistant';
 import ManagerStatistics from '../../components/manager/ManagerStatistics';
+import ManagerOrdersTab from '../../components/manager/ManagerOrdersTab';
+import ManagerOrderDetail from '../../components/manager/ManagerOrderDetail';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
@@ -79,12 +81,13 @@ const ManagerDashboard = () => {
         return 'Search reports, shop IDs...';
       case 'statistics':
         return 'Search metrics, reports, date ranges...';
+      case 'orders':
+        return 'Search order code...';
       default:
         return 'Search tasks, shops, or products...';
     }
   };
 
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState('');
   const [aiMessages, setAiMessages] = useState([
@@ -98,9 +101,20 @@ const ManagerDashboard = () => {
     setHeaderData(null);
   }, [activeTab]);
 
-  // Dashboard data state
-  const [loading, setLoading] = useState(true);
-  const [dashData, setDashData] = useState(null);
+  const { stats, approvalTrends: trends, pendingTasks, recentActivity, loading } = useSelector((state) => state.manager);
+
+  // Fetch dashboard stats and notifications
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchDashboardData());
+      dispatch(fetchNotifications());
+    }
+  }, [user, dispatch]);
+
+  // Auto-scroll AI chat
+  useEffect(() => {
+    if (showAI) aiEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [aiMessages, showAI]);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -108,48 +122,6 @@ const ManagerDashboard = () => {
     navigate('/login');
     toast.success('Logged out successfully');
   };
-
-  // Fetch dashboard stats
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      setLoading(true);
-      try {
-        const { data } = await axios.get(`${API}/manager/dashboard`, {
-          headers: getAuthHeader(),
-        });
-        if (data.success) {
-          setDashData(data.data);
-        }
-      } catch (err) {
-        console.error('Manager dashboard fetch error:', err);
-        toast.error('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, []);
-
-  // Fetch unread notifications
-  useEffect(() => {
-    const fetchUnread = async () => {
-      try {
-        const { data } = await axios.get(`${API}/notifications`, {
-          headers: getAuthHeader(),
-        });
-        if (data?.success) {
-          const unread = (data.data || []).filter((n) => !n.isRead).length;
-          setUnreadCount(unread);
-        }
-      } catch { /* silent */ }
-    };
-    fetchUnread();
-  }, [user]);
-
-  // Auto-scroll AI chat
-  useEffect(() => {
-    if (showAI) aiEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [aiMessages, showAI]);
 
   const handleAiSubmit = (e) => {
     e.preventDefault();
@@ -162,7 +134,7 @@ const ManagerDashboard = () => {
         ...prev,
         {
           sender: 'ai',
-          text: `Reviewing operational queues for "${userMsg.text}"... ${dashData?.stats?.pendingShops ?? 0} pending shop registrations require your attention.`,
+          text: `Reviewing operational queues for "${userMsg.text}"... ${stats?.pendingShops ?? 0} pending shop registrations require your attention.`,
         },
       ]);
     }, 900);
@@ -170,18 +142,14 @@ const ManagerDashboard = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard Overview', icon: 'dashboard', category: 'General' },
+    { id: 'orders', label: 'Order Monitoring', icon: 'receipt_long', category: 'General' },
     { id: 'shop_approval', label: 'Shop Approval', icon: 'storefront', category: 'Approvals' },
     { id: 'product_approval', label: 'Product Approval', icon: 'inventory_2', category: 'Approvals' },
     { id: 'violations', label: 'Violations', icon: 'report_problem', category: 'Safety & Monitoring' },
     { id: 'statistics', label: 'Statistics', icon: 'bar_chart', category: 'Safety & Monitoring' },
   ];
 
-  // Derived stats
-  const stats = dashData?.stats || {};
-  const trends = dashData?.approvalTrends || [];
-  const pendingTasks = dashData?.pendingTasks || [];
-  const recentActivity = dashData?.recentActivity || [];
-
+  // Removed derived stats logic that used dashData
   const maxTrend = Math.max(...trends.map((t) => t.count), 1);
   const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'short' });
 
@@ -480,8 +448,14 @@ const ManagerDashboard = () => {
           {/* Statistics Tab */}
           {activeTab === 'statistics' && <ManagerStatistics searchTerm={searchTerm} />}
 
+          {/* Orders Tab */}
+          {activeTab === 'orders' && <ManagerOrdersTab searchTerm={searchTerm} />}
+
+          {/* Order Detail Tab */}
+          {activeTab === 'order_detail' && <ManagerOrderDetail orderId={pathParts[2]} />}
+
           {/* Other tabs placeholder */}
-          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && (
+          {activeTab !== 'dashboard' && activeTab !== 'shop_approval' && activeTab !== 'shop_detail' && activeTab !== 'product_approval' && activeTab !== 'product_detail' && activeTab !== 'violations' && activeTab !== 'violation_detail' && activeTab !== 'statistics' && activeTab !== 'orders' && activeTab !== 'order_detail' && (
             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
               <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
                 {navItems.find((i) => i.id === activeTab)?.icon}
@@ -511,16 +485,6 @@ const ManagerDashboard = () => {
         </div>
 
         {/* ── FAB: AI Assistant ────────────────────────────────────────────── */}
-        <ManagerAiAssistant
-          showAI={showAI}
-          setShowAI={setShowAI}
-          aiInput={aiInput}
-          setAiInput={setAiInput}
-          aiMessages={aiMessages}
-          handleAiSubmit={handleAiSubmit}
-          unreadCount={unreadCount}
-          aiEndRef={aiEndRef}
-        />
       </main>
     </div>
   );

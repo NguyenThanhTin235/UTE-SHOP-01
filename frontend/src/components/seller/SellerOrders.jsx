@@ -15,11 +15,11 @@ const SellerOrders = ({ onViewDetails }) => {
         'Pending': 0,
         'Confirmed': 0,
         'Preparing': 0,
+        'Ready to Ship': 0,
         'Shipping': 0,
         'Completed': 0,
         'Cancel Pending': 0,
-        'Canceled': 0,
-        'Refunded': 0
+        'Canceled': 0
     });
     const [searchParams, setSearchParams] = useSearchParams();
     const [metaData, setMetaData] = useState({ total: 0, totalPages: 1 });
@@ -71,7 +71,7 @@ const SellerOrders = ({ onViewDetails }) => {
     const [tempDateFrom, setTempDateFrom] = useState('');
     const [tempDateTo, setTempDateTo] = useState('');
 
-    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Shipping', 'Completed', 'Cancel Pending', 'Canceled', 'Refunded'];
+    const tabs = ['All Orders', 'Pending', 'Confirmed', 'Preparing', 'Ready to Ship', 'Shipping', 'Completed', 'Cancel Pending', 'Canceled'];
 
     const fetchOrders = async () => {
         setIsLoading(true);
@@ -196,7 +196,7 @@ const SellerOrders = ({ onViewDetails }) => {
                     <button onClick={() => handleStatusUpdate(order._id, 'canceled')} className="p-2.5 border border-error/20 text-error rounded-xl hover:bg-error/5 transition-all group relative" title="Cancel Order">
                         <span className="material-symbols-outlined text-[20px]">cancel</span>
                     </button>
-                    <button onClick={() => handleStatusUpdate(order._id, 'shipping')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Handover to Shipper">
+                    <button onClick={() => handleStatusUpdate(order._id, 'ready_to_ship')} className="p-2.5 bg-surface-container-high text-secondary rounded-xl border border-outline-variant/30 hover:bg-primary hover:text-white transition-all group relative" title="Ready to Ship">
                         <span className="material-symbols-outlined text-[20px]">local_shipping</span>
                     </button>
                     <button className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="Print Waybill">
@@ -205,12 +205,17 @@ const SellerOrders = ({ onViewDetails }) => {
                 </div>
             );
         }
+        if (order.status === 'ready_to_ship') {
+            return (
+                <div className="flex items-center justify-end gap-2">
+                    <span className="text-xs font-bold text-secondary italic">Waiting for Shipper</span>
+                </div>
+            );
+        }
         if (order.status === 'shipping') {
             return (
                 <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleStatusUpdate(order._id, 'completed')} className="p-2.5 border border-primary/20 text-primary rounded-xl hover:bg-primary/5 transition-all group relative" title="mark completed">
-                        <span className="material-symbols-outlined text-[20px]">local_shipping</span>
-                    </button>
+                    <span className="text-xs font-bold text-secondary italic">In Transit</span>
                 </div>
             );
         }
@@ -250,6 +255,21 @@ const SellerOrders = ({ onViewDetails }) => {
                     <div className="flex items-center justify-center gap-1 text-xs font-bold text-secondary">
                         <span className="material-symbols-outlined text-[14px]">inventory_2</span>
                         Preparing Goods
+                    </div>
+                </div>
+            );
+        }
+        if (order.status === 'ready_to_ship') {
+            return (
+                <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center justify-center gap-2 text-primary">
+                        <span className="px-3 py-1.5 bg-[#e0f2fe] text-[#0369a1] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#0369a1]/10 shadow-sm inline-block">Ready to Ship</span>
+                    </div>
+                    <div className="flex flex-col items-center text-xs font-bold text-secondary">
+                        <span className="flex items-center justify-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">local_shipping</span>
+                            Waiting for Shipper
+                        </span>
                     </div>
                 </div>
             );
@@ -301,10 +321,10 @@ const SellerOrders = ({ onViewDetails }) => {
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
             
 
-            <div className="p-10 max-w-[1440px] mx-auto w-full space-y-6">
+            <div className="p-4 md:p-10 max-w-[1440px] mx-auto w-full space-y-6">
                 {/* Status Tabs */}
                 <div className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden">
-                    <div className="border-b border-outline-variant/30 flex px-8 overflow-x-auto bg-surface-container-low/20 custom-scrollbar">
+                    <div className="border-b border-outline-variant/30 flex px-4 md:px-8 overflow-x-auto bg-surface-container-low/20 custom-scrollbar">
                         {tabs.map(tab => {
                             const count = summary[tab] || 0;
                             const isActive = statusFilter === tab;
@@ -312,7 +332,7 @@ const SellerOrders = ({ onViewDetails }) => {
                                 <button
                                     key={tab}
                                     onClick={() => setStatusFilter(tab)}
-                                    className={`px-6 py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${isActive ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
+                                    className={`px-4 py-4 md:px-6 md:py-5 text-sm whitespace-nowrap tracking-tight flex items-center gap-2 transition-colors ${isActive ? 'font-black text-primary border-b-[3px] border-primary' : 'font-bold text-secondary hover:text-primary'}`}
                                 >
                                     {tab} {tab !== 'All Orders' && `(${count})`}
                                 </button>

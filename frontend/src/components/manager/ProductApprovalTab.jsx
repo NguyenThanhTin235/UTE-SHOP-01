@@ -145,13 +145,13 @@ const ProductApprovalTab = ({ searchTerm = '' }) => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="bg-slate-50/30">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Product Info</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Seller</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                <th className="w-[45%] px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Product Info</th>
+                <th className="w-[20%] px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Seller</th>
+                <th className="w-[20%] px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                <th className="w-[150px] md:w-[200px] px-4 md:px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">

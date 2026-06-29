@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import FABGroup from '../../components/FABGroup';
+import MapPicker from '../../components/MapPicker';
 
 const VIETNAM_PROVINCES = [
   "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", 
@@ -32,12 +33,15 @@ const Checkout = () => {
   const [showAddAddressForm, setShowAddAddressForm] = useState(false);
   
   // Add new address form state
+  const [showMap, setShowMap] = useState(false);
   const [addressFormData, setAddressFormData] = useState({
     label: 'Home',
     recipient_name: '',
     recipient_phone: '',
     street_address: '',
     city: '',
+    latitude: null,
+    longitude: null,
     is_default: false
   });
 
@@ -112,7 +116,8 @@ const Checkout = () => {
           itemIds: selectedItemIds,
           couponCode: couponAppliedCode || undefined,
           useCoins,
-          shippingPartnerId: shippingPartnerId || undefined
+          shippingPartnerId: shippingPartnerId || undefined,
+          addressId: selectedAddressId || undefined
         },
         config
       );
@@ -140,7 +145,7 @@ const Checkout = () => {
     if (user && selectedItemIds.length > 0) {
       fetchPreview();
     }
-  }, [user, selectedItemIds, couponAppliedCode, useCoins, shippingPartnerId]);
+  }, [user, selectedItemIds, couponAppliedCode, useCoins, shippingPartnerId, selectedAddressId]);
 
   // Apply Coupon Action
   const handleApplyCoupon = () => {
@@ -160,6 +165,15 @@ const Checkout = () => {
   };
 
   // Add Address Action
+  const handleMapConfirm = (data) => {
+    setAddressFormData((prev) => ({
+      ...prev,
+      street_address: data.addressString,
+      latitude: data.lat,
+      longitude: data.lng
+    }));
+  };
+
   const handleAddAddress = async (e) => {
     e.preventDefault();
     const { recipient_name, recipient_phone, street_address, city } = addressFormData;
@@ -194,6 +208,8 @@ const Checkout = () => {
           recipient_phone: '',
           street_address: '',
           city: '',
+          latitude: null,
+          longitude: null,
           is_default: false
         });
         await fetchAddresses();
@@ -336,7 +352,7 @@ const Checkout = () => {
                         <div className="flex-grow min-w-0">
                           <p className="font-bold text-sm text-[#131b2e] truncate">{partner.name}</p>
                           <p className="text-xs font-semibold text-primary mt-0.5">
-                            {partner.shippingFee?.toLocaleString()}₫
+                            {partner.shippingFee?.toLocaleString()}₫/km
                           </p>
                         </div>
                         {/* Check icon */}
@@ -403,8 +419,7 @@ const Checkout = () => {
                     {/* Shop Shipping Fee and subtotal */}
                     <div className="px-6 py-4 bg-[#f2f3ff]/20 border-t border-[#c3c6d7]/20 flex justify-between items-center text-xs font-semibold">
                       <div className="flex items-center gap-1 text-[#505f76]">
-                        <span className="material-symbols-outlined text-[18px]">local_shipping</span>
-                        <span>Shipping Fee</span>
+                        <span className="text-[#64748b]">Shipping Fee {shopGroup.distance ? `(${shopGroup.distance} km)` : ''}</span>
                       </div>
                       <span className="text-[#131b2e] font-bold">{shopGroup.shippingFee?.toLocaleString()}₫</span>
                     </div>
@@ -695,7 +710,17 @@ const Checkout = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-[#434655] mb-1">Detailed Address *</label>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-[#434655]">Detailed Address *</label>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowMap(true)}
+                          className="text-[#004ac6] text-[10px] font-bold flex items-center gap-1 hover:underline bg-[#e2e7ff] px-2 py-1 rounded-md transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">map</span>
+                          Select on map
+                        </button>
+                      </div>
                       <input 
                         type="text" 
                         required
@@ -792,6 +817,14 @@ const Checkout = () => {
 
       <FABGroup />
       <Footer />
+
+      <MapPicker 
+        isOpen={showMap}
+        onClose={() => setShowMap(false)}
+        onConfirm={handleMapConfirm}
+        initialLat={addressFormData.latitude}
+        initialLng={addressFormData.longitude}
+      />
     </div>
   );
 };

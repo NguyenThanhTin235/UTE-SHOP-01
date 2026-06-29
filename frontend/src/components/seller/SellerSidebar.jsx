@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, walletBalance }) => {
+const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, walletBalance, shopStatus }) => {
   return (
     <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shrink-0 z-50 shadow-sm">
       {/* Seller Identity */}
@@ -23,6 +23,9 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
           const isActive = activeTab === item.id ||
             (activeTab === 'add-product' && item.id === 'products') ||
             (activeTab === 'order-detail' && item.id === 'orders');
+            
+          const isDisabled = shopStatus !== 'active' && item.id !== 'settings';
+
           return (
             <React.Fragment key={item.id}>
               {showCategory && item.category === 'Settings' && (
@@ -30,10 +33,14 @@ const SellerSidebar = ({ activeTab, setActiveTab, navItems, handleLogout, wallet
                 </div>
               )}
               <button
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] transition-all text-[15px] group cursor-pointer ${isActive
-                  ? 'bg-[#E8EFFF] text-primary font-bold shadow-sm shadow-blue-100/50'
-                  : 'text-[#475569] font-medium hover:bg-slate-50'
+                onClick={() => !isDisabled && setActiveTab(item.id)}
+                disabled={isDisabled}
+                className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] transition-all text-[15px] group ${
+                  isDisabled 
+                    ? 'opacity-50 cursor-not-allowed text-slate-400' 
+                    : isActive
+                      ? 'bg-[#E8EFFF] text-primary font-bold shadow-sm shadow-blue-100/50 cursor-pointer'
+                      : 'text-[#475569] font-medium hover:bg-slate-50 cursor-pointer'
                   }`}
               >
                 <span

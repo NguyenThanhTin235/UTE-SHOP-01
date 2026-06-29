@@ -30,6 +30,7 @@ const getOrders = async (req, res, next) => {
         if (status && status !== 'All Orders') {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'To Process') query.status = 'confirmed';
+            else if (status === 'Ready to Ship') query.status = 'ready_to_ship';
             else if (status === 'Shipping') query.status = 'shipping';
             else if (status === 'Completed') query.status = 'completed';
             else if (status === 'Return/Refund') query.status = { $in: ['disputed', 'refunded'] };
@@ -87,6 +88,7 @@ const getOrders = async (req, res, next) => {
             'All Orders': 0,
             'Pending': 0,
             'To Process': 0,
+            'Ready to Ship': 0,
             'Shipping': 0,
             'Completed': 0,
             'Return/Refund': 0
@@ -96,6 +98,7 @@ const getOrders = async (req, res, next) => {
             summary['All Orders'] += s.count;
             if (s._id === 'pending') summary['Pending'] += s.count;
             else if (s._id === 'confirmed') summary['To Process'] += s.count;
+            else if (s._id === 'ready_to_ship') summary['Ready to Ship'] += s.count;
             else if (s._id === 'shipping') summary['Shipping'] += s.count;
             else if (s._id === 'completed') summary['Completed'] += s.count;
             else if (['disputed', 'refunded'].includes(s._id)) summary['Return/Refund'] += s.count;
@@ -157,7 +160,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -169,6 +172,20 @@ const updateOrderStatus = async (req, res, next) => {
 
         const isAlreadyDelivered = order.status === 'completed';
         order.status = status;
+
+        if (status === 'ready_to_ship' && !order.shipping_partner_id) {
+            const ShippingPartner = require('../../models/ShippingPartner');
+            let defaultPartner = await ShippingPartner.findOne({ is_active: true });
+            if (!defaultPartner) {
+                defaultPartner = await ShippingPartner.create({
+                    name: 'SPX Express',
+                    code: 'SPX',
+                    shipping_fee: 5000,
+                    is_active: true
+                });
+            }
+            order.shipping_partner_id = defaultPartner._id;
+        }
 
         if (status === 'completed' && !isAlreadyDelivered) {
             // Add funds to seller's wallet
@@ -229,6 +246,44 @@ const updateOrderStatus = async (req, res, next) => {
 
         await order.save();
 
+        // Notify Customer
+        try {
+            const Notification = require('../../models/Notification');
+            const io = req.app.get('socketio');
+            let notifTitle = 'Order Status Updated';
+            let notifContent = `Your order ${order.order_code} is now ${status}.`;
+            
+            if (status === 'confirmed') notifContent = `Your order ${order.order_code} has been confirmed.`;
+            else if (status === 'ready_to_ship') notifContent = `Your order ${order.order_code} is packed and ready to ship.`;
+            else if (status === 'shipping') notifContent = `Your order ${order.order_code} is out for delivery.`;
+            else if (status === 'completed') notifContent = `Your order ${order.order_code} has been marked as completed.`;
+            else if (status === 'canceled') notifContent = `Your order ${order.order_code} has been cancelled by the shop.`;
+
+            const customerNotif = await Notification.create({
+                user_id: order.customer_id,
+                title: notifTitle,
+                content: notifContent,
+                category: 'Orders',
+                type: 'order',
+                link: `/order-history/${order._id}`
+            });
+
+            if (io) {
+                io.to(order.customer_id.toString()).emit('notification', {
+                    id: customerNotif._id.toString(),
+                    title: customerNotif.title,
+                    content: customerNotif.content,
+                    category: customerNotif.category,
+                    type: customerNotif.type,
+                    date: 'JUST NOW',
+                    link: customerNotif.link,
+                    is_read: false
+                });
+            }
+        } catch (notifErr) {
+            console.error('Customer Notification Error on Status Update:', notifErr);
+        }
+
         res.status(200).json({
             success: true,
             code: 200,
@@ -284,11 +339,16 @@ const getOrderById = async (req, res, next) => {
         const shipment = await Shipment.findOne({ order_id: order._id })
             .populate('shipping_partner_id', 'name service_type');
 
+        // Fetch Status History for proof of delivery
+        const OrderStatusHistory = require('../../models/OrderStatusHistory');
+        const history = await OrderStatusHistory.find({ order_id: order._id }).sort({ createdAt: -1 });
+
         const orderData = {
             ...order.toObject(),
             items: itemsWithMedia,
             shipping_address: address,
-            shipment: shipment
+            shipment: shipment,
+            history: history
         };
 
         res.status(200).json({

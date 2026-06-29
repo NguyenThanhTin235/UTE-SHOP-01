@@ -21,7 +21,7 @@ const addShipper = async () => {
     const email = 'shipper@gmail.com';
     let shipperUser = await User.findOne({ email });
     if (!shipperUser) {
-      const hashedPassword = await bcrypt.hash('password123', 10);
+      const hashedPassword = await bcrypt.hash('*Tin230983', 10);
       shipperUser = await User.create({
         full_name: 'UTE Shipper',
         email,
@@ -44,7 +44,7 @@ const addShipper = async () => {
 
     console.log('Shipper account successfully added/verified.');
     console.log(`Email: ${email}`);
-    console.log(`Password: password123`);
+    console.log(`Password: *Tin230983`);
 
     process.exit(0);
   } catch (error) {

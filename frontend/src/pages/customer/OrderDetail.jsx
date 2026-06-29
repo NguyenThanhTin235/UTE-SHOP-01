@@ -30,6 +30,38 @@ const translateTimelineNote = (note) => {
   return translated;
 };
 
+const translateVariant = (variant) => {
+  if (!variant) return 'Standard';
+  let translated = variant;
+  
+  // Translate "Màu sắc" / "Màu" to "Color"
+  translated = translated.replace(/Màu sắc/gi, 'Color').replace(/Màu/gi, 'Color');
+  
+  // Color mappings
+  const colors = {
+    'đỏ': 'Red',
+    'xanh dương': 'Blue',
+    'xanh lá': 'Green',
+    'vàng': 'Yellow',
+    'đen': 'Black',
+    'trắng': 'White',
+    'tím': 'Purple',
+    'hồng': 'Pink',
+    'xám': 'Gray',
+    'cam': 'Orange',
+    'nâu': 'Brown',
+    'bạc': 'Silver',
+    'vàng hồng': 'Rose Gold'
+  };
+
+  Object.keys(colors).forEach(vnColor => {
+    const regex = new RegExp(vnColor, 'gi');
+    translated = translated.replace(regex, colors[vnColor]);
+  });
+
+  return translated;
+};
+
 const OrderDetail = () => {
   const { orderId } = useParams();
   const { user } = useSelector((state) => state.auth);
@@ -266,6 +298,8 @@ const OrderDetail = () => {
         return 'bg-blue-500/10 text-blue-600 border border-blue-500/20';
       case 'preparing':
         return 'bg-amber-500/10 text-amber-600 border border-amber-500/20';
+      case 'ready_to_ship':
+        return 'bg-cyan-500/10 text-cyan-600 border border-cyan-500/20';
       case 'shipping':
         return 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20';
       case 'completed':
@@ -285,6 +319,7 @@ const OrderDetail = () => {
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
   const isPreparing = order.status === 'preparing';
+  const isReadyToShip = order.status === 'ready_to_ship';
   const isShipped = order.status === 'shipping';
   const isDelivered = order.status === 'completed';
   const isCanceled = order.status === 'canceled';
@@ -292,7 +327,7 @@ const OrderDetail = () => {
   const isRefunded = order.status === 'refunded';
 
   const step1Active = !isCanceled && !isCancelPending && !isRefunded;
-  const step2Active = isConfirmed || isPreparing || isShipped || isDelivered;
+  const step2Active = isConfirmed || isPreparing || isReadyToShip || isShipped || isDelivered;
   const step3Active = isShipped || isDelivered;
   const step4Active = isDelivered;
 
@@ -354,6 +389,10 @@ const OrderDetail = () => {
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
+            </Link>
           </nav>
 
           <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">
@@ -384,6 +423,7 @@ const OrderDetail = () => {
                 {isPending ? 'Pending' :
                  isConfirmed ? 'Confirmed' :
                  isPreparing ? 'Preparing' :
+                 isReadyToShip ? 'Ready to Ship' :
                  isShipped ? 'Shipping' :
                  isDelivered ? 'Completed' :
                  isCanceled ? 'Cancelled' :
@@ -506,11 +546,43 @@ const OrderDetail = () => {
                           <p className="text-[10px] text-[#737686] font-medium mt-0.5">
                             {new Date(evt.createdAt).toLocaleString()}
                           </p>
+                          {evt.imageUrl && (
+                            <div className="mt-2">
+                              <img 
+                                src={evt.imageUrl.startsWith('http') ? evt.imageUrl : `http://localhost:5000/${evt.imageUrl.replace(/\\/g, '/')}`} 
+                                alt="Proof of Delivery" 
+                                className="w-24 h-24 object-cover rounded-xl border border-[#c3c6d7] shadow-sm"
+                                onClick={() => window.open(evt.imageUrl.startsWith('http') ? evt.imageUrl : `http://localhost:5000/${evt.imageUrl.replace(/\\/g, '/')}`, '_blank')}
+                                style={{ cursor: 'pointer' }}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                {/* Shipper Information */}
+                {order.shipperId && (
+                  <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
+                    <span className="material-symbols-outlined text-primary text-2xl">local_shipping</span>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-[#737686] font-bold uppercase tracking-wider mb-2">Shipper Information</p>
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={order.shipperId.avatarUrl ? (order.shipperId.avatarUrl.startsWith('http') ? order.shipperId.avatarUrl : `http://localhost:5000${order.shipperId.avatarUrl}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(order.shipperId.fullName || 'Shipper')}&background=e2e8f0&color=475569`} 
+                          alt="Shipper" 
+                          className="w-10 h-10 rounded-full border border-[#c3c6d7]/30 object-cover"
+                        />
+                        <div>
+                          <p className="font-extrabold text-[#131b2e] text-sm">{order.shipperId.fullName}</p>
+                          <p className="text-xs text-[#434655] font-medium mt-0.5">{order.shipperId.phone || 'No phone number'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Địa chỉ giao hàng */}
                 <div className="flex gap-4 p-5 bg-[#f2f3ff]/20 rounded-2xl border border-[#c3c6d7]/20">
@@ -629,7 +701,7 @@ const OrderDetail = () => {
                       <div className="flex-grow min-w-0">
                         <h4 className="font-bold text-xs text-[#131b2e] leading-tight truncate">{item.name}</h4>
                         <p className="text-[10px] text-[#737686] mt-0.5 font-medium">
-                          Quantity: {item.quantity} | {item.variantName || 'Standard'}
+                          Quantity: {item.quantity} | {translateVariant(item.variantName)}
                         </p>
                         <p className="font-bold text-xs text-primary mt-1">
                           {item.price?.toLocaleString()}₫

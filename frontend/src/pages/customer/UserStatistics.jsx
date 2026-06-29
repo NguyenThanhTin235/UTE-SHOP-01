@@ -166,12 +166,12 @@ const UserStatistics = () => {
           </div>
 
           <nav className="flex flex-col gap-1 text-left">
-            <Link to="/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+            <Link to="/user/profile" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">person</span>
               <span>Personal Profile</span>
             </Link>
             <Link to="/order-history" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
-              <span className="material-symbols-outlined">local_mall</span>
+              <span className="material-symbols-outlined">shopping_bag</span>
               <span>Order History</span>
             </Link>
             <Link to="/reviews" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
@@ -203,11 +203,18 @@ const UserStatistics = () => {
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
-            <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer mt-2 border-t border-[#c3c6d7]/30 pt-4">
-              <span className="material-symbols-outlined">logout</span>
-              <span>Logout</span>
-            </button>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
+            </Link>
           </nav>
+
+          <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">
+            <button onClick={handleLogout} className="w-full flex items-center px-4 py-3 space-x-3 text-[#b3261e] hover:bg-[#b3261e]/10 transition-all font-medium rounded-xl cursor-pointer">
+              <span className="material-symbols-outlined">logout</span>
+              <span>Log Out</span>
+            </button>
+          </div>
         </aside>
 
         {/* Main Content Area */}
@@ -360,11 +367,11 @@ const UserStatistics = () => {
                             <td className="px-6 py-4 text-sm text-[#434655]">{new Date(order.createdAt).toLocaleDateString()}</td>
                             <td className="px-6 py-4 text-sm font-bold text-[#131b2e]">{formatCurrency(order.total_final)}</td>
                             <td className="px-6 py-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize
-                                ${order.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                                ${['pending', 'confirmed', 'preparing', 'shipping'].includes(order.status) ? 'bg-blue-100 text-blue-800' : ''}
-                                ${['canceled', 'disputed', 'refunded'].includes(order.status) ? 'bg-red-100 text-red-800' : ''}
-                              `}>
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize
+                                  ${order.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                                  ${['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping'].includes(order.status) ? 'bg-blue-100 text-blue-800' : ''}
+                                  ${['canceled', 'disputed', 'refunded'].includes(order.status) ? 'bg-red-100 text-red-800' : ''}
+                                `}>
                                 {order.status}
                               </span>
                             </td>

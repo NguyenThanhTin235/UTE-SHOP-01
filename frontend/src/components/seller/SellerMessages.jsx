@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const SellerMessages = ({ searchTerm }) => {
   const { user } = useSelector((state) => state.auth);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -36,6 +38,24 @@ const SellerMessages = ({ searchTerm }) => {
       setIsLoadingList(false);
     }
   };
+
+  // Sync activeConversation from URL
+  useEffect(() => {
+    const chatId = searchParams.get('chatId');
+    if (chatId && conversations.length > 0) {
+      if (!activeConversation || activeConversation._id !== chatId) {
+        const conv = conversations.find(c => c._id === chatId);
+        if (conv) {
+          setActiveConversation(conv);
+          setIsLoadingMessages(true);
+          setMessages([]);
+        }
+      }
+    } else if (!chatId && activeConversation) {
+      setActiveConversation(null);
+      setMessages([]);
+    }
+  }, [searchParams, conversations, activeConversation]);
 
   // Fetch messages for active conversation
   const fetchMessages = async (convId) => {
@@ -77,6 +97,11 @@ const SellerMessages = ({ searchTerm }) => {
     setActiveConversation(conv);
     setIsLoadingMessages(true);
     setMessages([]);
+    
+    // Sync to URL
+    const params = new URLSearchParams(searchParams);
+    params.set('chatId', conv._id);
+    setSearchParams(params, { replace: true });
   };
 
   const handleSend = async (e) => {

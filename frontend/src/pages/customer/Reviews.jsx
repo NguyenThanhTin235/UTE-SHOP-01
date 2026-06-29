@@ -13,7 +13,7 @@ const StarDisplay = ({ rating, size = 'sm' }) => {
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(star => (
         <svg key={star} className={`${s} ${star <= rating ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
     </div>
@@ -218,13 +218,13 @@ const Reviews = () => {
 
   const ratingLabel = (r) => ['', 'Poor', 'Unsatisfied', 'Fair', 'Satisfied', 'Excellent'][r] || '';
 
-  const avatarSrc = user?.avatarUrl 
-    ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) 
+  const avatarSrc = user?.avatarUrl
+    ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
 
   return (
     <Layout>
-      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-4 flex flex-col md:flex-row gap-8 items-start">
+      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col md:flex-row gap-8 items-start">
         {/* SideNavBar (Đồng bộ với Profile) */}
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
@@ -276,6 +276,10 @@ const Reviews = () => {
             <Link to="/security" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
+            </Link>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
             </Link>
           </nav>
 
@@ -497,11 +501,10 @@ const Reviews = () => {
                     <button
                       key={index + 1}
                       onClick={() => setCurrentPage(index + 1)}
-                      className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                        currentPage === index + 1
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all cursor-pointer ${currentPage === index + 1
                           ? 'bg-primary text-white shadow-md shadow-primary/10'
                           : 'hover:bg-[#f2f3ff] text-[#434655] bg-white border border-[#c3c6d7]/30'
-                      }`}
+                        }`}
                     >
                       {index + 1}
                     </button>
@@ -523,7 +526,7 @@ const Reviews = () => {
 
       {/* ─── Review Modal (Edit Mode) ─── */}
       {reviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background: 'rgba(19,27,46,0.6)', backdropFilter: 'blur(4px)'}}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(19,27,46,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-[#c3c6d7]/20">
@@ -558,10 +561,9 @@ const Reviews = () => {
                       onMouseLeave={() => setReviewHover(0)}
                       className="transition-transform hover:scale-110 active:scale-95"
                     >
-                      <svg className={`w-9 h-9 transition-colors ${
-                        star <= (reviewHover || reviewRating) ? 'text-amber-400' : 'text-gray-200'
-                      }`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      <svg className={`w-9 h-9 transition-colors ${star <= (reviewHover || reviewRating) ? 'text-amber-400' : 'text-gray-200'
+                        }`} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     </button>
                   ))}
@@ -639,7 +641,7 @@ const Reviews = () => {
                   className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submittingReview ? (
-                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>&nbsp;Saving...</>
+                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />&nbsp;Saving...</>
                   ) : (
                     <>Save Changes</>
                   )}
@@ -652,7 +654,7 @@ const Reviews = () => {
 
       {/* ─── Delete Confirmation Modal ─── */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background: 'rgba(19,27,46,0.6)', backdropFilter: 'blur(4px)'}}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(19,27,46,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-2 text-rose-500">
@@ -675,7 +677,7 @@ const Reviews = () => {
                   className="flex-1 py-3 rounded-xl bg-rose-500 text-white font-bold text-sm hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {deletingId === deleteConfirmId ? (
-                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>&nbsp;Deleting...</>
+                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />&nbsp;Deleting...</>
                   ) : (
                     <>Delete</>
                   )}

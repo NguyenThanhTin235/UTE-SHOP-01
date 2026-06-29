@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Layout from '../../components/Layout';
 import FABGroup from '../../components/FABGroup';
 import { logout } from '../../redux/authSlice';
+import { addToCart } from '../../redux/cartSlice';
 
 const OrderHistory = () => {
   const { user } = useSelector((state) => state.auth);
@@ -56,6 +57,38 @@ const OrderHistory = () => {
     }
   };
 
+  const handleReorder = async (order) => {
+    try {
+      const items = order.items;
+      if (!items || items.length === 0) return;
+
+      let successCount = 0;
+      for (const item of items) {
+        const productId = item.productId || item.product_id?._id || item.product_id?.id || item.product_id;
+        const variantId = item.variantId || item.variant_id?._id || item.variant_id?.id || item.variant_id;
+
+        if (productId) {
+          await dispatch(addToCart({
+            productId,
+            variantId: variantId || null,
+            quantity: item.quantity || 1
+          })).unwrap();
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Added ${successCount} items to cart to reorder!`);
+        navigate('/cart');
+      } else {
+        toast.error('Could not add items to cart');
+      }
+    } catch (error) {
+      console.error('Reorder error:', error);
+      toast.error(error?.message || 'Failed to reorder items');
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, [activeTab, searchTerm, currentPage]);
@@ -103,14 +136,14 @@ const OrderHistory = () => {
     } catch (error) {
       console.error('Error repaying VNPAY order:', error);
       toast.error(
-        error.response?.data?.message || 
+        error.response?.data?.message ||
         'Không thể khởi tạo lại giao dịch thanh toán. Vui lòng thử lại sau.'
       );
     }
   };
 
-  const avatarSrc = user?.avatarUrl 
-    ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`) 
+  const avatarSrc = user?.avatarUrl
+    ? (user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=004ac6&color=fff`;
 
   const tabs = [
@@ -118,11 +151,11 @@ const OrderHistory = () => {
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
     { key: 'preparing', label: 'Preparing' },
+    { key: 'ready_to_ship', label: 'Ready to Ship' },
     { key: 'shipping', label: 'Shipping' },
     { key: 'completed', label: 'Completed' },
     { key: 'cancel_pending', label: 'Cancel Pending' },
-    { key: 'canceled', label: 'Cancelled' },
-    { key: 'refunded', label: 'Refunded' }
+    { key: 'canceled', label: 'Cancelled' }
   ];
 
   const getStatusConfig = (status) => {
@@ -133,6 +166,8 @@ const OrderHistory = () => {
         return { text: 'Confirmed', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: 'verified' };
       case 'preparing':
         return { text: 'Preparing', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: 'inventory_2' };
+      case 'ready_to_ship':
+        return { text: 'Ready to Ship', color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20', icon: 'box' };
       case 'shipping':
         return { text: 'Shipping', color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20', icon: 'local_shipping' };
       case 'completed':
@@ -150,7 +185,7 @@ const OrderHistory = () => {
 
   return (
     <Layout>
-      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-4 flex flex-col md:flex-row gap-8 items-start">
+      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12 flex flex-col md:flex-row gap-8 items-start">
         {/* SideNavBar (Đồng bộ với Profile) */}
         <aside className="w-full md:w-72 flex flex-col gap-4 md:sticky md:top-24 flex-shrink-0">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#c3c6d7]/30 mb-2 text-left">
@@ -203,6 +238,10 @@ const OrderHistory = () => {
               <span className="material-symbols-outlined">security</span>
               <span>Security Settings</span>
             </Link>
+            <Link to="/role-upgrade" className="flex items-center px-4 py-3 space-x-3 text-[#434655] hover:bg-[#f7f9ff] hover:text-primary transition-all font-medium rounded-xl">
+              <span className="material-symbols-outlined">upgrade</span>
+              <span>Upgrade Role</span>
+            </Link>
           </nav>
 
           <div className="mt-6 pt-4 border-t border-[#c3c6d7]/50 text-left">
@@ -222,11 +261,10 @@ const OrderHistory = () => {
                 <button
                   key={tab.key}
                   onClick={() => handleTabChange(tab.key)}
-                  className={`flex-shrink-0 px-8 py-5 text-sm font-bold transition-all ${
-                    activeTab === tab.key
+                  className={`flex-shrink-0 px-4 py-4 md:px-8 md:py-5 text-sm font-bold transition-all ${activeTab === tab.key
                       ? 'text-primary border-b-2 border-primary'
                       : 'text-[#434655] hover:bg-[#f2f3ff]/50'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -295,13 +333,15 @@ const OrderHistory = () => {
                             <span className="font-extrabold text-[#131b2e] tracking-tight">
                               {order.shopId?.name || 'UTEShop Store'}
                             </span>
-                            <button 
+                            <button
                               onClick={() => {
                                 if (order.shopId) {
-                                  document.dispatchEvent(new CustomEvent('open-shop-chat', { detail: { 
-                                    shopId: order.shopId._id || order.shopId.id || order.shopId,
-                                    initialMessage: `Tôi cần hỗ trợ về đơn hàng ${order.orderCode}`
-                                  } }));
+                                  document.dispatchEvent(new CustomEvent('open-shop-chat', {
+                                    detail: {
+                                      shopId: order.shopId._id || order.shopId.id || order.shopId,
+                                      initialMessage: `Tôi cần hỗ trợ về đơn hàng ${order.orderCode}`
+                                    }
+                                  }));
                                 }
                               }}
                               className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors cursor-pointer"
@@ -309,13 +349,13 @@ const OrderHistory = () => {
                               <span className="material-symbols-outlined text-[12px]">chat_bubble</span> Chat
                             </button>
                           </div>
-                           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${statusConfig.color}`}>
-                             <span className="material-symbols-outlined text-[14px] font-bold">{statusConfig.icon}</span>
-                             <span className="text-[10px] font-black uppercase tracking-widest">
-                               {statusConfig.text}
-                             </span>
-                           </div>
-                         </div>
+                          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${statusConfig.color}`}>
+                            <span className="material-symbols-outlined text-[14px] font-bold">{statusConfig.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">
+                              {statusConfig.text}
+                            </span>
+                          </div>
+                        </div>
 
                         {/* Sản phẩm trong Đơn hàng */}
                         <div className="divide-y divide-[#c3c6d7]/10">
@@ -354,17 +394,21 @@ const OrderHistory = () => {
                             <p className="text-xs text-[#737686] font-semibold">
                               Order Code: <span className="text-[#131b2e] font-extrabold">{order.orderCode}</span>
                             </p>
+                            {order.shipperId && (
+                              <p className="text-xs text-[#737686] font-semibold">
+                                Shipper: <span className="text-[#131b2e] font-extrabold">{order.shipperId.fullName}</span>
+                              </p>
+                            )}
                             {order.paymentOrderId && (
                               <p className="text-xs text-[#737686] font-semibold">
-                                Payment: <span className={`font-bold ${
-                                  order.paymentOrderId.paymentStatus === 'success' ? 'text-emerald-600' :
-                                  order.paymentOrderId.paymentStatus === 'refunded' ? 'text-purple-600' :
-                                  order.paymentOrderId.paymentStatus === 'failed' ? 'text-rose-600' : 'text-amber-500'
-                                }`}>
+                                Payment: <span className={`font-bold ${order.paymentOrderId.paymentStatus === 'success' ? 'text-emerald-600' :
+                                    order.paymentOrderId.paymentStatus === 'refunded' ? 'text-purple-600' :
+                                      order.paymentOrderId.paymentStatus === 'failed' ? 'text-rose-600' : 'text-amber-500'
+                                  }`}>
                                   {order.paymentOrderId.paymentMethod === 'cod' ? 'COD (Cash on Delivery)' : 'VNPAY'} - {
                                     order.paymentOrderId.paymentStatus === 'success' ? 'Paid' :
-                                    order.paymentOrderId.paymentStatus === 'refunded' ? 'Refunded' :
-                                    order.paymentOrderId.paymentStatus === 'failed' ? 'Failed' : 'Unpaid'
+                                      order.paymentOrderId.paymentStatus === 'refunded' ? 'Refunded' :
+                                        order.paymentOrderId.paymentStatus === 'failed' ? 'Failed' : 'Unpaid'
                                   }
                                 </span>
                               </p>
@@ -386,15 +430,15 @@ const OrderHistory = () => {
                               </Link>
 
                               {order.status === 'pending' &&
-                               order.paymentOrderId?.paymentMethod === 'vnpay' &&
-                               ['pending', 'failed'].includes(order.paymentOrderId?.paymentStatus) && (
-                                 <button
-                                   onClick={() => handleRepay(order.paymentOrderId.paymentCode)}
-                                   className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center cursor-pointer"
-                                 >
-                                   Pay Now
-                                 </button>
-                              )}
+                                order.paymentOrderId?.paymentMethod === 'vnpay' &&
+                                ['pending', 'failed'].includes(order.paymentOrderId?.paymentStatus) && (
+                                  <button
+                                    onClick={() => handleRepay(order.paymentOrderId.paymentCode)}
+                                    className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center cursor-pointer"
+                                  >
+                                    Pay Now
+                                  </button>
+                                )}
 
                               {['pending', 'confirmed', 'preparing'].includes(order.status) && (
                                 <Link
@@ -406,7 +450,7 @@ const OrderHistory = () => {
                               )}
 
                               {order.status === 'completed' && (
-                                <button 
+                                <button
                                   onClick={() => toast.success('Invoice downloaded')}
                                   className="border border-[#c3c6d7] text-[#434655] hover:bg-[#f2f3ff] px-5 py-2 rounded-xl font-bold text-xs transition-all text-center"
                                 >
@@ -416,10 +460,7 @@ const OrderHistory = () => {
 
                               {['completed', 'canceled'].includes(order.status) && (
                                 <button
-                                  onClick={() => {
-                                    toast.success('Added items to cart to reorder!');
-                                    navigate('/cart');
-                                  }}
+                                  onClick={() => handleReorder(order)}
                                   className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs hover:opacity-90 transition-all text-center"
                                 >
                                   Reorder
@@ -450,11 +491,10 @@ const OrderHistory = () => {
                       <button
                         key={index + 1}
                         onClick={() => setCurrentPage(index + 1)}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all ${
-                          currentPage === index + 1
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-xs transition-all ${currentPage === index + 1
                             ? 'bg-primary text-white shadow-md shadow-primary/10'
                             : 'hover:bg-[#f2f3ff] text-[#434655]'
-                        }`}
+                          }`}
                       >
                         {index + 1}
                       </button>

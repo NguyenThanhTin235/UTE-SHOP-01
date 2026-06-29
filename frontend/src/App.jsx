@@ -1,50 +1,60 @@
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Register from './pages/customer/Register';
-import VerifyOTP from './pages/customer/VerifyOTP';
-import Login from './pages/customer/Login';
-import ForgotPassword from './pages/customer/ForgotPassword';
-import ResetPassword from './pages/customer/ResetPassword';
-import Profile from './pages/customer/Profile';
-import Home from './pages/customer/Home';
-import ProductDetail from './pages/customer/ProductDetail';
-import Search from './pages/customer/Search';
-import Cart from './pages/customer/Cart';
-import Wishlist from './pages/customer/Wishlist';
-import Notifications from './pages/customer/Notifications';
-import OrderHistory from './pages/customer/OrderHistory';
-import OrderDetail from './pages/customer/OrderDetail';
-import CancelOrder from './pages/customer/CancelOrder';
-import Reviews from './pages/customer/Reviews';
-import AddressBook from './pages/customer/AddressBook';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ManagerDashboard from './pages/manager/ManagerDashboard';
-import SellerDashboard from './pages/seller/SellerDashboard';
-import SecuritySettings from './pages/customer/SecuritySettings';
-import DashboardProfile from './pages/customer/DashboardProfile';
-import DashboardSecurity from './pages/customer/DashboardSecurity';
-import DashboardBankAccounts from './pages/customer/DashboardBankAccounts';
-import UserStatistics from './pages/customer/UserStatistics';
-import ShipperDashboard from './pages/shipper/ShipperDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
-import Checkout from './pages/customer/Checkout';
-import OrderSuccess from './pages/customer/OrderSuccess';
-import VNPayMock from './pages/customer/VNPayMock';
-import VNPayReturn from './pages/customer/VNPayReturn';
-import Coins from './pages/customer/Coins';
-import ShopDetail from './pages/customer/ShopDetail';
-import RecentlyViewed from './pages/customer/RecentlyViewed';
-import Promotions from './pages/customer/Promotions';
-import Blog from './pages/customer/Blog';
-import BlogDetail from './pages/customer/BlogDetail';
-import Support from './pages/customer/Support';
-import PolicyDetail from './pages/customer/PolicyDetail';
-
-
-import { Toaster, useToasterStore, toast } from 'react-hot-toast';
-import { useEffect } from 'react';
-
+import { Toaster, toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 import ThemeProvider, { usePlatform } from './components/ThemeProvider';
+
+// --- Static Imports for Critical Components ---
+import ProtectedRoute from './components/ProtectedRoute';
+
+// --- Lazy Loaded Pages ---
+const Register = lazy(() => import('./pages/customer/Register'));
+const VerifyOTP = lazy(() => import('./pages/customer/VerifyOTP'));
+const Login = lazy(() => import('./pages/customer/Login'));
+const ForgotPassword = lazy(() => import('./pages/customer/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/customer/ResetPassword'));
+const Profile = lazy(() => import('./pages/customer/Profile'));
+const Home = lazy(() => import('./pages/customer/Home'));
+const ProductDetail = lazy(() => import('./pages/customer/ProductDetail'));
+const Search = lazy(() => import('./pages/customer/Search'));
+const Cart = lazy(() => import('./pages/customer/Cart'));
+const Wishlist = lazy(() => import('./pages/customer/Wishlist'));
+const Notifications = lazy(() => import('./pages/customer/Notifications'));
+const OrderHistory = lazy(() => import('./pages/customer/OrderHistory'));
+const OrderDetail = lazy(() => import('./pages/customer/OrderDetail'));
+const CancelOrder = lazy(() => import('./pages/customer/CancelOrder'));
+const Reviews = lazy(() => import('./pages/customer/Reviews'));
+const AddressBook = lazy(() => import('./pages/customer/AddressBook'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const ManagerDashboard = lazy(() => import('./pages/manager/ManagerDashboard'));
+const SellerDashboard = lazy(() => import('./pages/seller/SellerDashboard'));
+const SecuritySettings = lazy(() => import('./pages/customer/SecuritySettings'));
+const DashboardProfile = lazy(() => import('./pages/customer/DashboardProfile'));
+const DashboardSecurity = lazy(() => import('./pages/customer/DashboardSecurity'));
+const DashboardBankAccounts = lazy(() => import('./pages/customer/DashboardBankAccounts'));
+const UserStatistics = lazy(() => import('./pages/customer/UserStatistics'));
+const DashboardShipperInfo = lazy(() => import('./pages/customer/DashboardShipperInfo'));
+const RoleUpgrade = lazy(() => import('./pages/customer/RoleUpgrade'));
+const ShipperDashboard = lazy(() => import('./pages/shipper/ShipperDashboard'));
+const Checkout = lazy(() => import('./pages/customer/Checkout'));
+const OrderSuccess = lazy(() => import('./pages/customer/OrderSuccess'));
+const VNPayMock = lazy(() => import('./pages/customer/VNPayMock'));
+const VNPayReturn = lazy(() => import('./pages/customer/VNPayReturn'));
+const Coins = lazy(() => import('./pages/customer/Coins'));
+const ShopDetail = lazy(() => import('./pages/customer/ShopDetail'));
+const RecentlyViewed = lazy(() => import('./pages/customer/RecentlyViewed'));
+const Promotions = lazy(() => import('./pages/customer/Promotions'));
+const Blog = lazy(() => import('./pages/customer/Blog'));
+const BlogDetail = lazy(() => import('./pages/customer/BlogDetail'));
+const Support = lazy(() => import('./pages/customer/Support'));
+const PolicyDetail = lazy(() => import('./pages/customer/PolicyDetail'));
+
+// Loading Fallback Component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#faf8ff]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+);
 
 const MaintenanceGuard = ({ children }) => {
   const { isMaintenanceMode, maintenanceMessage, platformSettings } = usePlatform() || {};
@@ -114,74 +124,76 @@ function App() {
   return (
     <ThemeProvider>
       <MaintenanceGuard>
-      <Router>
-        <Toaster 
-        position="top-center" 
-        reverseOrder={false} 
-        toastOptions={{
-          duration: 3000,
-          style: {
-            maxWidth: '500px'
-          }
-        }} 
-      />
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/order-history" element={user ? <OrderHistory /> : <Navigate to="/login" />} />
-        <Route path="/order-history/:orderId" element={user ? <OrderDetail /> : <Navigate to="/login" />} />
-        <Route path="/order-history/:orderId/cancel" element={user ? <CancelOrder /> : <Navigate to="/login" />} />
-        <Route path="/reviews" element={user ? <Reviews /> : <Navigate to="/login" />} />
-        <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
-        <Route path="/recently-viewed" element={user ? <RecentlyViewed /> : <Navigate to="/login" />} />
-        <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
-        <Route path="/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
-        <Route path="/user/statistics" element={<ProtectedRoute><UserStatistics /></ProtectedRoute>} />
-        <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
-        <Route path="/order-success" element={user ? <OrderSuccess /> : <Navigate to="/login" />} />
-        <Route path="/vnpay-mock" element={user ? <VNPayMock /> : <Navigate to="/login" />} />
-        <Route path="/payment/vnpay/return" element={user ? <VNPayReturn /> : <Navigate to="/login" />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
-        <Route path="/product/:slug" element={<ProductDetail />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/shop/:slug" element={<ShopDetail />} />
-        <Route path="/promotions" element={<Promotions />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogDetail />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/support/policy/:slug" element={<PolicyDetail />} />
-        
-        {/* Protected Dashboard Routes */}
-        <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />
-        <Route path="/admin/security" element={<ProtectedRoute allowedRoles={['admin']}><DashboardSecurity /></ProtectedRoute>} />
-        <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-        
-        <Route path="/manager/profile" element={<ProtectedRoute allowedRoles={['manager']}><DashboardProfile /></ProtectedRoute>} />
-        <Route path="/manager/security" element={<ProtectedRoute allowedRoles={['manager']}><DashboardSecurity /></ProtectedRoute>} />
-        <Route path="/manager/*" element={<ProtectedRoute allowedRoles={['manager']}><ManagerDashboard /></ProtectedRoute>} />
-        
-        <Route path="/seller/profile" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardProfile /></ProtectedRoute>} />
-        <Route path="/seller/security" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardSecurity /></ProtectedRoute>} />
-        <Route path="/seller/bank-accounts" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardBankAccounts /></ProtectedRoute>} />
-        <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
+        <Router>
+          <Toaster 
+            position="top-center" 
+            reverseOrder={false} 
+            toastOptions={{
+              duration: 3000,
+              style: { maxWidth: '500px' }
+            }} 
+          />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-otp" element={<VerifyOTP />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
+              <Route path="/user/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+              <Route path="/order-history" element={user ? <OrderHistory /> : <Navigate to="/login" />} />
+              <Route path="/order-history/:orderId" element={user ? <OrderDetail /> : <Navigate to="/login" />} />
+              <Route path="/order-history/:orderId/cancel" element={user ? <CancelOrder /> : <Navigate to="/login" />} />
+              <Route path="/reviews" element={user ? <Reviews /> : <Navigate to="/login" />} />
+              <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/login" />} />
+              <Route path="/recently-viewed" element={user ? <RecentlyViewed /> : <Navigate to="/login" />} />
+              <Route path="/address-book" element={user ? <AddressBook /> : <Navigate to="/login" />} />
+              <Route path="/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
+              <Route path="/user/statistics" element={<ProtectedRoute><UserStatistics /></ProtectedRoute>} />
+              <Route path="/role-upgrade" element={<ProtectedRoute><RoleUpgrade /></ProtectedRoute>} />
+              <Route path="/coins" element={user ? <Coins /> : <Navigate to="/login" />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
+              <Route path="/order-success" element={user ? <OrderSuccess /> : <Navigate to="/login" />} />
+              <Route path="/vnpay-mock" element={user ? <VNPayMock /> : <Navigate to="/login" />} />
+              <Route path="/payment/vnpay/return" element={user ? <VNPayReturn /> : <Navigate to="/login" />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/login" element={!user ? <Login /> : <RoleBasedRedirect user={user} />} />
+              <Route path="/product/:slug" element={<ProductDetail />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/shop/:slug" element={<ShopDetail />} />
+              <Route path="/promotions" element={<Promotions />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/support/policy/:slug" element={<PolicyDetail />} />
+              
+              {/* Protected Dashboard Routes */}
+              <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><DashboardProfile /></ProtectedRoute>} />
+              <Route path="/admin/security" element={<ProtectedRoute allowedRoles={['admin']}><DashboardSecurity /></ProtectedRoute>} />
+              <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+              
+              <Route path="/manager/profile" element={<ProtectedRoute allowedRoles={['manager']}><DashboardProfile /></ProtectedRoute>} />
+              <Route path="/manager/security" element={<ProtectedRoute allowedRoles={['manager']}><DashboardSecurity /></ProtectedRoute>} />
+              <Route path="/manager/*" element={<ProtectedRoute allowedRoles={['manager']}><ManagerDashboard /></ProtectedRoute>} />
+              
+              <Route path="/seller/profile" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardProfile /></ProtectedRoute>} />
+              <Route path="/seller/security" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardSecurity /></ProtectedRoute>} />
+              <Route path="/seller/bank-accounts" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><DashboardBankAccounts /></ProtectedRoute>} />
+              <Route path="/seller/*" element={<ProtectedRoute allowedRoles={['seller', 'vendor']}><SellerDashboard /></ProtectedRoute>} />
 
-        <Route path="/shipper/profile" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardProfile /></ProtectedRoute>} />
-        <Route path="/shipper/security" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardSecurity /></ProtectedRoute>} />
-        <Route path="/shipper/*" element={<ProtectedRoute allowedRoles={['shipper']}><ShipperDashboard /></ProtectedRoute>} />
+              <Route path="/shipper/profile" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardProfile /></ProtectedRoute>} />
+              <Route path="/shipper/info" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardShipperInfo /></ProtectedRoute>} />
+              <Route path="/shipper/security" element={<ProtectedRoute allowedRoles={['shipper']}><DashboardSecurity /></ProtectedRoute>} />
+              <Route path="/shipper/*" element={<ProtectedRoute allowedRoles={['shipper']}><ShipperDashboard /></ProtectedRoute>} />
 
-        <Route path="/" element={<Home />} />
-      </Routes>
-      </Router>
+              <Route path="/" element={<Home />} />
+            </Routes>
+          </Suspense>
+        </Router>
       </MaintenanceGuard>
     </ThemeProvider>
   );
 }
 
 export default App;
-

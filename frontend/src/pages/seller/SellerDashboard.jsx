@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { logout } from '../../redux/authSlice';
-import axios from 'axios';
+import { fetchSellerWallet, fetchShopStatus } from '../../redux/sellerSlice';
 
 import SellerProducts from '../../components/seller/SellerProducts';
 import SellerAddProduct from '../../components/seller/SellerAddProduct';
@@ -18,7 +18,6 @@ import SellerMessages from '../../components/seller/SellerMessages';
 import SellerSidebar from '../../components/seller/SellerSidebar';
 import SellerHeader from '../../components/seller/SellerHeader';
 import SellerDashboardOverview from '../../components/seller/SellerDashboardOverview';
-import SellerAIChat from '../../components/seller/SellerAIChat';
 
 const SellerOrderDetailWrapper = () => {
   const { orderId } = useParams();
@@ -32,22 +31,13 @@ const SellerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [walletBalance, setWalletBalance] = useState(0);
+  const { walletBalance, shopStatus, shopReason } = useSelector((state) => state.seller);
 
-  const fetchWalletBalance = async () => {
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-      if (!token) return;
-      const res = await axios.get('http://localhost:5000/api/seller/wallet', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data.success) {
-        setWalletBalance(res.data.data.total_balance ?? 0);
-      }
-    } catch (error) {
-      console.error('Failed to fetch wallet balance for sidebar:', error);
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchShopStatus());
     }
-  };
+  }, [user, dispatch]);
 
   const getTabFromUrl = () => {
     const pathParts = location.pathname.split('/').filter(Boolean);
@@ -71,6 +61,13 @@ const SellerDashboard = () => {
       navigate('/seller/dashboard', { replace: true });
     }
   }, [location.pathname, navigate]);
+
+  // Gate access to other tabs if shop is not active
+  useEffect(() => {
+    if (shopStatus !== 'loading' && shopStatus !== 'active' && activeTab !== 'settings') {
+      navigate('/seller/settings', { replace: true });
+    }
+  }, [shopStatus, activeTab, navigate]);
 
   const [selectedOrderId, setSelectedOrderId] = useState(() => {
     return sessionStorage.getItem('sellerSelectedOrderId') || null;
@@ -129,9 +126,9 @@ const SellerDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      fetchWalletBalance();
+      dispatch(fetchSellerWallet());
     }
-  }, [user, location.pathname]);
+  }, [user, location.pathname, dispatch]);
 
   return (
     <div className="bg-[#F8FAFC] text-slate-900 min-h-screen flex font-sans overflow-hidden">
@@ -141,6 +138,7 @@ const SellerDashboard = () => {
         navItems={navItems}
         handleLogout={handleLogout}
         walletBalance={walletBalance}
+        shopStatus={shopStatus}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
@@ -152,39 +150,65 @@ const SellerDashboard = () => {
           navigate={navigate}
         />
 
-        <Routes>
-          <Route path="dashboard" element={
-            <SellerDashboardOverview setActiveTab={setActiveTab} setSelectedOrderId={setSelectedOrderId} />
-          } />
-          <Route path="products" element={<SellerProducts setActiveTab={setActiveTab} />} />
-          <Route path="add-product" element={<SellerAddProduct setActiveTab={setActiveTab} />} />
-          <Route path="orders" element={<SellerOrders onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
-          <Route path="orders/:orderId" element={<SellerOrderDetailWrapper />} />
-          <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
-          <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
-          <Route path="wallet" element={<SellerWallet />} />
-          <Route path="reviews" element={<SellerReviews />} />
-          <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
-          <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
+        {shopStatus === 'loading' ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : shopStatus !== 'active' && activeTab !== 'settings' ? (
+           <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8 flex-1">
+             <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
+               <span className="material-symbols-outlined text-6xl text-orange-500 mb-4">
+                 storefront
+               </span>
+               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                 Shop Configuration Required
+               </h2>
+               <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                 You must configure your shop profile and have it approved by the manager before you can access this feature.
+               </p>
+               <button
+                 onClick={() => navigate('/seller/settings')}
+                 className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-blue-200"
+               >
+                 Go to Settings
+               </button>
+             </div>
+           </div>
+        ) : (
+          <Routes>
+            <Route path="dashboard" element={
+              <SellerDashboardOverview setActiveTab={setActiveTab} setSelectedOrderId={setSelectedOrderId} />
+            } />
+            <Route path="products" element={<SellerProducts setActiveTab={setActiveTab} />} />
+            <Route path="add-product" element={<SellerAddProduct setActiveTab={setActiveTab} />} />
+            <Route path="orders" element={<SellerOrders onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
+            <Route path="orders/:orderId" element={<SellerOrderDetailWrapper />} />
+            <Route path="cancellations" element={<SellerCancellations setActiveTab={setActiveTab} onViewDetails={(id) => navigate(`/seller/orders/${id}`)} />} />
+            <Route path="analytics" element={<SellerAnalytics setActiveTab={setActiveTab} />} />
+            <Route path="wallet" element={<SellerWallet />} />
+            <Route path="reviews" element={<SellerReviews />} />
+            <Route path="settings" element={<SellerSettings setActiveTab={setActiveTab} />} />
+            <Route path="messages" element={<div className="p-10 max-w-[1280px] mx-auto w-full"><SellerMessages /></div>} />
 
-          <Route path="*" element={
-            <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
-              <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-                <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
-                  {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
-                </span>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-                  {navItems.find(i => i.id === activeTab)?.label || 'Page'} Management
-                </h2>
-                <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                  Manage your store {navItems.find(i => i.id === activeTab)?.label?.toLowerCase() || 'features'} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
-                </p>
+            <Route path="*" element={
+              <div className="p-10 max-w-[1280px] mx-auto w-full space-y-8">
+                <div className="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
+                  <span className="material-symbols-outlined text-6xl text-primary mb-4 animate-bounce">
+                    {navItems.find(i => i.id === activeTab)?.icon || 'dashboard'}
+                  </span>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                    {navItems.find(i => i.id === activeTab)?.label || 'Page'} Management
+                  </h2>
+                  <p className="text-slate-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                    Manage your store {navItems.find(i => i.id === activeTab)?.label?.toLowerCase() || 'features'} efficiently. Use the tools below to add new listings, update stock levels, or handle customer requests.
+                  </p>
+                </div>
               </div>
-            </div>
-          } />
-        </Routes>
+            } />
+          </Routes>
+        )}
 
-        <SellerAIChat />
+        {/* Floating Action Buttons / Chat Windows */}
       </main>
     </div>
   );

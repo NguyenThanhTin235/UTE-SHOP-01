@@ -1,0 +1,33 @@
+@startuml
+skinparam maxMessageSize 150
+actor Seller
+participant Frontend as FE
+participant "Wallet Service" as Wallet
+participant Database as DB
+actor Admin
+participant "Bank System" as Bank
+
+Seller -> FE: Request Withdrawal (Amount)
+FE -> Wallet: Submit Withdrawal Request
+Wallet -> DB: Check Available Balance
+DB --> Wallet: Balance OK
+Wallet -> DB: Create Request (Status: Pending)
+Wallet -> DB: Freeze Amount (Move to Pending Balance)
+Wallet --> FE: Request Submitted successfully
+
+Wallet --> Admin: Notify "New Withdrawal Request"
+Admin -> Wallet: Review Request
+alt Request Approved
+    Admin -> Bank: Transfer Funds via Bank API
+    Bank --> Admin: Transfer Success
+    Admin -> Wallet: Approve Withdrawal
+    Wallet -> DB: Deduct from Pending Balance
+    Wallet -> DB: Update Request Status -> "Approved"
+    Wallet --> Seller: Notify "Withdrawal Successful"
+else Request Rejected
+    Admin -> Wallet: Reject Withdrawal (Reason)
+    Wallet -> DB: Return Amount to Available Balance
+    Wallet -> DB: Update Request Status -> "Rejected"
+    Wallet --> Seller: Notify "Withdrawal Rejected"
+end
+@enduml

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import RouteMap from '../RouteMap';
 
 const ShipperOrderDetail = () => {
   const { id } = useParams();
@@ -42,6 +43,21 @@ const ShipperOrderDetail = () => {
     setImageFile(null);
     setNote('');
     setFailedReason('Khách không nghe máy');
+  };
+
+  const handleAcceptOrder = async () => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await axios.put(`http://localhost:5000/api/shipper/orders/${id}/accept`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        toast.success('Order accepted successfully');
+        fetchOrderDetail();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to accept order');
+    }
   };
 
   const submitStatusUpdate = async () => {
@@ -122,9 +138,9 @@ const ShipperOrderDetail = () => {
   };
 
   // Build Timeline steps
-  const defaultSteps = ['pending', 'confirmed', 'shipping', 'completed'];
+  const defaultSteps = ['pending', 'confirmed', 'ready_to_ship', 'shipping', 'completed'];
   let steps = [...defaultSteps];
-  if (order.status === 'failed') steps[3] = 'failed';
+  if (order.status === 'failed') steps[4] = 'failed';
   if (order.status === 'canceled') steps = ['pending', 'canceled'];
 
   const getStepStatus = (stepName) => {
@@ -162,6 +178,16 @@ const ShipperOrderDetail = () => {
         </div>
         
         {/* Actions */}
+        {order.status === 'ready_to_ship' && (
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button 
+              onClick={handleAcceptOrder}
+              className="flex-1 md:flex-none px-6 py-3 bg-[#004ac6] text-white rounded-xl font-bold hover:bg-[#003da6] transition-colors shadow-lg shadow-[#004ac6]/30 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">local_shipping</span> Accept Order
+            </button>
+          </div>
+        )}
         {order.status === 'shipping' && (
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button 
@@ -184,6 +210,34 @@ const ShipperOrderDetail = () => {
         {/* Left Column: Timeline & Items */}
         <div className="lg:col-span-2 space-y-8">
           
+          {/* Route Map (Only visible during shipping) */}
+          {order.status === 'shipping' && (
+            <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#004ac6]">route</span>
+                Delivery Route
+              </h3>
+              {order.shopId?.latitude && order.shopId?.longitude && shippingAddress?.latitude && shippingAddress?.longitude ? (
+                <RouteMap 
+                  shopLat={order.shopId.latitude}
+                  shopLng={order.shopId.longitude}
+                  customerLat={shippingAddress.latitude}
+                  customerLng={shippingAddress.longitude}
+                  shopName={order.shopId.name}
+                  customerName={shippingAddress.recipientName || order.customerId?.fullName || 'Customer'}
+                />
+              ) : (
+                <div className="bg-amber-50 p-4 rounded-xl flex items-start gap-3 border border-amber-100">
+                  <span className="material-symbols-outlined text-amber-500">warning</span>
+                  <div>
+                    <p className="text-sm text-amber-800 font-bold mb-1">Cannot display route map</p>
+                    <p className="text-xs text-amber-700">The customer's address or shop address is missing GPS coordinates (they were created before the map integration). The delivery map will be unavailable for this order.</p>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Timeline Section */}
           <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#004ac6] to-cyan-400"></div>
@@ -222,8 +276,11 @@ const ShipperOrderDetail = () => {
                   const labels = {
                     pending: 'Order Placed',
                     confirmed: 'Order Confirmed',
-                    shipped: 'Handed to Shipper (In Transit)',
+                    ready_to_ship: 'Ready for Pickup',
+                    shipping: 'In Transit',
+                    shipped: 'Handed to Shipper',
                     delivered: 'Successfully Delivered',
+                    completed: 'Successfully Delivered',
                     failed: 'Delivery Failed',
                     canceled: 'Order Canceled'
                   };

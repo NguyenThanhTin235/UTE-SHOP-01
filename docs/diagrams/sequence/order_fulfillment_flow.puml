@@ -1,0 +1,31 @@
+@startuml
+skinparam maxMessageSize 150
+actor Seller
+participant Backend as API
+participant "Logistics API (GHTK/Grab)" as Delivery
+actor Shipper
+actor Customer
+
+Seller -> API: Confirm Order
+API -> API: Update Status -> "Processing"
+API -> Delivery: Create Delivery Request
+Delivery --> API: Return Tracking Code
+API --> Seller: Enable "Print Shipping Label"
+
+Shipper -> Delivery: Pick up package from Seller
+Delivery -> API: Webhook: Status -> "Delivering"
+API -> API: Notify Customer
+
+Shipper -> Customer: Deliver package
+Delivery -> API: Webhook: Status -> "Delivered"
+API -> API: Wait for 7 days OR Customer Confirmation
+
+alt Customer Confirms Receipt
+    Customer -> API: Click "Order Received"
+else Auto-Confirm
+    API -> API: 7 days passed without dispute
+end
+
+API -> API: Update Status -> "Completed"
+API -> API: Add Funds to Seller Wallet
+@enduml

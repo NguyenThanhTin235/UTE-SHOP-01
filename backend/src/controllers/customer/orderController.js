@@ -139,7 +139,8 @@ class OrderController {
         .populate({
           path: 'payment_order_id',
           select: 'payment_method payment_status payment_code'
-        });
+        })
+        .populate('shipper_id', 'full_name');
 
       // Populate items for each order
       const ordersWithItems = await Promise.all(
@@ -223,7 +224,8 @@ class OrderController {
           path: 'shop_id',
           select: 'name slug logo_url address phone'
         })
-        .populate('payment_order_id');
+        .populate('payment_order_id')
+        .populate('shipper_id', 'full_name phone avatar_url');
 
       if (!order) {
         return res.status(404).json({
@@ -290,46 +292,63 @@ class OrderController {
         status: h.status,
         note: h.note || `Order status updated to ${h.status}`,
         createdAt: h.createdAt,
-        updatedBy: h.updated_by ? h.updated_by.fullName : 'System'
+        updatedBy: h.updated_by ? h.updated_by.fullName : 'System',
+        imageUrl: h.image_url || null
       }));
 
-      if (trackingTimeline.length === 0) {
-        // Fallback log construction based on order current status
-        trackingTimeline.push({
-          status: 'pending',
-          note: 'Order placed successfully - Pending payment confirmation',
-          createdAt: order.createdAt
-        });
+      // Define standard chronological steps
+      const standardSteps = [
+        { status: 'pending', note: 'Order placed successfully - Pending payment confirmation' },
+        { status: 'confirmed', note: 'Order confirmed - Shop is preparing the products' },
+        { status: 'preparing', note: 'Shop is packing the products' },
+        { status: 'ready_to_ship', note: 'Order is ready, waiting for shipping partner' },
+        { status: 'shipping', note: 'Order handed over to shipping partner' },
+        { status: 'completed', note: 'Delivery successful' }
+      ];
 
-        if (order.status !== 'pending') {
-          trackingTimeline.unshift({
-            status: 'confirmed',
-            note: 'Order confirmed - Shop is preparing the products',
-            createdAt: order.updatedAt
-          });
-        }
-        if (['shipping', 'completed'].includes(order.status)) {
-          trackingTimeline.unshift({
-            status: 'shipping',
-            note: 'Order handed over to SPX shipping partner',
-            createdAt: order.updatedAt
-          });
-        }
-        if (order.status === 'completed') {
-          trackingTimeline.unshift({
-            status: 'completed',
-            note: 'Delivery successful',
-            createdAt: order.updatedAt
-          });
-        }
-        if (order.status === 'canceled') {
-          trackingTimeline.unshift({
-            status: 'canceled',
-            note: cancellation ? `Order has been cancelled. Reason: ${cancellation.reason}` : 'Order has been cancelled',
-            createdAt: order.updatedAt
+      // Determine which steps should be present based on current status
+      const statusOrder = ['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'completed'];
+      let targetIndex = statusOrder.indexOf(order.status);
+      
+      // If it's canceled, maybe it was canceled at some point. We'll still add pending at least.
+      if (order.status === 'canceled') {
+        targetIndex = 0; // Just pending
+      } else if (targetIndex === -1) {
+        targetIndex = 0; 
+      }
+
+      // Check which statuses are missing from trackingTimeline
+      const existingStatuses = trackingTimeline.map(t => t.status);
+      
+      for (let i = 0; i <= targetIndex; i++) {
+        const stepStatus = statusOrder[i];
+        if (!existingStatuses.includes(stepStatus)) {
+          // Calculate a synthetic timestamp: order.createdAt + some minutes
+          const syntheticDate = new Date(order.createdAt.getTime() + (i * 60000));
+          
+          trackingTimeline.push({
+            id: `synthetic_${stepStatus}`,
+            status: stepStatus,
+            note: standardSteps[i].note,
+            createdAt: stepStatus === 'pending' ? order.createdAt : syntheticDate,
+            updatedBy: 'System'
           });
         }
       }
+
+      // If it's canceled, ensure canceled status is in timeline
+      if (order.status === 'canceled' && !existingStatuses.includes('canceled')) {
+        trackingTimeline.push({
+          id: `synthetic_canceled`,
+          status: 'canceled',
+          note: cancellation ? `Order has been cancelled. Reason: ${cancellation.reason}` : 'Order has been cancelled',
+          createdAt: order.updatedAt,
+          updatedBy: 'System'
+        });
+      }
+
+      // Sort timeline descending by createdAt
+      trackingTimeline.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       // Combine response
       const responseData = {
@@ -621,6 +640,41 @@ class OrderController {
               is_read: false
             });
           }
+
+          // Notify Seller
+          try {
+            const Shop = require('../../models/Shop');
+            const shop = await Shop.findById(order.shop_id);
+            if (shop) {
+              const sellerNotif = await Notification.create({
+                user_id: shop.owner_user_id,
+                title: 'Order Cancelled',
+                content: `Order (${order.order_code}) has been cancelled by the customer.`,
+                detailContent: `A customer has cancelled their order.\nOrder Code: ${order.order_code}\nReason: ${reason.trim()}`,
+                category: 'Orders',
+                type: 'order',
+                link: '/seller/orders',
+                orderSummary
+              });
+              if (io) {
+                io.to(shop.owner_user_id.toString()).emit('notification', {
+                  id: sellerNotif._id.toString(),
+                  title: sellerNotif.title,
+                  content: sellerNotif.content,
+                  detailContent: sellerNotif.detailContent,
+                  category: sellerNotif.category,
+                  type: sellerNotif.type,
+                  date: 'JUST NOW',
+                  link: sellerNotif.link,
+                  orderSummary: sellerNotif.orderSummary,
+                  is_read: false
+                });
+              }
+            }
+          } catch (sellerNotifErr) {
+            console.error('Seller Cancellation Notification Error:', sellerNotifErr);
+          }
+
         } catch (notifErr) {
           console.error('Cancellation Notification Error:', notifErr);
         }
@@ -714,6 +768,41 @@ class OrderController {
               is_read: false
             });
           }
+
+          // Notify Seller
+          try {
+            const Shop = require('../../models/Shop');
+            const shop = await Shop.findById(order.shop_id);
+            if (shop) {
+              const sellerNotif = await Notification.create({
+                user_id: shop.owner_user_id,
+                title: 'Order Cancellation Request',
+                content: `Customer has requested to cancel order (${order.order_code}).`,
+                detailContent: `A customer has requested to cancel their order. Please review and respond.\nOrder Code: ${order.order_code}\nReason: ${reason.trim()}`,
+                category: 'Orders',
+                type: 'order',
+                link: '/seller/orders',
+                orderSummary
+              });
+              if (io) {
+                io.to(shop.owner_user_id.toString()).emit('notification', {
+                  id: sellerNotif._id.toString(),
+                  title: sellerNotif.title,
+                  content: sellerNotif.content,
+                  detailContent: sellerNotif.detailContent,
+                  category: sellerNotif.category,
+                  type: sellerNotif.type,
+                  date: 'JUST NOW',
+                  link: sellerNotif.link,
+                  orderSummary: sellerNotif.orderSummary,
+                  is_read: false
+                });
+              }
+            }
+          } catch (sellerNotifErr) {
+            console.error('Seller Cancellation Request Notification Error:', sellerNotifErr);
+          }
+
         } catch (notifErr) {
           console.error('Cancellation Request Pending Notification Error:', notifErr);
         }
@@ -1430,7 +1519,7 @@ class OrderController {
       const { status: newStatus, note } = req.body;
 
       // 1. Validate status
-      const validStatuses = ['confirmed', 'preparing', 'shipping', 'completed', 'disputed', 'refunded', 'canceled'];
+      const validStatuses = ['confirmed', 'preparing', 'ready_to_ship', 'shipping', 'completed', 'disputed', 'refunded', 'canceled'];
       if (!newStatus || !validStatuses.includes(newStatus)) {
         if (useTransaction && session) {
           await session.abortTransaction();

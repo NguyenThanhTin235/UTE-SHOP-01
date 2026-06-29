@@ -20,6 +20,9 @@ const ProductReview = require('../../models/ProductReview');
 const ProductReviewMedia = require('../../models/ProductReviewMedia');
 const OrderStatusHistory = require('../../models/OrderStatusHistory');
 const AuditLog = require('../../models/AuditLog');
+const Role = require('../../models/Role');
+const UserRole = require('../../models/UserRole');
+const Notification = require('../../models/Notification');
 const excelJS = require('exceljs');
 // Helper to check if an order was successful
 const isSuccessfulOrder = (order) => {
@@ -483,6 +486,7 @@ const getOrders = async (req, res, next) => {
             if (status === 'Pending') query.status = 'pending';
             else if (status === 'Confirmed') query.status = 'confirmed';
             else if (status === 'Preparing') query.status = 'preparing';
+            else if (status === 'Ready to Ship') query.status = 'ready_to_ship';
             else if (status === 'Shipping') query.status = 'shipping';
             else if (status === 'Completed') query.status = 'completed';
             else if (status === 'Cancel Pending') query.status = 'cancel_pending';
@@ -542,6 +546,7 @@ const getOrders = async (req, res, next) => {
             'Pending': 0,
             'Confirmed': 0,
             'Preparing': 0,
+            'Ready to Ship': 0,
             'Shipping': 0,
             'Completed': 0,
             'Cancel Pending': 0,
@@ -554,6 +559,7 @@ const getOrders = async (req, res, next) => {
             if (s._id === 'pending') summary['Pending'] += s.count;
             else if (s._id === 'confirmed') summary['Confirmed'] += s.count;
             else if (s._id === 'preparing') summary['Preparing'] += s.count;
+            else if (s._id === 'ready_to_ship') summary['Ready to Ship'] += s.count;
             else if (s._id === 'shipping') summary['Shipping'] += s.count;
             else if (s._id === 'completed') summary['Completed'] += s.count;
             else if (s._id === 'cancel_pending') summary['Cancel Pending'] += s.count;
@@ -617,7 +623,7 @@ const updateOrderStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'canceled'];
+        const validStatuses = ['pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'completed', 'canceled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, code: 400, message: 'Invalid status' });
         }
@@ -709,11 +715,15 @@ const getOrderById = async (req, res, next) => {
         const shipment = await Shipment.findOne({ order_id: order._id })
             .populate('shipping_partner_id', 'name service_type');
 
+        // Fetch Status History for proof of delivery
+        const history = await OrderStatusHistory.find({ order_id: order._id }).sort({ createdAt: -1 });
+
         const orderData = {
             ...order.toObject(),
             items: itemsWithMedia,
             shipping_address: address,
-            shipment: shipment
+            shipment: shipment,
+            history: history
         };
 
         res.status(200).json({
@@ -916,6 +926,43 @@ const createProduct = async (req, res, next) => {
             await ProductMedia.insertMany(mediaDocs);
         }
 
+        // Notify managers about new product
+        try {
+            const managerRole = await Role.findOne({ name: { $regex: /^manager$/i } });
+            if (managerRole) {
+                const userRoles = await UserRole.find({ role_id: managerRole._id });
+                const managerIds = userRoles.map(ur => ur.user_id);
+                const io = req.app.get('socketio');
+                
+                for (const mId of managerIds) {
+                    const notif = await Notification.create({
+                        user_id: mId,
+                        title: 'New Product Approval Request',
+                        content: `Shop "${shop.name}" submitted a new product: "${savedProduct.name}".`,
+                        detailContent: `A new product requires your review.\nProduct Name: ${savedProduct.name}\nShop: ${shop.name}`,
+                        category: 'Products',
+                        type: 'system',
+                        link: `/manager/product_detail/${savedProduct._id}`
+                    });
+                    if (io) {
+                        io.to(mId.toString()).emit('notification', {
+                            id: notif._id.toString(),
+                            title: notif.title,
+                            content: notif.content,
+                            detailContent: notif.detailContent,
+                            category: notif.category,
+                            type: notif.type,
+                            date: 'JUST NOW',
+                            link: notif.link,
+                            is_read: false
+                        });
+                    }
+                }
+            }
+        } catch(e) { 
+            console.error('Notification Error:', e); 
+        }
+
         res.status(201).json({
             success: true,
             code: 201,
@@ -1008,7 +1055,7 @@ const getSettings = async (req, res, next) => {
         const userId = req.user.id;
         const shop = await Shop.findOne({ owner_user_id: userId });
         if (!shop) {
-            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+            return res.status(200).json({ success: true, code: 200, message: 'Shop not found', data: null });
         }
         res.status(200).json({
             success: true,
@@ -1024,22 +1071,57 @@ const getSettings = async (req, res, next) => {
 const updateSettings = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const shop = await Shop.findOne({ owner_user_id: userId });
+        let shop = await Shop.findOne({ owner_user_id: userId });
+        
+        const { name, slug, description, email, phone, address, shipping_carriers, banner_url, logo_url, latitude, longitude } = req.body;
+
         if (!shop) {
-            return res.status(404).json({ success: false, code: 404, message: 'Shop not found' });
+            // Create new shop
+            if (!name || !slug) {
+                return res.status(400).json({ success: false, code: 400, message: 'Name and slug are required to create a shop' });
+            }
+            shop = new Shop({
+                owner_user_id: userId,
+                name,
+                slug,
+                description,
+                email,
+                phone,
+                address,
+                latitude,
+                longitude,
+                shipping_carriers,
+                banner_url,
+                logo_url,
+                status: 'pending'
+            });
+            await shop.save();
+            return res.status(201).json({
+                success: true,
+                code: 201,
+                message: 'Shop created successfully and is pending approval',
+                data: shop
+            });
         }
 
-        const { name, slug, description, email, phone, address, shipping_carriers, banner_url, logo_url } = req.body;
-
+        // Update existing shop
         if (name !== undefined) shop.name = name;
         if (slug !== undefined) shop.slug = slug;
         if (description !== undefined) shop.description = description;
         if (email !== undefined) shop.email = email;
         if (phone !== undefined) shop.phone = phone;
         if (address !== undefined) shop.address = address;
+        if (latitude !== undefined) shop.latitude = latitude;
+        if (longitude !== undefined) shop.longitude = longitude;
         if (shipping_carriers !== undefined) shop.shipping_carriers = shipping_carriers;
         if (banner_url !== undefined) shop.banner_url = banner_url;
         if (logo_url !== undefined) shop.logo_url = logo_url;
+
+        // If it was rejected, setting new info changes it to pending for re-review
+        if (shop.status === 'rejected') {
+            shop.status = 'pending';
+            shop.rejection_reason = '';
+        }
 
         await shop.save();
 
@@ -1879,7 +1961,7 @@ const getSellerReviews = async (req, res, next) => {
             const matchingProductIds = shopProducts
                 .filter(p => searchRegex.test(p.name))
                 .map(p => p._id);
-            const matchingUsers = await User.find({ fullName: searchRegex }).select('_id');
+            const matchingUsers = await User.find({ full_name: searchRegex }).select('_id');
             const matchingUserIds = matchingUsers.map(u => u._id);
 
             const searchOr = [

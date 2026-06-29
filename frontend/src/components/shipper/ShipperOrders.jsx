@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 
 const ShipperOrders = () => {
   const { status: statusParam } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const validFilters = ['all', 'shipping', 'completed', 'failed'];
+  const validFilters = ['all', 'available', 'shipping', 'completed', 'failed'];
   const currentFilter = validFilters.includes(statusParam) ? statusParam : 'all';
 
   const [orders, setOrders] = useState([]);
@@ -19,16 +20,16 @@ const ShipperOrders = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Pagination States
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = parseInt(searchParams.get('page')) || 1;
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
   
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Reset page when filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [currentFilter]);
+  const handlePageChange = (newPage) => {
+    searchParams.set('page', newPage);
+    setSearchParams(searchParams);
+  };
 
   useEffect(() => {
     fetchOrders(currentFilter, currentPage);
@@ -37,7 +38,9 @@ const ShipperOrders = () => {
   const fetchOrders = async (filter, page) => {
     try {
       setLoading(true);
-      const endpoint = filter === 'all' 
+      const endpoint = filter === 'available'
+        ? `http://localhost:5000/api/shipper/orders/available?page=${page}&limit=${limit}`
+        : filter === 'all' 
         ? `http://localhost:5000/api/shipper/orders?page=${page}&limit=${limit}` 
         : `http://localhost:5000/api/shipper/orders/${filter}?page=${page}&limit=${limit}`;
       
@@ -60,6 +63,21 @@ const ShipperOrders = () => {
     setImageFile(null);
     setNote('');
     setFailedReason('Khách không nghe máy');
+  };
+
+  const handleAcceptOrder = async (orderId) => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await axios.put(`http://localhost:5000/api/shipper/orders/${orderId}/accept`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        toast.success('Order accepted successfully');
+        fetchOrders(currentFilter, currentPage);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to accept order');
+    }
   };
 
   const submitStatusUpdate = async () => {
@@ -103,11 +121,13 @@ const ShipperOrders = () => {
   };
 
   return (
-    <div className="p-10 max-w-[1280px] mx-auto w-full space-y-6">
+    <div className="p-4 md:p-10 max-w-[1280px] mx-auto w-full space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-black text-slate-900">Assigned Orders</h2>
+        <h2 className="text-2xl font-black text-slate-900">
+          {currentFilter === 'available' ? 'Available Orders' : 'My Assigned Orders'}
+        </h2>
         <div className="flex bg-slate-100 p-1 rounded-xl">
-          {['all', 'shipping', 'completed', 'failed'].map((status) => (
+          {['all', 'available', 'shipping', 'completed', 'failed'].map((status) => (
             <button
               key={status}
               onClick={() => navigate(status === 'all' ? '/shipper/orders' : `/shipper/orders/${status}`)}
@@ -115,7 +135,7 @@ const ShipperOrders = () => {
                 currentFilter === status ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              {status === 'shipping' ? 'In Transit' : status}
+              {status === 'shipping' ? 'In Transit' : status === 'available' ? 'Available' : status}
             </button>
           ))}
         </div>
@@ -152,14 +172,14 @@ const ShipperOrders = () => {
           </div>
         ) : (
           <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-sm font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th className="p-6">Order Code</th>
-                  <th className="p-6">Customer</th>
-                  <th className="p-6">Address</th>
-                  <th className="p-6">Status</th>
-                  <th className="p-6 text-right">Actions</th>
+                  <th className="w-[30%] p-6">Order Code</th>
+                  <th className="w-[25%] p-6">Customer</th>
+                  <th className="w-[25%] p-6">Address</th>
+                  <th className="w-[120px] p-6 text-center">Status</th>
+                  <th className="w-[150px] md:w-[200px] p-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -189,7 +209,7 @@ const ShipperOrders = () => {
                         {order.shopId?.address || order.shop_id?.address || 'No address provided'}
                       </div>
                     </td>
-                    <td className="p-6">
+                    <td className="p-6 text-center">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1 ${
                         order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                         order.status === 'failed' ? 'bg-red-100 text-red-700' :
@@ -201,17 +221,26 @@ const ShipperOrders = () => {
                     </td>
                     <td className="p-6">
                       <div className="flex items-center justify-end gap-2">
+                      {order.status === 'ready_to_ship' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleAcceptOrder(order._id || order.id); }}
+                            className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-blue-100 transition-colors cursor-pointer shadow-sm"
+                            title="Accept Order"
+                          >
+                            Accept
+                          </button>
+                      )}
                       {order.status === 'shipping' && (
                         <>
                           <button
-                            onClick={() => handleOpenModal(order._id || order.id, 'completed')}
+                            onClick={(e) => { e.stopPropagation(); handleOpenModal(order._id || order.id, 'completed'); }}
                             className="bg-emerald-50 text-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-colors cursor-pointer group shadow-sm"
                             title="Mark Completed"
                           >
                             <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">check_circle</span>
                           </button>
                           <button
-                            onClick={() => handleOpenModal(order._id || order.id, 'failed')}
+                            onClick={(e) => { e.stopPropagation(); handleOpenModal(order._id || order.id, 'failed'); }}
                             className="bg-red-50 text-red-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer group shadow-sm"
                             title="Mark Failed"
                           >
@@ -234,7 +263,7 @@ const ShipperOrders = () => {
                 </p>
                 <div className="flex items-center gap-2">
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
                     className={`p-2 rounded-xl flex items-center justify-center transition-all ${
                       currentPage === 1 ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'
@@ -243,7 +272,7 @@ const ShipperOrders = () => {
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
                   <button 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                     disabled={currentPage === totalPages}
                     className={`p-2 rounded-xl flex items-center justify-center transition-all ${
                       currentPage === totalPages ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer'

@@ -113,9 +113,9 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
 
     return (
         <div className="flex flex-col min-h-screen w-full bg-[#F8FAFC]">
-            
 
-            <div className="p-10 max-w-[1440px] mx-auto w-full space-y-8">
+
+            <div className="p-4 md:p-10 max-w-[1440px] mx-auto w-full space-y-8">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm group hover:border-primary/30 transition-all cursor-pointer">
@@ -160,7 +160,7 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                 {/* Table Section */}
                 <div className="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-outline-variant/30 overflow-hidden">
                     {/* Tabs */}
-                    <div className="border-b border-outline-variant/30 flex px-8 overflow-x-auto custom-scrollbar bg-surface-container-low/20">
+                    <div className="border-b border-outline-variant/30 flex px-4 md:px-8 overflow-x-auto custom-scrollbar bg-surface-container-low/20">
                         {['All', 'Pending', 'Approved', 'Rejected'].map(tab => (
                             <button
                                 key={tab}
@@ -170,9 +170,9 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     params.set('page', '1');
                                     setSearchParams(params);
                                 }}
-                                className={`px-6 py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
-                                        ? 'text-primary border-b-[3px] border-primary'
-                                        : 'text-secondary hover:text-primary'
+                                className={`px-4 py-4 md:px-6 md:py-6 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === tab
+                                    ? 'text-primary border-b-[3px] border-primary'
+                                    : 'text-secondary hover:text-primary'
                                     }`}
                             >
                                 {tab === 'Pending' ? `Pending (${stats.new})` : tab === 'All' ? 'All Requests' : tab}
@@ -181,15 +181,15 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                     </div>
 
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full border-collapse">
+                        <table className="w-full text-left border-collapse table-fixed">
                             <thead>
-                                <tr className="text-left border-b border-outline-variant/20 bg-surface-container-low/10">
-                                    <th className="pl-8 pr-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Order Information</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Customer</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Reason</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Refund Amount</th>
-                                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Status</th>
-                                    <th className="pl-4 pr-8 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Actions</th>
+                                <tr className="bg-surface-container-low/50">
+                                    <th className="w-[30%] pl-8 pr-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Product Details</th>
+                                    <th className="w-[20%] px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Customer</th>
+                                    <th className="w-[20%] px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Reason</th>
+                                    <th className="w-[10%] px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Refund Amount</th>
+                                    <th className="w-[10%] px-4 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60">Status</th>
+                                    <th className="w-[10%] pl-4 pr-8 py-6 text-[10px] font-black uppercase tracking-widest text-secondary/60 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-outline-variant/10">
@@ -293,13 +293,13 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     </p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
                                         className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={executeUpdateStatus}
                                         className="flex-1 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 shadow-lg shadow-green-200 cursor-pointer"
                                     >
@@ -319,7 +319,7 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     </p>
                                 </div>
                                 <div className="space-y-2">
-                                    <textarea 
+                                    <textarea
                                         rows="3"
                                         placeholder="Reason for rejection..."
                                         value={actionModal.reason}
@@ -328,13 +328,13 @@ const SellerCancellations = ({ setActiveTab, onViewDetails }) => {
                                     />
                                 </div>
                                 <div className="flex gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setActionModal({ isOpen: false, id: null, type: '', reason: '' })}
                                         className="flex-1 py-4 border border-slate-200 rounded-2xl font-black text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={executeUpdateStatus}
                                         className="flex-1 py-4 bg-error text-white rounded-2xl font-black text-sm hover:brightness-110 shadow-lg shadow-error/20 cursor-pointer"
                                     >

@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const chatbotMessageSchema = new mongoose.Schema({
      session_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatbotSession', required: true },
      sender: { type: String, enum: ['user', 'bot'], required: true },
-     content: { type: String }
+     content: { type: String },
+     attachments: { type: Array, default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('ChatbotMessage', chatbotMessageSchema);

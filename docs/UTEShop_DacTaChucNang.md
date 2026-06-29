@@ -142,7 +142,7 @@ Mã số: SL
 |**13**|Chat trực tuyến với Người bán (Real-time|Tương tác|QĐ\_KH13||Nhắn tin trực tiếp theo thời gian thực (WebSockets) với Seller để nhận tư vấn cụ thể về món hàng.|
 |**14**|Quản lý đa địa chỉ giao hàng|Cập nhật/Lưu trữ|QĐ\_KH14||Thêm mới, cập nhật, xóa các địa chỉ trong Sổ địa chỉ.|
 
-<a name="_toc212033560"></a>**Bảng **1****5**: Bảng yêu cầu chức năng nghiệp vụ Khách hàng**
+<a name="_toc212033560"></a>**Bảng **1** **5**: Bảng yêu cầu chức năng nghiệp vụ Khách hàng**
 
 |**STT**|**Mã số**|**Tên Quy định/ Công thức**|**Mô tả chi tiết**|**Ghi chú**|
 | :- | :- | :- | :- | :- |
@@ -163,6 +163,26 @@ Mã số: SL
 |**15**|QĐ\_KH14|Quy định quản lý địa chỉ giao hàng|Khách hàng có quyền tạo và quản lý nhiều địa chỉ giao hàng khác nhau (Nhà riêng, Cơ quan) trong Hồ sơ cá nhân. Tại bước Thanh toán (Checkout), khách hàng có thể chọn nhanh địa chỉ đã lưu hoặc tạo địa chỉ mới.||
 |**16**|QĐ\_KH15|Quy định Đánh giá gộp|Hệ thống cho phép khách hàng đánh giá Sản phẩm, Shop và ĐVVC trên cùng một form. Các bản ghi Review sẽ được liên kết với nhau thông qua `order_id` để quản lý theo phiên.||
 <a name="_toc212033561"></a>**Bảng **1****6**: Bảng yêu quy định/ công thức liên quan Khách hàng**
+
+
+
+**Bộ phận: Nhân viên giao hàng (Shipper)	Mã số: SP**
+
+|**STT**|**Công việc**|**Loại công việc**|**Quy định/Công thức liên quan**|**Biểu mẫu liên quan**|**Ghi chú**|
+| :- | :- | :- | :- | :- | :- |
+|1|Xem Tổng quan Shipper|Tra cứu|QĐ_SP1||Dashboard theo dõi đơn hàng đang giao và thành tích.|
+|2|Quản lý Giao hàng|Cập nhật/Xử lý|QĐ_SP2||Nhận đơn, cập nhật trạng thái lấy hàng, đang giao, giao thành công.|
+|3|Thống kê Vận chuyển|Tra cứu|QĐ_SP3||Báo cáo số lượng đơn giao thành công, tỷ lệ hoàn/hủy.|
+|4|Quản lý Hồ sơ Shipper|Lưu trữ/Cập nhật|QĐ_SP4||Cập nhật thông tin phương tiện, khu vực hoạt động.|
+
+**Bảng 1.7: Bảng yêu cầu chức năng nghiệp vụ Shipper**
+
+|**STT**|**Mã số**|**Tên Quy định/ Công thức**|**Mô tả chi tiết**|**Ghi chú**|
+| :- | :- | :- | :- | :- |
+|1|QĐ_SP1|Quy định Quản lý Giao hàng|Shipper chỉ được phép tiếp nhận và giao các đơn hàng đã được Seller đẩy qua ĐVVC. Các trạng thái cập nhật (Delivering, Delivered) sẽ được đồng bộ trực tiếp với hệ thống cốt lõi qua Webhook.||
+|2|QĐ_SP2|Quy định Hồ sơ hoạt động|Shipper phải cung cấp thông tin phương tiện (Biển số xe) và khu vực hoạt động (Quận/Huyện) để hệ thống điều phối đơn hàng chính xác.||
+
+**Bảng 1.8: Bảng yêu quy định/ công thức liên quan Shipper**
 
 **Bộ phận: Quản lý (Manager)	Mã số: KH**
 
@@ -335,23 +355,24 @@ Mã số: SL
          |**Business Rules**|- **BR06-1:** Trạng thái trên thanh tiến trình được hệ thống tự động lấy từ các đối tác giao hàng (như Giao Hàng Tiết Kiệm) về để hiển thị. Khách hàng cứ ở yên trên web của mình là xem được, không cần sang trang web khác.<br>- **BR06-2:** Chỉ cho phép khách tự bấm hủy đơn khi shop chưa gói xong hàng.|
          |**Non-Functional Requirement**|- **NFR06-1:** Lịch sử đơn hàng phải được lưu lại đầy đủ kể cả những đơn từ vài năm trước, để khách hàng muốn tìm mua lại món đồ cũ thì vẫn có thể xem lại dễ dàng.|
       7. ### ***Use case 7***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC07|
+           |**Use Case Name**|Đọc Blog & Thông tin tĩnh|
+           |**Description**|Là một Người dùng, tôi muốn đọc các bài viết blog, tin tức khuyến mãi và các chính sách của sàn (FAQ, vận chuyển, đổi trả).|
+           |**Actor(s)**|Khách vãng lai (Guest), Khách hàng (Customer)|
+           |**Priority**|Must Have|
+           |**Trigger**|Người dùng nhấp vào mục "Tin tức" hoặc các liên kết chính sách ở Footer.|
+           |**Pre-Condition(s)**|Hệ thống hoạt động bình thường.|
+           |**Post-Condition(s)**|Người dùng xem được nội dung bài viết.|
+           |**Basic Flow**|<p>1\. Người dùng truy cập trang danh sách Blog/Tin tức.</p><p>2\. Hệ thống hiển thị danh sách các bài viết mới nhất và nổi bật.</p><p>3\. Người dùng chọn một bài viết cụ thể để đọc.</p><p>4\. Hệ thống truy xuất nội dung bài viết và hiển thị định dạng HTML/Markdown.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|<p>3a. Bài viết đã bị xóa hoặc ẩn:</p><p>3a1. Hệ thống báo lỗi "404 - Bài viết không tồn tại" và gợi ý các bài viết khác.</p>|
+           |**Business Rules**|- **BR07-1:** Bài viết thông tin tĩnh (FAQ, Chính sách) không được phép xóa khỏi cơ sở dữ liệu để đảm bảo tính pháp lý.|
+           |**Non-Functional Requirement**|- **NFR07-1:** Tốc độ tải bài viết phải cực nhanh do nội dung chủ yếu là text và hình ảnh tĩnh tĩnh.|
 
-         |**Trường**|**Nội dung**|
-         | - | - |
-         |**Use Case ID**|UC07|
-         |**Use Case Name**|Tương tác Chatbot AI|
-         |**Description**|Là một Người dùng, tôi muốn chat bằng ngôn ngữ tự nhiên với trợ lý ảo AI để tìm hiểu tổng quan về hệ thống, xu hướng sản phẩm, hoặc tra cứu tình trạng đơn hàng/giỏ hàng cá nhân.|
-         |**Actor(s)**|Khách vãng lai (Guest), Khách hàng (Customer)|
-         |**Priority**|Should Have|
-         |**Trigger**|Người dùng nhấp vào biểu tượng Chatbot nổi ở góc màn hình.|
-         |**Pre-Condition(s)**|Hệ thống AI Server đang hoạt động bình thường.|
-         |**Post-Condition(s)**|Người dùng nhận được câu trả lời chính xác dựa trên kho dữ liệu và ngữ cảnh định danh của hệ thống.|
-         |**Basic Flow**|<p>1\. Người dùng mở khung Chatbot AI.</p><p>2\. Người dùng nhập câu hỏi bằng ngôn ngữ tự nhiên (Ví dụ: *"Nền tảng này bán gì?", "Sản phẩm nào đang hot nhất?",* hoặc *"Đơn hàng của tôi đâu?"*).</p><p>3\. Khách hàng nhấn Gửi.</p><p>4\. Hệ thống tiếp nhận, AI phân tích ý định (intent) của câu hỏi.</p><p>5\. Hệ thống nhận diện trạng thái đăng nhập và truy xuất dữ liệu phù hợp để trả lời.</p><p>6\. Chatbot phản hồi lại tin nhắn cho người dùng kèm theo thông tin chi tiết.</p>|
-         |**Alternative Flow**|<p>2a. Người dùng đang ở trong trang Chi tiết Sản phẩm và mở Chatbot hỏi về sản phẩm đó (Ví dụ: *"Sản phẩm này tôi được giảm giá bao nhiêu?"*).</p><p>2a1. Hệ thống AI tự động bắt ngữ cảnh của ID sản phẩm đang xem và trả về đúng thông số % giảm giá, màu sắc của sản phẩm đó.</p>|
-         |**Exception Flow**|<p>5a. Phân quyền dữ liệu cá nhân:</p><p>5a1. Khách vãng lai (Guest) đặt câu hỏi liên quan đến dữ liệu cá nhân (Giỏ hàng, Đơn hàng, Ví xu).</p><p>5a2. Chatbot từ chối trả lời, yêu cầu Người dùng phải Đăng nhập và hiển thị kèm nút "Đi đến trang Đăng nhập".</p><p>5b. AI không hiểu câu hỏi:</p><p>5b1. Câu hỏi nằm ngoài phạm vi dữ liệu hệ thống (Ví dụ: Hỏi về thời tiết).</p><p>5b2. Hệ thống phản hồi lại thông báo từ chối khéo léo và hướng dẫn khách hàng hỏi lại các vấn đề liên quan đến mua sắm.</p>|
-         |**Business Rules**|<p>- **BR07-1:** Nếu là Khách vãng lai, Chatbot chỉ được phép truy xuất kho dữ liệu Public (Tổng quan hệ thống, FAQ, Sản phẩm tìm kiếm nhiều nhất, Khuyến mãi).</p><p>- **BR07-2:** Nếu là Khách hàng (đã đăng nhập), Chatbot được cấp thêm quyền truy xuất dữ liệu Private (Đơn hàng, Giỏ hàng, Lịch sử) thuộc sở hữu của chính User đó.</p>|
-         |**Non-Functional Requirement**|- **NFR07-1:** Thời gian phản hồi của Chatbot AI (AI processing time) không được vượt quá 3 giây để đảm bảo tính thời gian thực.|
-      8. ### ***Use case 8***
+        8. ### ***Use case 8***
 
          |**Thành phần**|**Chi tiết đặc tả**|
          | - | - |
@@ -782,3 +803,225 @@ Mã số: SL
 
 Trang 2
 
+
+
+      33. ### ***Use case 33***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC33|
+           |**Use Case Name**|Quản lý giao hàng của Shipper|
+           |**Description**|Là một Nhân viên giao hàng (Shipper), tôi muốn xem danh sách các đơn hàng cần đi lấy và đi giao để cập nhật tiến độ.|
+           |**Actor(s)**|Shipper|
+           |**Priority**|Must Have|
+           |**Trigger**|Shipper mở trang quản lý giao hàng.|
+           |**Pre-Condition(s)**|Đơn hàng đã được Seller đóng gói và bấm "Giao cho ĐVVC".|
+           |**Post-Condition(s)**|Trạng thái đơn hàng được cập nhật thành Đang giao hoặc Đã giao thành công.|
+           |**Basic Flow**|<p>1\. Shipper đăng nhập và mở danh sách đơn hàng được phân công.</p><p>2\. Shipper đến kho của Seller để lấy hàng, nhấn "Đã lấy hàng".</p><p>3\. Hệ thống cập nhật trạng thái đơn thành DELIVERING và thông báo cho khách.</p><p>4\. Shipper đi giao hàng cho khách.</p><p>5\. Giao xong, Shipper nhấn "Giao thành công".</p><p>6\. Hệ thống cập nhật trạng thái thành DELIVERED và báo tin cho khách.</p>|
+           |**Alternative Flow**|<p>5a. Khách hàng không nhận máy / Đi vắng:</p><p>5a1. Shipper nhấn "Giao thất bại" và chọn lý do.</p><p>5a2. Đơn hàng chuyển sang trạng thái chờ giao lại lần 2.</p>|
+           |**Exception Flow**|*Không có.*|
+           |**Business Rules**|- **BR33-1:** Shipper chỉ được thấy những đơn hàng thuộc khu vực hoạt động của mình.|
+
+      34. ### ***Use case 34***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC34|
+           |**Use Case Name**|Tương tác Trợ lý AI (Customer AI Chat)|
+           |**Description**|Là một Khách hàng, tôi muốn có một trợ lý AI thông minh tư vấn sản phẩm, giải đáp thắc mắc về đơn hàng 24/7.|
+           |**Actor(s)**|Customer|
+           |**Priority**|Should Have|
+           |**Trigger**|Khách hàng nhấn vào biểu tượng Chat AI ở góc màn hình.|
+           |**Pre-Condition(s)**|Khách hàng đã đăng nhập.|
+           |**Post-Condition(s)**|Khách hàng nhận được câu trả lời phù hợp dựa trên ngữ cảnh.|
+           |**Basic Flow**|<p>1\. Khách hàng mở khung chat AI và gõ câu hỏi (VD: "Giày này có màu xanh không?").</p><p>2\. Hệ thống Backend nhận tin nhắn, thu thập thông tin giỏ hàng và sản phẩm đang xem để làm ngữ cảnh.</p><p>3\. Hệ thống gửi Prompt sang LLM (VD: Gemini/OpenAI).</p><p>4\. LLM trả về câu trả lời tự nhiên.</p><p>5\. Hệ thống hiển thị câu trả lời cho Khách hàng trên giao diện.</p>|
+           |**Alternative Flow**|<p>1a. Hỏi về trạng thái đơn hàng:</p><p>1a1. Khách hàng hỏi "Đơn hàng #123 của tôi đâu rồi?".</p><p>1a2. Hệ thống truy vấn Database lấy trạng thái đơn hàng và gửi cho LLM để tạo câu trả lời.</p>|
+           |**Exception Flow**|<p>3a. Kết nối với LLM thất bại:</p><p>3a1. Hệ thống báo lỗi "Trợ lý AI hiện đang bận, vui lòng thử lại sau".</p>|
+           |**Business Rules**|- **BR34-1:** AI chỉ được phép đọc dữ liệu public của sản phẩm và dữ liệu cá nhân của chính người dùng đó. Tuyệt đối không tiết lộ doanh thu của shop hay thông tin của khách khác.|
+
+      35. ### ***Use case 35***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC35|
+           |**Use Case Name**|Hủy đơn hàng|
+           |**Description**|Là một Khách hàng, tôi muốn hủy bỏ đơn hàng vừa đặt nếu phát hiện sai sót hoặc đổi ý.|
+           |**Actor(s)**|Khách hàng (Customer)|
+           |**Priority**|Must Have|
+           |**Trigger**|Khách hàng nhấn nút "Hủy đơn" trong Chi tiết đơn hàng.|
+           |**Pre-Condition(s)**|Đơn hàng đang ở trạng thái PLACED hoặc CONFIRMED (Chưa bàn giao cho ĐVVC).|
+           |**Post-Condition(s)**|Đơn hàng bị hủy, hoàn lại số lượng tồn kho và tiền (nếu đã thanh toán qua thẻ).|
+           |**Basic Flow**|<p>1\. Khách hàng mở Chi tiết đơn hàng.</p><p>2\. Khách hàng nhấn "Hủy đơn hàng".</p><p>3\. Hệ thống yêu cầu chọn Lý do hủy (VD: "Đổi ý", "Đặt nhầm địa chỉ").</p><p>4\. Khách hàng xác nhận.</p><p>5\. Hệ thống cập nhật trạng thái đơn thành CANCELLED, cộng lại tồn kho cho Seller.</p>|
+           |**Alternative Flow**|<p>5a. Đơn hàng đã thanh toán bằng thẻ/ví (VNPay):</p><p>5a1. Hệ thống tự động kích hoạt tiến trình Refund về tài khoản gốc của khách hàng.</p>|
+           |**Exception Flow**|<p>2a. Đơn hàng đã chuyển sang SHIPPED (Đang giao):</p><p>2a1. Nút "Hủy đơn" bị mờ. Hệ thống thông báo không thể hủy do hàng đã lên xe.</p>|
+           |**Business Rules**|- **BR35-1:** Chỉ được phép hủy khi đơn chưa được đẩy sang ĐVVC.|
+
+      36. ### ***Use case 36***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC36|
+           |**Use Case Name**|Xem Thống kê cá nhân|
+           |**Description**|Là một Khách hàng, tôi muốn xem thống kê tổng số tiền đã chi tiêu và lịch sử đơn hàng.|
+           |**Actor(s)**|Khách hàng (Customer)|
+           |**Priority**|Could Have|
+           |**Trigger**|Khách hàng truy cập tab "Thống kê" trong Profile.|
+           |**Pre-Condition(s)**|Đã đăng nhập.|
+           |**Post-Condition(s)**|Hiển thị biểu đồ chi tiêu.|
+           |**Basic Flow**|<p>1\. Khách hàng mở Profile, chọn "Thống kê".</p><p>2\. Hệ thống tổng hợp các đơn hàng có trạng thái DELIVERED.</p><p>3\. Hệ thống hiển thị biểu đồ chi tiêu theo tháng và tổng số tiền đã tiêu.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR36-1:** Các đơn bị CANCELLED, RETURNED không được tính vào tổng chi tiêu.|
+
+      37. ### ***Use case 37***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC37|
+           |**Use Case Name**|Xem Thông báo hệ thống|
+           |**Description**|Là một Khách hàng, tôi muốn nhận và xem các thông báo về trạng thái đơn hàng, khuyến mãi.|
+           |**Actor(s)**|Khách hàng (Customer)|
+           |**Priority**|Should Have|
+           |**Trigger**|Hệ thống đẩy thông báo hoặc Khách hàng nhấn chuông thông báo.|
+           |**Pre-Condition(s)**|Đã đăng nhập.|
+           |**Post-Condition(s)**|Thông báo được đánh dấu là Đã đọc.|
+           |**Basic Flow**|<p>1\. Khách hàng nhấn biểu tượng Chuông.</p><p>2\. Hệ thống hiển thị danh sách thông báo chưa đọc.</p><p>3\. Khách hàng nhấn vào thông báo để chuyển hướng đến nội dung liên quan (VD: Chi tiết đơn hàng).</p><p>4\. Thông báo đổi sang trạng thái Đã đọc.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR37-1:** Thông báo hệ thống tự động xóa sau 30 ngày để dọn dẹp Database.|
+
+      38. ### ***Use case 38***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC38|
+           |**Use Case Name**|Nâng cấp Tài khoản|
+           |**Description**|Là một Khách hàng, tôi muốn nộp hồ sơ để trở thành Seller hoặc Shipper.|
+           |**Actor(s)**|Khách hàng (Customer)|
+           |**Priority**|Must Have|
+           |**Trigger**|Khách hàng nhấn "Đăng ký bán hàng" hoặc "Đăng ký làm Shipper".|
+           |**Pre-Condition(s)**|Đang là Role Customer.|
+           |**Post-Condition(s)**|Tài khoản bị khóa chờ Admin duyệt, hoặc trạng thái yêu cầu chờ duyệt.|
+           |**Basic Flow**|<p>1\. Khách hàng điền form thông tin (MST/CCCD, Biển số xe...).</p><p>2\. Khách hàng tải lên hình ảnh giấy tờ xác minh.</p><p>3\. Nhấn Gửi yêu cầu.</p><p>4\. Hệ thống tạo một Request chờ duyệt trong Admin Dashboard.</p><p>5\. Khách hàng chờ kết quả từ Admin qua Email.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|<p>1a. Thông tin điền thiếu:</p><p>1a1. Nút Gửi bị vô hiệu hóa, bôi đỏ các trường bắt buộc.</p>|
+           |**Business Rules**|- **BR38-1:** Một Customer có thể đồng thời yêu cầu làm Seller và Shipper.|
+
+      39. ### ***Use case 39***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC39|
+           |**Use Case Name**|Quản lý Đánh giá|
+           |**Description**|Là một Người bán (Seller), tôi muốn xem đánh giá của khách hàng và phản hồi lại.|
+           |**Actor(s)**|Seller|
+           |**Priority**|Should Have|
+           |**Trigger**|Seller mở tab "Quản lý Đánh giá".|
+           |**Pre-Condition(s)**|Sản phẩm của Seller đã được mua và có đánh giá.|
+           |**Post-Condition(s)**|Phản hồi của Seller được hiển thị công khai bên dưới đánh giá của khách.|
+           |**Basic Flow**|<p>1\. Seller xem danh sách đánh giá.</p><p>2\. Seller chọn một đánh giá 1 sao để phản hồi.</p><p>3\. Nhập nội dung xin lỗi/giải thích và nhấn "Gửi phản hồi".</p><p>4\. Hệ thống lưu phản hồi và hiển thị trên trang Chi tiết sản phẩm.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR39-1:** Seller không được phép Xóa đánh giá của Khách hàng dưới mọi hình thức.|
+
+      40. ### ***Use case 40***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC40|
+           |**Use Case Name**|Thống kê Hệ thống & Báo cáo|
+           |**Description**|Là một Admin/Manager, tôi muốn xem biểu đồ tổng quan doanh thu, lượng đơn hàng và người dùng toàn sàn.|
+           |**Actor(s)**|Admin, Manager|
+           |**Priority**|Must Have|
+           |**Trigger**|Truy cập trang Dashboard.|
+           |**Pre-Condition(s)**|Có quyền truy cập Admin/Manager.|
+           |**Post-Condition(s)**|Hiển thị số liệu trực quan.|
+           |**Basic Flow**|<p>1\. Truy cập Dashboard.</p><p>2\. Hệ thống tính toán tổng GMV (Gross Merchandise Value), tổng số đơn hàng, tổng Seller/Customer.</p><p>3\. Hiển thị biểu đồ theo khoảng thời gian (Ngày/Tháng/Năm).</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR40-1:** Manager chỉ xem được các thống kê số lượng đơn/Shop, không xem được doanh thu nền tảng (phần này chỉ Admin thấy).|
+
+      41. ### ***Use case 41***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC41|
+           |**Use Case Name**|Duyệt Nâng cấp Role|
+           |**Description**|Là một Admin, tôi muốn xem xét giấy tờ và phê duyệt các yêu cầu trở thành Seller/Shipper.|
+           |**Actor(s)**|Admin|
+           |**Priority**|Must Have|
+           |**Trigger**|Admin mở danh sách Yêu cầu nâng cấp.|
+           |**Pre-Condition(s)**|Có yêu cầu đang Pending.|
+           |**Post-Condition(s)**|Quyền truy cập của tài khoản đó được thay đổi.|
+           |**Basic Flow**|<p>1\. Admin xem danh sách hồ sơ xin làm Seller.</p><p>2\. Kiểm tra hình ảnh CMND và GST.</p><p>3\. Admin nhấn "Phê duyệt" (Approve).</p><p>4\. Hệ thống đổi Role của user thành SELLER và gửi Email chúc mừng.</p>|
+           |**Alternative Flow**|<p>3a. Hồ sơ không hợp lệ:</p><p>3a1. Admin nhấn "Từ chối" và nhập lý do (Ảnh mờ).</p><p>3a2. Hệ thống gửi Email yêu cầu khách cung cấp lại.</p>|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR41-1:** User sau khi thành Seller vẫn có thể mua sắm bình thường như Customer.|
+
+      42. ### ***Use case 42***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC42|
+           |**Use Case Name**|Quản lý Bài viết / Blog|
+           |**Description**|Là một Admin, tôi muốn đăng tải tin tức, thông báo chính sách mới để hiển thị công khai trên sàn.|
+           |**Actor(s)**|Admin|
+           |**Priority**|Should Have|
+           |**Trigger**|Admin mở mục "Quản lý Bài viết".|
+           |**Pre-Condition(s)**|Có quyền Quản trị nội dung.|
+           |**Post-Condition(s)**|Bài viết được đăng công khai.|
+           |**Basic Flow**|<p>1\. Admin nhấn "Thêm bài viết mới".</p><p>2\. Sử dụng trình soạn thảo Rich Text (Quill/TinyMCE) để nhập Tiêu đề, Nội dung, Hình thu nhỏ.</p><p>3\. Chọn danh mục (Tin khuyến mãi, Tin hệ thống) và nhấn "Xuất bản".</p><p>4\. Hệ thống hiển thị bài viết trên trang Blog của Khách hàng.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR42-1:** Chỉ Admin mới được đăng bài viết chung toàn sàn.|
+
+      43. ### ***Use case 43***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC43|
+           |**Use Case Name**|Cấu hình Nền tảng & ĐVVC|
+           |**Description**|Là một Admin, tôi muốn cấu hình tỷ lệ Phí nền tảng (Platform Fee) và Bật/Tắt các Đơn vị vận chuyển hợp tác.|
+           |**Actor(s)**|Admin|
+           |**Priority**|Must Have|
+           |**Trigger**|Admin mở mục "Cấu hình Hệ thống".|
+           |**Pre-Condition(s)**|Tài khoản là Super Admin.|
+           |**Post-Condition(s)**|Hệ thống áp dụng ngay các công thức toán học mới.|
+           |**Basic Flow**|<p>1\. Admin thay đổi Phí nền tảng từ 5% lên 7%.</p><p>2\. Admin tắt ĐVVC "Giao Hàng Nhanh" do đang lỗi hệ thống.</p><p>3\. Admin nhấn Lưu.</p><p>4\. Các đơn hàng mới phát sinh lập tức tính phí 7% và không còn hiển thị GHN làm tùy chọn giao hàng.</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR43-1:** Thay đổi phí không được ảnh hưởng hồi tố đến các đơn hàng đã đặt trước đó.|
+
+      44. ### ***Use case 44***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC44|
+           |**Use Case Name**|Tổng quan & Thống kê Vận chuyển|
+           |**Description**|Là một Shipper, tôi muốn xem biểu đồ thể hiện tỷ lệ giao thành công và thu nhập vận chuyển.|
+           |**Actor(s)**|Shipper|
+           |**Priority**|Could Have|
+           |**Trigger**|Shipper mở tab Thống kê.|
+           |**Pre-Condition(s)**|Đang ở Dashboard của Shipper.|
+           |**Post-Condition(s)**|Hiển thị biểu đồ vận chuyển.|
+           |**Basic Flow**|<p>1\. Shipper truy cập Thống kê.</p><p>2\. Hệ thống tổng hợp các đơn DELIVERED do chính Shipper này phụ trách.</p><p>3\. Hiển thị số lượng đơn hoàn thành trong tháng và tỷ lệ thành công (Thành công / Tổng đơn nhận).</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR44-1:** Thu nhập vận chuyển của Shipper do Admin thanh toán, không liên quan đến Ví của Seller.|
+
+      45. ### ***Use case 45***
+  
+           |**Trường**|**Nội dung**|
+           | - | - |
+           |**Use Case ID**|UC45|
+           |**Use Case Name**|Quản lý Hồ sơ Shipper|
+           |**Description**|Là một Shipper, tôi muốn cập nhật biển số xe, số điện thoại liên lạc để khách hàng và hệ thống nhận diện.|
+           |**Actor(s)**|Shipper|
+           |**Priority**|Must Have|
+           |**Trigger**|Shipper mở Hồ sơ cá nhân.|
+           |**Pre-Condition(s)**|Đang đăng nhập quyền Shipper.|
+           |**Post-Condition(s)**|Thông tin phương tiện được cập nhật.|
+           |**Basic Flow**|<p>1\. Shipper mở trang Profile.</p><p>2\. Chỉnh sửa số điện thoại, biển số xe và hình ảnh bằng lái.</p><p>3\. Nhấn Lưu cập nhật.</p><p>4\. Thông tin này sẽ được hiển thị cho Khách hàng khi xem tiến trình đơn hàng (Ví dụ: "Shipper Nguyễn Văn A - Xe 59X1-123.45 đang giao").</p>|
+           |**Alternative Flow**|*Không có*|
+           |**Exception Flow**|*Không có*|
+           |**Business Rules**|- **BR45-1:** Biển số xe là trường bắt buộc để phòng ngừa rủi ro mất mát hàng hóa.|
