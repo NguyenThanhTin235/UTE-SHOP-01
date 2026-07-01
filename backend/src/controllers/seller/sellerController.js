@@ -397,9 +397,21 @@ const getCancellations = async (req, res, next) => {
                 .populate('product_id', 'name slug')
                 .populate('variant_id', 'attributes');
 
+            const productIds = items.filter(i => i.product_id).map(i => i.product_id._id);
+            const medias = await ProductMedia.find({ product_id: { $in: productIds } });
+
+            const itemsWithMedia = items.map(item => {
+                const itemObj = item.toObject();
+                if (itemObj.product_id) {
+                    const productMedia = medias.find(m => m.product_id.toString() === itemObj.product_id._id.toString());
+                    itemObj.product_id.media_url = productMedia ? productMedia.media_url : null;
+                }
+                return itemObj;
+            });
+
             return {
                 ...cancel.toObject(),
-                items: items
+                items: itemsWithMedia
             };
         }));
 
